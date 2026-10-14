@@ -45,6 +45,8 @@ coverage.xml
 
 # Environments
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/
@@ -67,6 +69,28 @@ Desktop.ini
 # Project specific / local data & cache (embeddings, indices, model weights)
 *.log
 models/
+checkpoints/
 data/cache/
+data/raw/
+data/scans/
 *.faiss
 *.index
+
+# ML/DL model weights & serialized artifacts (PyTorch, SafeTensors, ONNX, Pickles)
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.onnx
+*.pkl
+*.pickle
+*.parquet
+
+# Experiment tracking & results
+wandb/
+runs/
+results/
+reports/
+figures/
+hf_cache/
+.huggingface/
