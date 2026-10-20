@@ -1,0 +1,20 @@
+{
+  "rus": {
+    "language": "rus",
+    "total_contexts": 973,
+    "total_questions": 7443,
+    "test_questions": 200,
+    "corpus_file": "data\\adilet\\corpus_rus.txt",
+    "test_qa_file": "data\\adilet\\qa_rus_test.json",
+    "full_qa_file": "data\\adilet\\qa_rus_full.json"
+  },
+  "kaz": {
+    "language": "kaz",
+    "total_contexts": 751,
+    "total_questions": 5716,
+    "test_questions": 200,
+    "corpus_file": "data\\adilet\\corpus_kaz.txt",
+    "test_qa_file": "data\\adilet\\qa_kaz_test.json",
+    "full_qa_file": "data\\adilet\\qa_kaz_full.json"
+  }
+}

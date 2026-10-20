@@ -9,3 +9,5 @@ jupyter
 tqdm
 matplotlib
 seaborn
+pyarrow
+rank-bm25
