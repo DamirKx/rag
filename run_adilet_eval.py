@@ -113,6 +113,46 @@ def evaluate_pipeline(
     }
 
 
+def get_or_compute_embeddings(
+    embedder: EmbeddingModel,
+    texts: List[str],
+    cache_dir: str,
+    cache_key: str,
+    use_cache: bool = True
+) -> np.ndarray:
+    """Загружает готовые эмбеддинги из бинарного кэша (.npy) или вычисляет их и сохраняет."""
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_file = os.path.join(cache_dir, f"{cache_key}.npy")
+
+    if use_cache and os.path.exists(cache_file):
+        print(f"⚡ Загрузка векторов из дискового кэша: {cache_file}...")
+        t0 = time.time()
+        try:
+            emb = np.load(cache_file)
+            if len(emb) == len(texts):
+                print(f"  Успешно загружено {len(emb)} векторов за {time.time() - t0:.2f} сек. Форма: {emb.shape}")
+                return emb
+            else:
+                print(f"  Размер кэша ({len(emb)}) не совпадает с числом текстов ({len(texts)}), пересчитываем...")
+        except Exception as e:
+            print(f"  Ошибка чтения кэша ({e}), пересчитываем...")
+
+    print(f"Векторизация {len(texts)} текстов через нейросеть...")
+    t0 = time.time()
+    emb = embedder.encode_documents(texts)
+    print(f"Векторизация завершена за {time.time() - t0:.2f} сек. Форма матрицы: {emb.shape}")
+
+    if use_cache:
+        try:
+            np.save(cache_file, emb)
+            size_mb = os.path.getsize(cache_file) / (1024 * 1024)
+            print(f"💾 Векторы сохранены в кэш: {cache_file} ({size_mb:.1f} MB)")
+        except Exception as e:
+            print(f"⚠️ Предупреждение: не удалось сохранить кэш: {e}")
+
+    return emb
+
+
 def run_evaluation(
     lang: str = "rus",
     qa_path: str = "data/adilet/qa_rus_test.json",
@@ -120,7 +160,9 @@ def run_evaluation(
     model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
     top_k: int = 3,
     max_test_queries: int = 100,
-    output_report: str = None
+    output_report: str = None,
+    use_cache: bool = True,
+    cache_dir: str = "data/adilet/cache"
 ) -> Dict[str, Any]:
     """Основной пайплайн сравнительной оценки стратегий чанкинга."""
     print("=" * 80)
@@ -129,6 +171,7 @@ def run_evaluation(
     print(f" Язык: {lang.upper()}")
     print(f" Модель эмбеддингов: {model_name}")
     print(f" Глубина поиска (top-k): {top_k}")
+    print(f" Использование кэша эмбеддингов: {'ДА' if use_cache else 'НЕТ'}")
 
     # 1. Загрузка исходных данных
     if not os.path.exists(cache_parquet):
@@ -155,6 +198,9 @@ def run_evaluation(
     embedder = EmbeddingModel(model_name=model_name, device="cpu")
     print(f"Модель загружена за {time.time() - t0:.2f} сек.")
 
+    # Безопасный идентификатор модели для имени файла кэша
+    safe_model = re.sub(r'[^a-zA-Z0-9_\-]', '_', model_name)
+
     # =========================================================================
     # Эксперимент 1: Структурный чанкинг НПА (Article-level / смысловые блоки)
     # =========================================================================
@@ -172,10 +218,14 @@ def run_evaluation(
         struct_doc_ids.append(doc_id)
 
     print(f"Создано структурных чанков: {len(struct_chunks)}")
-    print("Векторизация структурных чанков...")
-    t0 = time.time()
-    struct_emb = embedder.encode_documents(struct_chunks)
-    print(f"Векторизация завершена за {time.time() - t0:.2f} сек. Форма матрицы: {struct_emb.shape}")
+    struct_cache_key = f"{safe_model}_{lang}_structural"
+    struct_emb = get_or_compute_embeddings(
+        embedder=embedder,
+        texts=struct_chunks,
+        cache_dir=cache_dir,
+        cache_key=struct_cache_key,
+        use_cache=use_cache
+    )
 
     struct_retriever = VectorRetriever(embedding_dim=struct_emb.shape[1])
     struct_retriever.add_documents(struct_emb, struct_chunks, struct_doc_ids)
@@ -211,10 +261,14 @@ def run_evaluation(
             fixed_doc_ids.append(chunk_id)
 
     print(f"Создано фиксированных чанков: {len(fixed_chunks)}")
-    print("Векторизация фиксированных чанков...")
-    t0 = time.time()
-    fixed_emb = embedder.encode_documents(fixed_chunks)
-    print(f"Векторизация завершена за {time.time() - t0:.2f} сек. Форма матрицы: {fixed_emb.shape}")
+    fixed_cache_key = f"{safe_model}_{lang}_fixed_500_50"
+    fixed_emb = get_or_compute_embeddings(
+        embedder=embedder,
+        texts=fixed_chunks,
+        cache_dir=cache_dir,
+        cache_key=fixed_cache_key,
+        use_cache=use_cache
+    )
 
     fixed_retriever = VectorRetriever(embedding_dim=fixed_emb.shape[1])
     fixed_retriever.add_documents(fixed_emb, fixed_chunks, fixed_doc_ids)
@@ -301,6 +355,8 @@ def main():
     parser.add_argument("--top-k", type=int, default=3, help="Глубина поисковой выдачи top-k (по умолчанию 3).")
     parser.add_argument("--model", type=str, default="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
     parser.add_argument("--save-report", type=str, default="data/adilet/eval_results.json")
+    parser.add_argument("--cache-dir", type=str, default="data/adilet/cache", help="Папка для кэширования эмбеддингов.")
+    parser.add_argument("--no-cache", action="store_true", help="Принудительно пересчитать эмбеддинги без использования кэша.")
     args = parser.parse_args()
 
     qa_file = args.qa_path or f"data/adilet/qa_{args.lang}_test.json"
@@ -311,7 +367,9 @@ def main():
         model_name=args.model,
         top_k=args.top_k,
         max_test_queries=args.test_size,
-        output_report=args.save_report
+        output_report=args.save_report,
+        use_cache=not args.no_cache,
+        cache_dir=args.cache_dir
     )
 
 

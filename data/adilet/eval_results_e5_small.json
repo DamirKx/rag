@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-10-21 14:47:41",
+  "language": "rus",
+  "model_name": "intfloat/multilingual-e5-small",
+  "top_k": 3,
+  "num_test_queries": 100,
+  "fixed_chunks_count": 10427,
+  "structural_chunks_count": 973,
+  "results_fixed": {
+    "MRR": 0.6733333333333335,
+    "HitRate@1": 0.6,
+    "HitRate@3": 0.76,
+    "Recall@3": 0.33872236097236086,
+    "query_encode_sec": 0.6248478889465332,
+    "search_sec": 0.01782059669494629
+  },
+  "results_structural": {
+    "MRR": 0.6183333333333334,
+    "HitRate@1": 0.55,
+    "HitRate@3": 0.7,
+    "Recall@3": 0.7,
+    "query_encode_sec": 0.5720264911651611,
+    "search_sec": 0.0
+  }
+}

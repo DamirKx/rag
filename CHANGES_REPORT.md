@@ -139,19 +139,36 @@ feat(retriever): integrate Adilet Legal QA dataset and implement hybrid search
 - Document experimental findings and baseline comparisons in CHANGES_REPORT.md
 ```
 
+### 4. Добавление дискового кэширования эмбеддингов и интерактивного поиска (ask.py)
+
+#### Что сделано:
+1. **Дисковое кэширование эмбеддингов (`data/adilet/cache/`):**
+   - Внедрена функция `get_or_compute_embeddings()` в `run_adilet_eval.py`.
+   - Векторизованные матрицы сохраняются в `.npy` с автоматической проверкой соответствия размера корпуса.
+   - Повторные запуски бенчмарка для 10 427 чанков ускорены с 5 минут до **0.02 секунды**.
+   - Добавлен флаг `--no-cache` для принудительного пересчета.
+   - Правила `.gitignore` дополнены для защиты папки `data/adilet/cache/` и файлов `*.npy`.
+2. **Интерактивный поисковый инструмент (`ask.py`):**
+   - Консольный интерфейс для ввода произвольных юридических вопросов в реальном времени.
+   - Поддержка переключения режимов поиска: `hybrid` (RRF Dense + BM25), `dense` (FAISS), `bm25`.
+   - Вывод топ-$k$ релевантных статей НПА РК с процентом совпадения и форматированной цитатой.
+3. **Фиксация Baseline для `intfloat/multilingual-e5-small`:**
+   - 100 запросов: HitRate@3 = **76.0%** (фиксированный) и **70.0%** (структурный). Сохранено в `data/adilet/eval_results_e5_small.json`.
+
+---
+
 ### Команды для фиксации изменений в терминале:
 
 ```bash
 # 1. Проверить статус файлов
 git status
 
-# 2. Добавить код, конфигурацию и тестовые данные в индекс
-git add .gitignore requirements.txt src/ prepare_adilet_data.py run_adilet_eval.py data/adilet/qa_*_test.json data/adilet/dataset_summary.json CHANGES_REPORT.md
-# (или просто: git add .)
+# 2. Добавить подготовленные изменения
+git add .gitignore README.md CHANGES_REPORT.md run_adilet_eval.py ask.py data/adilet/eval_results*.json
 
-# 3. Выполнить коммит с подробным описанием
-git commit -m "feat: интеграция датасета Adilet Legal QA и реализация гибридного поиска (BM25 + FAISS)"
+# 3. Выполнить коммит
+git commit -m "feat: add embedding caching and interactive legal search tool ask.py"
 
-# 4. Отправить изменения в удаленный репозиторий
+# 4. Отправить в удаленный репозиторий
 git push origin main
 ```

@@ -1,25 +1,25 @@
 {
-  "timestamp": "2026-10-20 16:33:35",
+  "timestamp": "2026-10-21 15:29:23",
   "language": "rus",
   "model_name": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
   "top_k": 3,
-  "num_test_queries": 100,
-  "fixed_chunks_count": 10485,
+  "num_test_queries": 5,
+  "fixed_chunks_count": 10427,
   "structural_chunks_count": 973,
   "results_fixed": {
-    "MRR": 0.43166666666666664,
-    "HitRate@1": 0.36,
-    "HitRate@3": 0.54,
-    "Recall@3": 0.1978388000888,
-    "query_encode_sec": 0.5260505676269531,
-    "search_sec": 0.01500248908996582
+    "MRR": 0.13333333333333333,
+    "HitRate@1": 0.0,
+    "HitRate@3": 0.4,
+    "Recall@3": 0.0365079365079365,
+    "query_encode_sec": 0.04622793197631836,
+    "search_sec": 0.0028107166290283203
   },
   "results_structural": {
-    "MRR": 0.3283333333333333,
-    "HitRate@1": 0.25,
-    "HitRate@3": 0.44,
-    "Recall@3": 0.44,
-    "query_encode_sec": 0.4186527729034424,
-    "search_sec": 0.005070686340332031
+    "MRR": 0.2,
+    "HitRate@1": 0.2,
+    "HitRate@3": 0.2,
+    "Recall@3": 0.2,
+    "query_encode_sec": 0.0514376163482666,
+    "search_sec": 0.002003192901611328
   }
 }

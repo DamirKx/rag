@@ -79,6 +79,9 @@ data/scans/
 # Large generated Adilet corpora & full datasets (regenerated via prepare_adilet_data.py)
 data/adilet/corpus_*.txt
 data/adilet/*_full.json
+data/adilet/cache/
+*.npy
+*.npz
 
 # ML/DL model weights & serialized artifacts (PyTorch, SafeTensors, ONNX, Pickles)
 *.pt
