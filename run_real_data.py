@@ -99,8 +99,9 @@ def find_ground_truth_chunks(
     1. Ищет вхождение нормализованной целевой фразы (target_phrase) в текст чанка.
     2. Использует укороченный префикс (short_target, первые 45 символов) на случай,
        если длинная цитата была разделена границей скользящего окна чанкинга.
-    3. Если передан structural_id (например, 'art1_p2'), сопоставляет его
-       с идентификатором чанка doc_id.
+    3. Если передан structural_id (например, 'art1_p2'), считает релевантными чанк
+       с точно таким doc_id и его подчинённые чанки ('art1_p2_sub1', ...).
+       Префиксы без границы не совпадают: 'art1_p1' не захватывает 'art1_p10'.
 
     Args:
         chunks (List[str]): Список текстов всех сформированных чанков.
@@ -123,7 +124,7 @@ def find_ground_truth_chunks(
         if norm_target in norm_chunk or short_target in norm_chunk:
             relevant.append(doc_id)
         # Проверка структурного идентификатора (актуально для get_structural_chunks)
-        elif structural_id and structural_id in doc_id:
+        elif structural_id and (doc_id == structural_id or doc_id.startswith(structural_id + "_")):
             relevant.append(doc_id)
 
     return relevant
@@ -244,7 +245,7 @@ def main() -> None:
     # -------------------------------------------------------------------------
     # 3. Инициализация нейросетевой модели векторных представлений
     # -------------------------------------------------------------------------
-    model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    model_name = "intfloat/multilingual-e5-small"
     print(f"\nЗагрузка модели эмбеддингов: {model_name}...")
     embedder = EmbeddingModel(model_name=model_name, device="cpu")
 

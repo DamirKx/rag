@@ -61,8 +61,8 @@ def main() -> None:
     # Шаг 3: Векторизация чанков с помощью нейросетевой модели
     # -------------------------------------------------------------------------
     print("\n[3/5] Загрузка модели эмбеддингов и векторизация чанков...")
-    # Используем мультиязычную компактную модель MiniLM (быстро работает на CPU)
-    model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    # Используем мультиязычную компактную модель поиска E5-small (быстро работает на CPU)
+    model_name = "intfloat/multilingual-e5-small"
     embedder = EmbeddingModel(model_name=model_name, device="cpu")
 
     print("Генерация векторных представлений базы знаний...")

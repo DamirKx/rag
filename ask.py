@@ -4,7 +4,7 @@
 и мгновенно получать релевантные статьи нормативно-правовых актов (НПА).
 
 Поддерживает три режима поиска:
-1. 'dense' — семантический векторный поиск на базе FAISS (нейросеть E5 или MiniLM);
+1. 'dense' — семантический векторный поиск на базе FAISS (нейросеть E5);
 2. 'bm25' — лексический поиск по ключевым словам и номерам статей;
 3. 'hybrid' — гибридное ранжирование Reciprocal Rank Fusion (RRF) Dense + BM25.
 """
@@ -14,8 +14,7 @@ import sys
 import re
 import time
 import argparse
-from typing import List, Dict, Any
-import numpy as np
+from typing import List, Tuple
 import pandas as pd
 
 # Обеспечиваем корректный вывод UTF-8 в консоли Windows
@@ -28,7 +27,9 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 from src.embeddings import EmbeddingModel
 from src.retriever import VectorRetriever, BM25Retriever, HybridRetriever
 from prepare_adilet_data import clean_adilet_context
-from run_adilet_eval import get_or_compute_embeddings
+from run_adilet_eval import get_or_compute_embeddings, DEFAULT_MODEL
+
+SEARCH_MODES = ("dense", "bm25", "hybrid")
 
 
 def load_legal_corpus(cache_parquet: str, lang: str) -> pd.DataFrame:
@@ -51,9 +52,74 @@ def format_preview(text: str, max_chars: int = 350) -> str:
     return clean[:max_chars].rsplit(' ', 1)[0] + "..."
 
 
+class LegalSearchEngine:
+    """Поисковый движок по корпусу НПА с тремя режимами: dense, bm25, hybrid.
+
+    BM25-индекс строится лениво — при первом обращении к режиму 'bm25' или 'hybrid'.
+    """
+
+    def __init__(self, docs: List[str], doc_ids: List[str], embedder: EmbeddingModel, cache_dir: str, cache_key: str):
+        self.embedder = embedder
+        self.docs_by_id = dict(zip(doc_ids, docs))
+        self._docs = docs
+        self._doc_ids = doc_ids
+
+        emb_matrix = get_or_compute_embeddings(
+            embedder=embedder,
+            texts=docs,
+            cache_dir=cache_dir,
+            cache_key=cache_key,
+            use_cache=True
+        )
+        self.dense_retriever = VectorRetriever(embedding_dim=emb_matrix.shape[1])
+        self.dense_retriever.add_documents(emb_matrix, docs, doc_ids)
+
+        self._bm25_retriever = None
+        self._hybrid_retriever = None
+
+    @property
+    def bm25_retriever(self) -> BM25Retriever:
+        if self._bm25_retriever is None:
+            self._bm25_retriever = BM25Retriever()
+            self._bm25_retriever.add_documents(self._docs, self._doc_ids)
+        return self._bm25_retriever
+
+    @property
+    def hybrid_retriever(self) -> HybridRetriever:
+        if self._hybrid_retriever is None:
+            self._hybrid_retriever = HybridRetriever(
+                vector_retriever=self.dense_retriever,
+                bm25_retriever=self.bm25_retriever,
+                dense_weight=0.5,
+                sparse_weight=0.5,
+                rrf_k=60
+            )
+        return self._hybrid_retriever
+
+    def search(self, query: str, mode: str, top_k: int) -> List[Tuple[str, str, float]]:
+        """Выполняет поиск и возвращает список троек (doc_id, текст, оценка)."""
+        if mode == "hybrid":
+            q_emb = self.embedder.encode_queries([query])[0]
+            pairs = self.hybrid_retriever.search_with_scores(query, q_emb, k=top_k)
+        elif mode == "bm25":
+            pairs = self.bm25_retriever.search(query, k=top_k)
+        elif mode == "dense":
+            q_emb = self.embedder.encode_queries([query])
+            scores, indices = self.dense_retriever.search(q_emb, k=top_k)
+            pairs = [
+                (self.dense_retriever.get_doc_id(idx), float(score))
+                for score, idx in zip(scores[0], indices[0])
+                if idx >= 0
+            ]
+        else:
+            raise ValueError(f"Неизвестный режим поиска: {mode}")
+
+        return [(doc_id, self.docs_by_id[doc_id], score) for doc_id, score in pairs]
+
+
 def interactive_cli(
     lang: str = "rus",
-    model_name: str = "intfloat/multilingual-e5-small",
+    model_name: str = DEFAULT_MODEL,
     search_mode: str = "hybrid",
     top_k: int = 3,
     cache_dir: str = "data/adilet/cache",
@@ -64,24 +130,21 @@ def interactive_cli(
     print("=" * 80)
     print(f" Язык документов: {lang.upper()}")
     print(f" Модель поиска:   {model_name}")
-    print(f" Режим поиска:    {search_mode.upper()} (FAISS Dense + BM25)")
+    print(f" Режим поиска:    {search_mode.upper()}")
     print(f" Количество результатов: {top_k}")
     print("-" * 80)
 
     # 1. Загрузка корпуса
     print("\n[1/3] Загрузка статей законодательства...")
     sub_df = load_legal_corpus(cache_parquet, lang)
-    
+
     docs = []
     doc_ids = []
-    sources = []
     for idx, row in sub_df.iterrows():
         doc_id = f"ctx_{idx:04d}"
         header = f"Закон: {row['source_title']}\n"
-        full_text = header + row["cleaned_context"]
-        docs.append(full_text)
+        docs.append(header + row["cleaned_context"])
         doc_ids.append(doc_id)
-        sources.append(row["source_title"])
 
     print(f"  Загружено {len(docs)} статей нормативно-правовых актов.")
 
@@ -89,34 +152,13 @@ def interactive_cli(
     print("\n[2/3] Инициализация поискового индекса...")
     embedder = EmbeddingModel(model_name=model_name, device="cpu")
     safe_model = re.sub(r'[^a-zA-Z0-9_\-]', '_', model_name)
-    cache_key = f"{safe_model}_{lang}_structural"
-
-    emb_matrix = get_or_compute_embeddings(
+    engine = LegalSearchEngine(
+        docs=docs,
+        doc_ids=doc_ids,
         embedder=embedder,
-        texts=docs,
         cache_dir=cache_dir,
-        cache_key=cache_key,
-        use_cache=True
+        cache_key=f"{safe_model}_{lang}_structural"
     )
-
-    dense_retriever = VectorRetriever(embedding_dim=emb_matrix.shape[1])
-    dense_retriever.add_documents(emb_matrix, docs, doc_ids)
-
-    # 3. Настройка режима поиска
-    bm25_retriever = None
-    hybrid_retriever = None
-
-    if search_mode in ("bm25", "hybrid"):
-        bm25_retriever = BM25Retriever()
-        bm25_retriever.add_documents(docs, doc_ids)
-
-    if search_mode == "hybrid":
-        hybrid_retriever = HybridRetriever(
-            dense_retriever=dense_retriever,
-            bm25_retriever=bm25_retriever,
-            alpha=0.5,
-            rrf_k=60
-        )
 
     print("\n[3/3] База знаний готова к работе!")
     print("=" * 80)
@@ -143,53 +185,32 @@ def interactive_cli(
         # Команды смены режима
         if query.startswith(":mode"):
             parts = query.split()
-            if len(parts) > 1 and parts[1].lower() in ("dense", "bm25", "hybrid"):
+            if len(parts) > 1 and parts[1].lower() in SEARCH_MODES:
                 search_mode = parts[1].lower()
-                if search_mode == "hybrid" and hybrid_retriever is None:
-                    bm25_retriever = BM25Retriever()
-                    bm25_retriever.add_documents(docs, doc_ids)
-                    hybrid_retriever = HybridRetriever(dense_retriever, bm25_retriever)
                 print(f"Режим переключен на: {search_mode.upper()}")
-                continue
             else:
                 print("Неизвестный режим. Доступные: dense, bm25, hybrid")
-                continue
+            continue
 
         # Выполнение поиска
         t0 = time.time()
-        results = []
-
-        if search_mode == "hybrid":
-            results = hybrid_retriever.search(
-                query=query,
-                embedder=embedder,
-                top_k=top_k
-            )
-        elif search_mode == "bm25":
-            results = bm25_retriever.search(query=query, top_k=top_k)
-        else:  # dense
-            q_emb = embedder.encode_queries([query])
-            scores, indices = dense_retriever.search(q_emb, k=top_k)
-            for score, idx in zip(scores[0], indices[0]):
-                results.append((
-                    dense_retriever.get_doc_id(idx),
-                    dense_retriever.get_doc_text(idx),
-                    float(score)
-                ))
-
+        results = engine.search(query, mode=search_mode, top_k=top_k)
         elapsed_ms = (time.time() - t0) * 1000.0
+
+        if not results:
+            print("\nНичего не найдено. Попробуйте переформулировать вопрос или сменить режим поиска.")
+            continue
 
         # Вывод результатов
         print(f"\n🔎 Найдено {len(results)} релевантных статей за {elapsed_ms:.1f} мс:")
         print("-" * 80)
 
         for rank, (doc_id, text, score) in enumerate(results, 1):
-            # Извлекаем источник
-            source_line = text.split("\n")[0] if "\n" in text else "Закон РК"
-            body_text = text[len(source_line):].strip()
+            # Первая строка документа — заголовок «Закон: ...»
+            source_line, _, body_text = text.partition("\n")
             preview = format_preview(body_text, max_chars=400)
 
-            score_str = f"{score:.4f}" if search_mode != "bm25" else f"{score:.2f}"
+            score_str = f"{score:.2f}" if search_mode == "bm25" else f"{score:.4f}"
             print(f" [{rank}] {source_line} | ID: {doc_id} | Релевантность: {score_str}")
             print(f"     \"{preview}\"")
             print()
@@ -198,8 +219,8 @@ def interactive_cli(
 def main():
     parser = argparse.ArgumentParser(description="Интерактивный консольный поиск по НПА РК.")
     parser.add_argument("--lang", choices=["rus", "kaz"], default="rus", help="Язык ('rus' или 'kaz').")
-    parser.add_argument("--model", type=str, default="intfloat/multilingual-e5-small", help="Модель эмбеддингов.")
-    parser.add_argument("--mode", choices=["dense", "bm25", "hybrid"], default="hybrid", help="Режим поиска.")
+    parser.add_argument("--model", type=str, default=DEFAULT_MODEL, help="Модель эмбеддингов.")
+    parser.add_argument("--mode", choices=list(SEARCH_MODES), default="hybrid", help="Режим поиска.")
     parser.add_argument("--top-k", type=int, default=3, help="Количество возвращаемых статей.")
     parser.add_argument("--cache-dir", type=str, default="data/adilet/cache", help="Папка с кэшем векторов.")
     args = parser.parse_args()
