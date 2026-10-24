@@ -12,6 +12,14 @@
 from typing import List
 
 
+def _check_lengths(relevant_docs: List[List[str]], retrieved_docs: List[List[str]]) -> None:
+    """Проверяет, что эталон и выдача заданы для одинакового числа запросов."""
+    if len(relevant_docs) != len(retrieved_docs):
+        raise ValueError(
+            f"Несовпадение числа запросов: эталонов={len(relevant_docs)}, выдач={len(retrieved_docs)}"
+        )
+
+
 def calculate_mrr(relevant_docs: List[List[str]], retrieved_docs: List[List[str]]) -> float:
     """Вычисляет средний взаимный ранг (Mean Reciprocal Rank, MRR).
 
@@ -37,6 +45,7 @@ def calculate_mrr(relevant_docs: List[List[str]], retrieved_docs: List[List[str]
     Returns:
         float: Значение метрики MRR в диапазоне [0.0, 1.0]. Чем ближе к 1.0, тем лучше ранжирование.
     """
+    _check_lengths(relevant_docs, retrieved_docs)
     if not relevant_docs:
         return 0.0
 
@@ -79,6 +88,7 @@ def calculate_hit_rate_at_k(relevant_docs: List[List[str]], retrieved_docs: List
     Returns:
         float: Доля успешных запросов в диапазоне [0.0, 1.0].
     """
+    _check_lengths(relevant_docs, retrieved_docs)
     if not relevant_docs:
         return 0.0
 
@@ -115,13 +125,18 @@ def calculate_recall_at_k(relevant_docs: List[List[str]], retrieved_docs: List[L
         retrieved_docs (List[List[str]]): Список предсказанных документов.
         k (int): Глубина топа (число позиций для оценки).
 
+    Запросы без размеченных релевантных документов не участвуют в усреднении
+    (полнота для них не определена).
+
     Returns:
         float: Средняя полнота по всей тестовой выборке в диапазоне [0.0, 1.0].
     """
+    _check_lengths(relevant_docs, retrieved_docs)
     if not relevant_docs:
         return 0.0
 
     total_recall = 0.0
+    evaluated = 0
 
     for rel_d, ret_d in zip(relevant_docs, retrieved_docs):
         top_k_retrieved = set(ret_d[:k])
@@ -136,5 +151,6 @@ def calculate_recall_at_k(relevant_docs: List[List[str]], retrieved_docs: List[L
 
         # Доля найденных от общего числа требуемых фрагментов
         total_recall += relevant_hits / len(rel_set)
+        evaluated += 1
 
-    return total_recall / len(relevant_docs)
+    return total_recall / evaluated if evaluated else 0.0

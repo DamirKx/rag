@@ -29,7 +29,7 @@ class VectorRetriever:
 
         Args:
             embedding_dim (int): Размерность пространства эмбеддингов
-                                 (например, 384 для MiniLM, 768 для e5-base/ruBERT, 1024 для bge-m3).
+                                 (например, 384 для e5-small, 768 для e5-base, 1024 для bge-m3).
         """
         self.embedding_dim = embedding_dim
 
@@ -78,12 +78,16 @@ class VectorRetriever:
                 - distances: Массив оценок сходства формы (N_queries, k).
                              Чем выше значение, тем ближе семантический смысл.
                 - indices: Массив целочисленных индексов документов формы (N_queries, k).
+                  Если индекс пуст, возвращаются массивы формы (N_queries, 0).
         """
         # Проверяем формат массива запросов
         queries_contiguous = np.ascontiguousarray(query_embeddings, dtype=np.float32)
 
         # Ограничиваем k максимальным числом доступных документов в индексе
         actual_k = min(k, self.index.ntotal)
+        if actual_k <= 0:
+            n_queries = queries_contiguous.shape[0]
+            return np.empty((n_queries, 0), dtype=np.float32), np.empty((n_queries, 0), dtype=np.int64)
 
         # Запуск параллельного поиска в FAISS
         distances, indices = self.index.search(queries_contiguous, actual_k)
@@ -97,7 +101,12 @@ class VectorRetriever:
 
         Returns:
             str: Уникальный строковый идентификатор документа/чанка.
+
+        Raises:
+            IndexError: Если idx вне диапазона (в т.ч. -1, которым FAISS помечает пустые позиции).
         """
+        if not 0 <= idx < len(self.doc_ids):
+            raise IndexError(f"Индекс документа вне диапазона: {idx}")
         return self.doc_ids[idx]
 
     def get_document(self, idx: int) -> str:
@@ -108,15 +117,21 @@ class VectorRetriever:
 
         Returns:
             str: Исходный текстовый фрагмент (чанк).
+
+        Raises:
+            IndexError: Если idx вне диапазона (в т.ч. -1, которым FAISS помечает пустые позиции).
         """
+        if not 0 <= idx < len(self.documents):
+            raise IndexError(f"Индекс документа вне диапазона: {idx}")
         return self.documents[idx]
 
 
 def tokenize_legal_text(text: str) -> List[str]:
     """Разбивает юридический текст на лексические токены.
 
-    Сохраняет составные номера законов, статьи, дефисы и цифры:
-    например, '221-vii', '28-1', '122', 'ст.', 'мрп'.
+    Приводит текст к нижнему регистру и сохраняет составные номера законов,
+    статей и пунктов с дефисами: например, '221-vii', '28-1', '122', 'мрп'.
+    Знаки препинания отбрасываются ('ст.' -> 'ст').
     """
     return re.findall(r"(?u)\b[\w\-]+\b", text.lower())
 
@@ -216,6 +231,48 @@ class HybridRetriever:
         self.sparse_weight = sparse_weight
         self.rrf_k = rrf_k
 
+    def search_with_scores(
+        self,
+        query: str,
+        query_embedding: np.ndarray,
+        k: int = 5,
+        candidate_multiplier: int = 4
+    ) -> List[Tuple[str, float]]:
+        """Выполняет гибридный поиск и возвращает топ-k пар (doc_id, RRF-оценка).
+
+        Args:
+            query (str): Текстовый запрос для BM25.
+            query_embedding (np.ndarray): Вектор запроса для FAISS формы (embedding_dim,).
+            k (int): Количество возвращаемых результатов. По умолчанию 5.
+            candidate_multiplier (int): Множитель пула кандидатов для первичной выборки.
+
+        Returns:
+            List[Tuple[str, float]]: Список пар (doc_id, score) в порядке убывания RRF-оценки.
+        """
+        pool_size = max(k * candidate_multiplier, 20)
+
+        # 1. Поиск в плотном индексе (FAISS)
+        q_emb = np.ascontiguousarray(query_embedding).reshape(1, -1)
+        _, dense_indices = self.vector_retriever.search(q_emb, k=pool_size)
+        dense_doc_ids = [self.vector_retriever.get_doc_id(idx) for idx in dense_indices[0] if idx >= 0]
+
+        # 2. Поиск в лексическом индексе (BM25)
+        bm25_results = self.bm25_retriever.search(query, k=pool_size)
+        sparse_doc_ids = [doc_id for doc_id, _ in bm25_results]
+
+        # 3. Слияние ранжированных списков по алгоритму Reciprocal Rank Fusion (RRF)
+        rrf_scores: Dict[str, float] = {}
+
+        for rank, doc_id in enumerate(dense_doc_ids, start=1):
+            rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + self.dense_weight / (self.rrf_k + rank)
+
+        for rank, doc_id in enumerate(sparse_doc_ids, start=1):
+            rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + self.sparse_weight / (self.rrf_k + rank)
+
+        # Сортируем документы по убыванию итогового RRF балла
+        ranked_docs = sorted(rrf_scores.keys(), key=lambda d: rrf_scores[d], reverse=True)
+        return [(doc_id, rrf_scores[doc_id]) for doc_id in ranked_docs[:k]]
+
     def search(
         self,
         query: str,
@@ -234,29 +291,8 @@ class HybridRetriever:
         Returns:
             List[str]: Список топ-k идентификаторов чанков doc_id в порядке убывания RRF-оценки.
         """
-        pool_size = max(k * candidate_multiplier, 20)
-
-        # 1. Поиск в плотном индексе (FAISS)
-        q_emb = np.ascontiguousarray(query_embedding).reshape(1, -1)
-        _, dense_indices = self.vector_retriever.search(q_emb, k=pool_size)
-        dense_doc_ids = [self.vector_retriever.get_doc_id(idx) for idx in dense_indices[0]]
-
-        # 2. Поиск в лексическом индексе (BM25)
-        bm25_results = self.bm25_retriever.search(query, k=pool_size)
-        sparse_doc_ids = [doc_id for doc_id, _ in bm25_results]
-
-        # 3. Слияние ранжированных списков по алгоритму Reciprocal Rank Fusion (RRF)
-        rrf_scores: Dict[str, float] = {}
-
-        for rank, doc_id in enumerate(dense_doc_ids, start=1):
-            rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + self.dense_weight / (self.rrf_k + rank)
-
-        for rank, doc_id in enumerate(sparse_doc_ids, start=1):
-            rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + self.sparse_weight / (self.rrf_k + rank)
-
-        # Сортируем документы по убыванию итогового RRF балла
-        ranked_docs = sorted(rrf_scores.keys(), key=lambda d: rrf_scores[d], reverse=True)
-        return ranked_docs[:k]
+        pairs = self.search_with_scores(query, query_embedding, k=k, candidate_multiplier=candidate_multiplier)
+        return [doc_id for doc_id, _ in pairs]
 
     def batch_search(
         self,

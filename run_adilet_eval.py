@@ -5,7 +5,11 @@
 
 Проводит сравнительный эксперимент двух стратегий чанкинга:
 1. Фиксированный чанкинг (Fixed-size: окно 500 символов, перекрытие 50 символов);
-2. Структурный чанкинг НПА (Article-level: сохранение статей/пунктов как единых смысловых блоков).
+2. Контексты датасета целиком (каждый контекст Adilet QA — фрагмент закона
+   длиной ~5–6 тыс. символов — индексируется как один чанк).
+
+Для каждой стратегии оцениваются три метода поиска:
+- Dense (FAISS), Sparse (BM25) и Hybrid (RRF-слияние Dense + BM25).
 
 Рассчитываемые метрики:
 - MRR (Mean Reciprocal Rank);
@@ -16,6 +20,7 @@
 
 import os
 import sys
+import hashlib
 import json
 import re
 import time
@@ -34,9 +39,13 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 
 from src.chunking import get_fixed_size_chunks
 from src.embeddings import EmbeddingModel
-from src.retriever import VectorRetriever
+from src.retriever import VectorRetriever, BM25Retriever, HybridRetriever
 from src.eval import calculate_mrr, calculate_hit_rate_at_k, calculate_recall_at_k
 from prepare_adilet_data import clean_adilet_context
+
+
+DEFAULT_MODEL = "intfloat/multilingual-e5-small"
+SEARCH_METHODS = ["dense", "bm25", "hybrid"]
 
 
 def normalize_text(text: str) -> str:
@@ -44,73 +53,99 @@ def normalize_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
-def evaluate_pipeline(
-    retriever: VectorRetriever,
-    embedder: EmbeddingModel,
+def compute_metrics(
+    ground_truth: List[List[str]],
+    predicted: List[List[str]],
+    top_k: int
+) -> Dict[str, float]:
+    """Рассчитывает метрики IR для готовой поисковой выдачи."""
+    return {
+        "MRR": calculate_mrr(ground_truth, predicted),
+        "HitRate@1": calculate_hit_rate_at_k(ground_truth, predicted, k=1),
+        f"HitRate@{top_k}": calculate_hit_rate_at_k(ground_truth, predicted, k=top_k),
+        f"Recall@{top_k}": calculate_recall_at_k(ground_truth, predicted, k=top_k),
+    }
+
+
+def evaluate_strategy(
+    chunks: List[str],
+    doc_ids: List[str],
+    chunk_embeddings: np.ndarray,
     qa_data: List[Dict[str, Any]],
+    query_embeddings: np.ndarray,
     ground_truth: List[List[str]],
     top_k: int = 3,
     verbose: bool = False
-) -> Dict[str, float]:
-    """Выполняет поиск и расчет метрик IR для заданного ретривера.
+) -> Dict[str, Dict[str, float]]:
+    """Оценивает Dense, BM25 и Hybrid поиск на одном наборе чанков.
 
     Args:
-        retriever (VectorRetriever): Построенный индекс FAISS.
-        embedder (EmbeddingModel): Модель векторных представлений.
+        chunks (List[str]): Тексты чанков.
+        doc_ids (List[str]): Идентификаторы чанков.
+        chunk_embeddings (np.ndarray): Эмбеддинги чанков.
         qa_data (List[Dict[str, Any]]): Список вопросов.
+        query_embeddings (np.ndarray): Эмбеддинги вопросов.
         ground_truth (List[List[str]]): Список эталонных doc_id для каждого вопроса.
         top_k (int): Глубина выдачи (k).
-        verbose (bool): Выводить ли детализацию по каждому вопросу.
+        verbose (bool): Выводить ли примеры выдачи Dense-поиска.
 
     Returns:
-        Dict[str, float]: Словарь метрик качества.
+        Dict[str, Dict[str, float]]: Метрики для каждого метода ('dense', 'bm25', 'hybrid').
     """
     queries = [item["query"] for item in qa_data]
 
-    # Векторизация поисковых запросов
-    t0 = time.time()
-    query_embeddings = embedder.encode_queries(queries)
-    enc_time = time.time() - t0
+    vector_retriever = VectorRetriever(embedding_dim=chunk_embeddings.shape[1])
+    vector_retriever.add_documents(chunk_embeddings, chunks, doc_ids)
+    bm25_retriever = BM25Retriever()
+    bm25_retriever.add_documents(chunks, doc_ids)
+    hybrid_retriever = HybridRetriever(vector_retriever, bm25_retriever)
 
-    # Поиск в FAISS
-    t0 = time.time()
-    _, indices = retriever.search(query_embeddings, k=top_k)
-    search_time = time.time() - t0
+    def dense_search() -> List[List[str]]:
+        _, indices = vector_retriever.search(query_embeddings, k=top_k)
+        return [[vector_retriever.get_doc_id(idx) for idx in row if idx >= 0] for row in indices]
 
-    predicted: List[List[str]] = []
-    for q_idx in range(len(queries)):
-        pred_ids = [retriever.get_doc_id(idx) for idx in indices[q_idx]]
-        predicted.append(pred_ids)
-
-    if verbose:
-        print("\n" + "=" * 80)
-        print(f"ПРИМЕРЫ ВЫДАЧИ ПОИСКА (ТОП-{top_k})")
-        print("=" * 80)
-        for i in range(min(5, len(qa_data))):
-            item = qa_data[i]
-            pred_ids = predicted[i]
-            gt_ids = ground_truth[i]
-            hit = any(p in gt_ids for p in pred_ids)
-            status = " УСПЕХ" if hit else " ПРОМАХ"
-            print(f"\n[{i + 1}] {status} | {item['source_title']}")
-            print(f"Вопрос: {item['query']}")
-            print(f"Ожидаемый ID: {gt_ids[:3]}")
-            print(f"Найденные ID: {pred_ids}")
-
-    # Расчет метрик
-    mrr = calculate_mrr(ground_truth, predicted)
-    hit_rate_1 = calculate_hit_rate_at_k(ground_truth, predicted, k=1)
-    hit_rate_k = calculate_hit_rate_at_k(ground_truth, predicted, k=top_k)
-    recall_k = calculate_recall_at_k(ground_truth, predicted, k=top_k)
-
-    return {
-        "MRR": mrr,
-        "HitRate@1": hit_rate_1,
-        f"HitRate@{top_k}": hit_rate_k,
-        f"Recall@{top_k}": recall_k,
-        "query_encode_sec": enc_time,
-        "search_sec": search_time
+    searchers = {
+        "dense": dense_search,
+        "bm25": lambda: bm25_retriever.batch_search(queries, k=top_k),
+        "hybrid": lambda: hybrid_retriever.batch_search(queries, query_embeddings, k=top_k),
     }
+
+    results: Dict[str, Dict[str, float]] = {}
+    for method in SEARCH_METHODS:
+        t0 = time.time()
+        predicted = searchers[method]()
+        search_time = time.time() - t0
+
+        if verbose and method == "dense":
+            print("\n" + "=" * 80)
+            print(f"ПРИМЕРЫ ВЫДАЧИ ПОИСКА DENSE (ТОП-{top_k})")
+            print("=" * 80)
+            for i in range(min(5, len(qa_data))):
+                item = qa_data[i]
+                pred_ids = predicted[i]
+                gt_ids = ground_truth[i]
+                hit = any(p in gt_ids for p in pred_ids)
+                status = " УСПЕХ" if hit else " ПРОМАХ"
+                print(f"\n[{i + 1}] {status} | {item['source_title']}")
+                print(f"Вопрос: {item['query']}")
+                print(f"Ожидаемый ID: {gt_ids[:3]}")
+                print(f"Найденные ID: {pred_ids}")
+
+        metrics = compute_metrics(ground_truth, predicted, top_k)
+        metrics["search_sec"] = search_time
+        results[method] = metrics
+        print(f"  {method:<7} MRR={metrics['MRR']:.4f}  HitRate@{top_k}={metrics[f'HitRate@{top_k}']:.4f}")
+
+    return results
+
+
+def texts_fingerprint(texts: List[str]) -> str:
+    """Возвращает короткий SHA-256 отпечаток списка текстов для ключа кэша."""
+    digest = hashlib.sha256()
+    for t in texts:
+        digest.update(t.encode("utf-8"))
+        digest.update(b"\x00")
+    return digest.hexdigest()[:16]
 
 
 def get_or_compute_embeddings(
@@ -120,9 +155,14 @@ def get_or_compute_embeddings(
     cache_key: str,
     use_cache: bool = True
 ) -> np.ndarray:
-    """Загружает готовые эмбеддинги из бинарного кэша (.npy) или вычисляет их и сохраняет."""
+    """Загружает готовые эмбеддинги из бинарного кэша (.npy) или вычисляет их и сохраняет.
+
+    В имя файла кэша входит отпечаток текстов, поэтому любое изменение корпуса
+    (очистки, заголовков, исходного parquet) приводит к пересчёту, а не к загрузке
+    устаревших векторов.
+    """
     os.makedirs(cache_dir, exist_ok=True)
-    cache_file = os.path.join(cache_dir, f"{cache_key}.npy")
+    cache_file = os.path.join(cache_dir, f"{cache_key}_{texts_fingerprint(texts)}.npy")
 
     if use_cache and os.path.exists(cache_file):
         print(f"⚡ Загрузка векторов из дискового кэша: {cache_file}...")
@@ -157,14 +197,14 @@ def run_evaluation(
     lang: str = "rus",
     qa_path: str = "data/adilet/qa_rus_test.json",
     cache_parquet: str = "data/raw/adilet_legal_qa_kz.parquet",
-    model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    model_name: str = DEFAULT_MODEL,
     top_k: int = 3,
     max_test_queries: int = 100,
     output_report: str = None,
     use_cache: bool = True,
     cache_dir: str = "data/adilet/cache"
 ) -> Dict[str, Any]:
-    """Основной пайплайн сравнительной оценки стратегий чанкинга."""
+    """Основной пайплайн сравнительной оценки стратегий чанкинга и методов поиска."""
     print("=" * 80)
     print("      БЕНЧМАРК RETRIEVAL-ЧАСТИ RAG: ДАТАСЕТ ADILET LEGAL QA")
     print("=" * 80)
@@ -201,11 +241,17 @@ def run_evaluation(
     # Безопасный идентификатор модели для имени файла кэша
     safe_model = re.sub(r'[^a-zA-Z0-9_\-]', '_', model_name)
 
+    # Вопросы векторизуются один раз и используются во всех экспериментах
+    queries = [item["query"] for item in qa_data]
+    t0 = time.time()
+    query_embeddings = embedder.encode_queries(queries)
+    query_encode_sec = time.time() - t0
+
     # =========================================================================
     # Эксперимент 1: Структурный чанкинг НПА (Article-level / смысловые блоки)
     # =========================================================================
     print("\n" + "-" * 80)
-    print("СТРАТЕГИЯ 1: Структурный чанкинг НПА (целые статьи/блоки с сохранением контекста)")
+    print("СТРАТЕГИЯ 1: Контексты датасета целиком (один контекст = один чанк)")
     print("-" * 80)
 
     struct_chunks = []
@@ -217,7 +263,7 @@ def run_evaluation(
         struct_chunks.append(full_chunk)
         struct_doc_ids.append(doc_id)
 
-    print(f"Создано структурных чанков: {len(struct_chunks)}")
+    print(f"Создано чанков-контекстов: {len(struct_chunks)}")
     struct_cache_key = f"{safe_model}_{lang}_structural"
     struct_emb = get_or_compute_embeddings(
         embedder=embedder,
@@ -227,17 +273,16 @@ def run_evaluation(
         use_cache=use_cache
     )
 
-    struct_retriever = VectorRetriever(embedding_dim=struct_emb.shape[1])
-    struct_retriever.add_documents(struct_emb, struct_chunks, struct_doc_ids)
-
-    # Формируем Ground Truth для структурного чанкинга
+    # Формируем Ground Truth: релевантен исходный контекст вопроса
     struct_gt = [[item["context_id"]] for item in qa_data]
 
-    print("Оценка структурного поиска...")
-    res_struct = evaluate_pipeline(
-        retriever=struct_retriever,
-        embedder=embedder,
+    print("Оценка поиска по контекстам...")
+    res_struct = evaluate_strategy(
+        chunks=struct_chunks,
+        doc_ids=struct_doc_ids,
+        chunk_embeddings=struct_emb,
         qa_data=qa_data,
+        query_embeddings=query_embeddings,
         ground_truth=struct_gt,
         top_k=top_k,
         verbose=True
@@ -270,9 +315,6 @@ def run_evaluation(
         use_cache=use_cache
     )
 
-    fixed_retriever = VectorRetriever(embedding_dim=fixed_emb.shape[1])
-    fixed_retriever.add_documents(fixed_emb, fixed_chunks, fixed_doc_ids)
-
     # Формируем Ground Truth для фиксированного чанкинга
     # Релевантным считается чанк, принадлежащий целевому контексту И содержащий фразу ответа
     fixed_gt = []
@@ -295,10 +337,12 @@ def run_evaluation(
         fixed_gt.append(matching_fixed_ids)
 
     print("Оценка фиксированного поиска...")
-    res_fixed = evaluate_pipeline(
-        retriever=fixed_retriever,
-        embedder=embedder,
+    res_fixed = evaluate_strategy(
+        chunks=fixed_chunks,
+        doc_ids=fixed_doc_ids,
+        chunk_embeddings=fixed_emb,
         qa_data=qa_data,
+        query_embeddings=query_embeddings,
         ground_truth=fixed_gt,
         top_k=top_k,
         verbose=False
@@ -308,22 +352,23 @@ def run_evaluation(
     # Итоговый вывод результатов
     # =========================================================================
     print("\n" + "=" * 80)
-    print(f"ИТОГОВОЕ СРАВНЕНИЕ СТРАТЕГИЙ ЧАНКИНГА НА ADILET QA (k={top_k}, N={len(qa_data)})")
+    print(f"ИТОГОВОЕ СРАВНЕНИЕ НА ADILET QA (k={top_k}, N={len(qa_data)})")
     print("=" * 80)
-    header = f"{'Метрика':<15} | {'Фиксированный (500)':<22} | {'Структурный (НПА)':<22} | {'Разница':<12}"
-    print(header)
-    print("-" * len(header))
 
     metrics = ["MRR", "HitRate@1", f"HitRate@{top_k}", f"Recall@{top_k}"]
-    for m in metrics:
-        v_fix = res_fixed[m]
-        v_str = res_struct[m]
-        diff = v_str - v_fix
-        diff_str = f"{diff:+.4f}"
-        print(f"{m:<15} | {v_fix:<22.4f} | {v_str:<22.4f} | {diff_str:<12}")
+    for method in SEARCH_METHODS:
+        print(f"\nМетод поиска: {method.upper()}")
+        header = f"{'Метрика':<15} | {'Фиксированный (500)':<22} | {'Контексты целиком':<22} | {'Разница':<12}"
+        print(header)
+        print("-" * len(header))
+        for m in metrics:
+            v_fix = res_fixed[method][m]
+            v_str = res_struct[method][m]
+            diff_str = f"{v_str - v_fix:+.4f}"
+            print(f"{m:<15} | {v_fix:<22.4f} | {v_str:<22.4f} | {diff_str:<12}")
 
     print("=" * 80)
-    print(f"Количество индексируемых чанков: Фиксированный = {len(fixed_chunks)}, Структурный = {len(struct_chunks)}")
+    print(f"Количество индексируемых чанков: Фиксированный = {len(fixed_chunks)}, Контексты = {len(struct_chunks)}")
 
     report = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -333,6 +378,7 @@ def run_evaluation(
         "num_test_queries": len(qa_data),
         "fixed_chunks_count": len(fixed_chunks),
         "structural_chunks_count": len(struct_chunks),
+        "query_encode_sec": query_encode_sec,
         "results_fixed": res_fixed,
         "results_structural": res_struct
     }
@@ -353,7 +399,7 @@ def main():
     parser.add_argument("--qa-path", type=str, default=None, help="Путь к файлу с вопросами.")
     parser.add_argument("--test-size", type=int, default=100, help="Количество вопросов для оценки (по умолчанию 100).")
     parser.add_argument("--top-k", type=int, default=3, help="Глубина поисковой выдачи top-k (по умолчанию 3).")
-    parser.add_argument("--model", type=str, default="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+    parser.add_argument("--model", type=str, default=DEFAULT_MODEL, help=f"Модель эмбеддингов (по умолчанию {DEFAULT_MODEL}).")
     parser.add_argument("--save-report", type=str, default="data/adilet/eval_results.json")
     parser.add_argument("--cache-dir", type=str, default="data/adilet/cache", help="Папка для кэширования эмбеддингов.")
     parser.add_argument("--no-cache", action="store_true", help="Принудительно пересчитать эмбеддинги без использования кэша.")

@@ -1,13 +1,13 @@
-pandas
-numpy
-scikit-learn
-sentence-transformers
-faiss-cpu
-langchain
-langchain-community
-jupyter
-tqdm
-matplotlib
-seaborn
-pyarrow
-rank-bm25
+pandas==3.0.6
+numpy==2.5.3
+pyarrow==26.0.0
+faiss-cpu==1.15.1
+sentence-transformers==6.1.0
+rank-bm25==0.2.2
+
+# Загрузка датасета по hf:// URL в prepare_adilet_data.py
+huggingface_hub==1.33.0
+fsspec==2026.9.0
+
+# Тесты
+pytest==9.1.1

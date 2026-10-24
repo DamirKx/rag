@@ -115,6 +115,19 @@ def clean_adilet_context(text: str) -> str:
     return cleaned_text.strip()
 
 
+def to_text_list(value: Any) -> List[str]:
+    """Приводит поле prompts/responses к списку строк.
+
+    В parquet это обычно numpy-массив, но одиночная строка не должна
+    разбиваться на символы, а отсутствующее значение даёт пустой список.
+    """
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value]
+    return [str(v) for v in value]
+
+
 def download_or_load_dataset(cache_path: str) -> pd.DataFrame:
     """Загружает датасет с Hugging Face Hub либо из локального файла кэша.
 
@@ -192,9 +205,9 @@ def process_language_partition(
         prompts = row["prompts"]
         responses = row["responses"]
 
-        # Защита от неоднородных типов (список или numpy-массив)
-        p_list = list(prompts) if hasattr(prompts, "__iter__") else [str(prompts)]
-        r_list = list(responses) if hasattr(responses, "__iter__") else [str(responses)]
+        # Защита от неоднородных типов (список, numpy-массив, строка или None)
+        p_list = to_text_list(prompts)
+        r_list = to_text_list(responses)
 
         for q_sub_idx, q_text in enumerate(p_list):
             q_text = str(q_text).strip()
