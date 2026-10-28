@@ -1,25 +1,56 @@
 {
-  "timestamp": "2026-10-21 15:29:23",
+  "timestamp": "2026-10-28 14:08:43",
   "language": "rus",
-  "model_name": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "model_name": "intfloat/multilingual-e5-small",
   "top_k": 3,
-  "num_test_queries": 5,
+  "num_test_queries": 100,
   "fixed_chunks_count": 10427,
   "structural_chunks_count": 973,
+  "query_encode_sec": 0.6325757503509521,
   "results_fixed": {
-    "MRR": 0.13333333333333333,
-    "HitRate@1": 0.0,
-    "HitRate@3": 0.4,
-    "Recall@3": 0.0365079365079365,
-    "query_encode_sec": 0.04622793197631836,
-    "search_sec": 0.0028107166290283203
+    "dense": {
+      "MRR": 0.6733333333333335,
+      "HitRate@1": 0.6,
+      "HitRate@3": 0.76,
+      "Recall@3": 0.33872236097236086,
+      "search_sec": 0.016115665435791016
+    },
+    "bm25": {
+      "MRR": 0.6916666666666668,
+      "HitRate@1": 0.6,
+      "HitRate@3": 0.8,
+      "Recall@3": 0.329596792096792,
+      "search_sec": 3.2309248447418213
+    },
+    "hybrid": {
+      "MRR": 0.7266666666666666,
+      "HitRate@1": 0.67,
+      "HitRate@3": 0.79,
+      "Recall@3": 0.3245530025530025,
+      "search_sec": 3.4199929237365723
+    }
   },
   "results_structural": {
-    "MRR": 0.2,
-    "HitRate@1": 0.2,
-    "HitRate@3": 0.2,
-    "Recall@3": 0.2,
-    "query_encode_sec": 0.0514376163482666,
-    "search_sec": 0.002003192901611328
+    "dense": {
+      "MRR": 0.6183333333333334,
+      "HitRate@1": 0.55,
+      "HitRate@3": 0.7,
+      "Recall@3": 0.7,
+      "search_sec": 0.0071258544921875
+    },
+    "bm25": {
+      "MRR": 0.725,
+      "HitRate@1": 0.66,
+      "HitRate@3": 0.81,
+      "Recall@3": 0.81,
+      "search_sec": 0.2833075523376465
+    },
+    "hybrid": {
+      "MRR": 0.7383333333333333,
+      "HitRate@1": 0.68,
+      "HitRate@3": 0.81,
+      "Recall@3": 0.81,
+      "search_sec": 0.27747178077697754
+    }
   }
 }
