@@ -84,6 +84,11 @@ data/scans/
 # Large generated Adilet corpora & full datasets (regenerated via prepare_adilet_data.py)
 data/adilet/corpus_*.txt
 data/adilet/*_full.json
+# Разбиение train/val/test из notebooks/finetune_e5.ipynb (воспроизводится по SEED)
+data/adilet/splits/
+
+# Streamlit: локальные секреты
+.streamlit/secrets.toml
 data/adilet/cache/
 *.npy
 *.npz
