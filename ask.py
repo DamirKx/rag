@@ -12,9 +12,11 @@
 import os
 import sys
 import re
+import json
 import time
 import argparse
-from typing import List, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 
 # Обеспечиваем корректный вывод UTF-8 в консоли Windows
@@ -27,9 +29,28 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 from src.embeddings import EmbeddingModel
 from src.retriever import VectorRetriever, BM25Retriever, HybridRetriever
 from prepare_adilet_data import clean_adilet_context
-from run_adilet_eval import get_or_compute_embeddings, DEFAULT_MODEL
+from run_adilet_eval import get_or_compute_embeddings, model_cache_name, DEFAULT_MODEL
 
 SEARCH_MODES = ("dense", "bm25", "hybrid")
+# Модель, дообученная в notebooks/finetune_e5.ipynb
+FINETUNED_MODEL = "models/e5-small-adilet-{lang}"
+DEFAULT_HYBRID_PARAMS = {"dense_weight": 0.5, "sparse_weight": 0.5, "rrf_k": 60}
+
+
+def default_model(lang: str) -> str:
+    """Дообученная модель для языка, если она есть, иначе базовая с Hub."""
+    path = FINETUNED_MODEL.format(lang=lang)
+    return path if (Path(path) / "config.json").exists() else DEFAULT_MODEL
+
+
+def load_hybrid_params(model_name: str, lang: str) -> Dict[str, Any]:
+    """Параметры RRF, подобранные tune_hybrid.py на val для фиксированных чанков 500 символов."""
+    path = Path(f"data/adilet/hybrid_tuning_{lang}.json")
+    if path.exists():
+        tuned = json.loads(path.read_text(encoding="utf-8"))["models"].get(Path(model_name).as_posix())
+        if tuned:
+            return {key: tuned[key] for key in DEFAULT_HYBRID_PARAMS}
+    return dict(DEFAULT_HYBRID_PARAMS)
 
 
 def load_legal_corpus(cache_parquet: str, lang: str) -> pd.DataFrame:
@@ -58,8 +79,17 @@ class LegalSearchEngine:
     BM25-индекс строится лениво — при первом обращении к режиму 'bm25' или 'hybrid'.
     """
 
-    def __init__(self, docs: List[str], doc_ids: List[str], embedder: EmbeddingModel, cache_dir: str, cache_key: str):
+    def __init__(
+        self,
+        docs: List[str],
+        doc_ids: List[str],
+        embedder: EmbeddingModel,
+        cache_dir: str,
+        cache_key: str,
+        hybrid_params: Optional[Dict[str, Any]] = None,
+    ):
         self.embedder = embedder
+        self.hybrid_params = hybrid_params or dict(DEFAULT_HYBRID_PARAMS)
         self.docs_by_id = dict(zip(doc_ids, docs))
         self._docs = docs
         self._doc_ids = doc_ids
@@ -90,9 +120,7 @@ class LegalSearchEngine:
             self._hybrid_retriever = HybridRetriever(
                 vector_retriever=self.dense_retriever,
                 bm25_retriever=self.bm25_retriever,
-                dense_weight=0.5,
-                sparse_weight=0.5,
-                rrf_k=60
+                **self.hybrid_params
             )
         return self._hybrid_retriever
 
@@ -119,12 +147,13 @@ class LegalSearchEngine:
 
 def interactive_cli(
     lang: str = "rus",
-    model_name: str = DEFAULT_MODEL,
+    model_name: Optional[str] = None,
     search_mode: str = "hybrid",
     top_k: int = 3,
     cache_dir: str = "data/adilet/cache",
     cache_parquet: str = "data/raw/adilet_legal_qa_kz.parquet"
 ):
+    model_name = model_name or default_model(lang)
     print("=" * 80)
     print("  ИНТЕРАКТИВНЫЙ ПОИСК ПО БАЗЕ ЗАКОНОДАТЕЛЬСТВА РК (Adilet Legal QA)")
     print("=" * 80)
@@ -151,13 +180,14 @@ def interactive_cli(
     # 2. Инициализация модели и загрузка кэша эмбеддингов
     print("\n[2/3] Инициализация поискового индекса...")
     embedder = EmbeddingModel(model_name=model_name, device="cpu")
-    safe_model = re.sub(r'[^a-zA-Z0-9_\-]', '_', model_name)
+    # Веса гибрида из tune_hybrid.py подобраны для чанков 500 символов, а здесь индексируются
+    # фрагменты целиком, поэтому используются параметры по умолчанию
     engine = LegalSearchEngine(
         docs=docs,
         doc_ids=doc_ids,
         embedder=embedder,
         cache_dir=cache_dir,
-        cache_key=f"{safe_model}_{lang}_structural"
+        cache_key=f"{model_cache_name(model_name)}_{lang}_structural"
     )
 
     print("\n[3/3] База знаний готова к работе!")
@@ -219,7 +249,8 @@ def interactive_cli(
 def main():
     parser = argparse.ArgumentParser(description="Интерактивный консольный поиск по НПА РК.")
     parser.add_argument("--lang", choices=["rus", "kaz"], default="rus", help="Язык ('rus' или 'kaz').")
-    parser.add_argument("--model", type=str, default=DEFAULT_MODEL, help="Модель эмбеддингов.")
+    parser.add_argument("--model", type=str, default=None,
+                        help=f"Модель эмбеддингов (по умолчанию {FINETUNED_MODEL}, если есть, иначе {DEFAULT_MODEL}).")
     parser.add_argument("--mode", choices=list(SEARCH_MODES), default="hybrid", help="Режим поиска.")
     parser.add_argument("--top-k", type=int, default=3, help="Количество возвращаемых статей.")
     parser.add_argument("--cache-dir", type=str, default="data/adilet/cache", help="Папка с кэшем векторов.")
