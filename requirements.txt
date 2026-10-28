@@ -9,5 +9,12 @@ rank-bm25==0.2.2
 huggingface_hub==1.33.0
 fsspec==2026.9.0
 
+# Веб-демо поиска (app.py)
+streamlit==1.66.1
+
+# Дообучение эмбеддера (notebooks/finetune_e5.ipynb)
+datasets==5.1.0
+accelerate==1.15.0
+
 # Тесты
 pytest==9.1.1
