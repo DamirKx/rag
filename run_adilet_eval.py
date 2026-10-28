@@ -39,7 +39,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 
 from src.chunking import get_fixed_size_chunks
 from src.embeddings import EmbeddingModel
-from src.retriever import VectorRetriever, BM25Retriever, HybridRetriever
+from src.retriever import VectorRetriever, BM25Retriever, HybridRetriever, tokenize_legal_text
 from src.eval import calculate_mrr, calculate_hit_rate_at_k, calculate_recall_at_k
 from prepare_adilet_data import clean_adilet_context
 
@@ -51,6 +51,80 @@ SEARCH_METHODS = ["dense", "bm25", "hybrid"]
 def normalize_text(text: str) -> str:
     """Нормализует строку для устойчивого текстового сопоставления."""
     return re.sub(r"\s+", " ", text).strip().lower()
+
+
+def model_cache_name(model_name: str) -> str:
+    """Имя модели для ключа кэша эмбеддингов.
+
+    Для локальной (дообученной) модели добавляется отпечаток размера и времени изменения
+    файлов весов: после переобучения старые векторы не подхватятся. Время изменения папки
+    для этого не подходит — на Windows оно не меняется при перезаписи файлов внутри неё.
+    """
+    safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", model_name)
+    weights = sorted(Path(model_name).glob("*.safetensors")) + sorted(Path(model_name).glob("*.bin"))
+    if not weights:
+        return safe_name
+    digest = hashlib.sha256()
+    for w in weights:
+        stat = w.stat()
+        digest.update(f"{w.name}:{stat.st_size}:{stat.st_mtime_ns}".encode())
+    return f"{safe_name}_{digest.hexdigest()[:8]}"
+
+
+def build_fixed_chunks(
+    sub_df: pd.DataFrame, chunk_size: int = 500, chunk_overlap: int = 50
+) -> Tuple[List[str], List[str], List[str]]:
+    """Фиксированный чанкинг фрагментов: возвращает (тексты, id чанков, context_id каждого чанка).
+
+    Ожидает колонки context_id и cleaned_context.
+    """
+    chunks, chunk_ids, chunk_ctx = [], [], []
+    for ctx_id, text in zip(sub_df["context_id"], sub_df["cleaned_context"]):
+        for s_idx, piece in enumerate(get_fixed_size_chunks(text, chunk_size=chunk_size, chunk_overlap=chunk_overlap)):
+            chunks.append(piece)
+            chunk_ids.append(f"{ctx_id}_fix_{s_idx:03d}")
+            chunk_ctx.append(ctx_id)
+    return chunks, chunk_ids, chunk_ctx
+
+
+class GoldChunkMatcher:
+    """Определяет эталонные чанки вопроса среди чанков его фрагмента.
+
+    Способы по убыванию надёжности:
+    - exact: начало relevant_text дословно входит в чанк;
+    - overlap: чанк с наибольшей долей основ слов ответа (не меньше min_coverage);
+    - context: эталоном считаются все чанки фрагмента.
+    """
+
+    def __init__(self, chunks: List[str], chunk_ctx: List[str], min_coverage: float = 0.5):
+        self.min_coverage = min_coverage
+        self.idx_by_ctx: Dict[str, List[int]] = {}
+        for i, ctx_id in enumerate(chunk_ctx):
+            self.idx_by_ctx.setdefault(ctx_id, []).append(i)
+        self.norm_chunks = [normalize_text(c) for c in chunks]
+        self.chunk_stems = [self.stems(c) for c in chunks]
+
+    @staticmethod
+    def stems(text: str) -> set:
+        # Грубый стемминг для русского и казахского: первые 6 букв слова
+        return {w[:6] for w in tokenize_legal_text(text) if len(w) > 2}
+
+    def find(self, item: Dict[str, Any]) -> Tuple[List[int], str]:
+        """Возвращает (индексы эталонных чанков, способ: exact / overlap / context)."""
+        candidates = self.idx_by_ctx[item["context_id"]]
+        norm_rel = normalize_text(item.get("relevant_text", ""))
+        short_rel = norm_rel[:45]
+        matched = [i for i in candidates if short_rel and (short_rel in self.norm_chunks[i] or norm_rel in self.norm_chunks[i])]
+        if matched:
+            return matched, "exact"
+
+        answer_stems = self.stems(item.get("full_response", ""))
+        if answer_stems:
+            coverage = [len(answer_stems & self.chunk_stems[i]) / len(answer_stems) for i in candidates]
+            best = int(np.argmax(coverage))
+            if coverage[best] >= self.min_coverage:
+                return [candidates[best]], "overlap"
+        return candidates, "context"
 
 
 def compute_metrics(
@@ -239,7 +313,7 @@ def run_evaluation(
     print(f"Модель загружена за {time.time() - t0:.2f} сек.")
 
     # Безопасный идентификатор модели для имени файла кэша
-    safe_model = re.sub(r'[^a-zA-Z0-9_\-]', '_', model_name)
+    safe_model = model_cache_name(model_name)
 
     # Вопросы векторизуются один раз и используются во всех экспериментах
     queries = [item["query"] for item in qa_data]

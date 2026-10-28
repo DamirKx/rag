@@ -19,8 +19,8 @@ import pandas as pd
 import streamlit as st
 import torch
 
-from ask import LegalSearchEngine, load_legal_corpus
-from run_adilet_eval import DEFAULT_MODEL
+from ask import LegalSearchEngine, default_model, load_hybrid_params, load_legal_corpus
+from run_adilet_eval import DEFAULT_MODEL, model_cache_name
 from src.chunking import get_fixed_size_chunks
 from src.embeddings import EmbeddingModel
 from src.retriever import tokenize_legal_text
@@ -148,24 +148,21 @@ def load_embedder(model_name: str) -> EmbeddingModel:
 @st.cache_resource(show_spinner="Построение поискового индекса (при первом запуске векторизация занимает несколько минут)...")
 def load_engine(lang: str, model_name: str) -> LegalSearchEngine:
     corpus = build_corpus(lang)
-    safe_model = re.sub(r"[^a-zA-Z0-9_\-]", "_", model_name)
-    # Дообученная модель может быть перезаписана: время изменения папки входит в ключ кэша
-    model_path = Path(model_name)
-    if model_path.exists():
-        safe_model += f"_{int(model_path.stat().st_mtime)}"
     return LegalSearchEngine(
         docs=[c["text"] for c in corpus],
         doc_ids=[c["id"] for c in corpus],
         embedder=load_embedder(model_name),
         cache_dir=CACHE_DIR,
-        cache_key=f"{safe_model}_{lang}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}",
+        cache_key=f"{model_cache_name(model_name)}_{lang}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}",
+        hybrid_params=load_hybrid_params(model_name, lang),
     )
 
 
-def available_models() -> List[str]:
-    """Базовая модель с Hub и дообученные модели из папки models/."""
-    local = sorted(str(p) for p in MODELS_DIR.glob("*") if (p / "config.json").exists()) if MODELS_DIR.exists() else []
-    return [DEFAULT_MODEL] + local
+def available_models(lang: str) -> List[str]:
+    """Модель по умолчанию для языка (дообученная, если есть), затем остальные: базовая и models/*."""
+    local = sorted(p.as_posix() for p in MODELS_DIR.glob("*") if (p / "config.json").exists()) if MODELS_DIR.exists() else []
+    first = default_model(lang)
+    return [first] + [m for m in [DEFAULT_MODEL] + local if m != first]
 
 
 def query_stems(query: str) -> Set[str]:
@@ -244,7 +241,10 @@ def main() -> None:
         lang = st.radio("Язык корпуса", list(LANG_LABELS), format_func=LANG_LABELS.get, horizontal=True, key="lang")
         mode = st.radio("Метод поиска", list(MODE_LABELS), format_func=MODE_LABELS.get)
         top_k = st.slider("Количество результатов", 1, 10, 5)
-        model_name = st.selectbox("Модель эмбеддингов", available_models())
+        model_name = st.selectbox("Модель эмбеддингов", available_models(lang))
+        if mode == "hybrid":
+            params = load_hybrid_params(model_name, lang)
+            st.caption(f"RRF: вес Dense {params['dense_weight']}, вес BM25 {params['sparse_weight']}, k = {params['rrf_k']}")
         corpus = build_corpus(lang)
         all_laws = sorted({c["law"] for c in corpus})
         laws = st.multiselect("Искать только в законах", all_laws, placeholder="Все законы")
