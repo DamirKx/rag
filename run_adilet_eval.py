@@ -92,12 +92,15 @@ class GoldChunkMatcher:
 
     Способы по убыванию надёжности:
     - exact: начало relevant_text дословно входит в чанк;
-    - overlap: чанк с наибольшей долей основ слов ответа (не меньше min_coverage);
+    - overlap: чанк с наибольшей долей основ слов ответа (не меньше min_coverage); чанки,
+      уступающие лучшему не больше tie_margin, тоже эталонные — при почти равном покрытии
+      по словам не определить, в каком из них ответ (часто он на границе двух чанков);
     - context: эталоном считаются все чанки фрагмента.
     """
 
-    def __init__(self, chunks: List[str], chunk_ctx: List[str], min_coverage: float = 0.5):
+    def __init__(self, chunks: List[str], chunk_ctx: List[str], min_coverage: float = 0.5, tie_margin: float = 0.05):
         self.min_coverage = min_coverage
+        self.tie_margin = tie_margin
         self.idx_by_ctx: Dict[str, List[int]] = {}
         for i, ctx_id in enumerate(chunk_ctx):
             self.idx_by_ctx.setdefault(ctx_id, []).append(i)
@@ -121,9 +124,9 @@ class GoldChunkMatcher:
         answer_stems = self.stems(item.get("full_response", ""))
         if answer_stems:
             coverage = [len(answer_stems & self.chunk_stems[i]) / len(answer_stems) for i in candidates]
-            best = int(np.argmax(coverage))
-            if coverage[best] >= self.min_coverage:
-                return [candidates[best]], "overlap"
+            best = max(coverage)
+            if best >= self.min_coverage:
+                return [i for i, c in zip(candidates, coverage) if c >= best - self.tie_margin], "overlap"
         return candidates, "context"
 
 
