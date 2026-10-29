@@ -4,12 +4,14 @@
 BM25 и Hybrid (RRF). В отличие от ask.py, поиск идёт по чанкам 500 символов
 (лучшая стратегия в бенчмарке run_adilet_eval.py), а для каждого результата
 показываются закон, номер статьи, ссылка на adilet.zan.kz и полный фрагмент.
+Кандидатов любого метода можно переранжировать cross-encoder (src/reranker.py).
 
 Запуск:
     streamlit run app.py
 """
 
 import html
+import json
 import re
 import time
 from pathlib import Path
@@ -23,6 +25,7 @@ from ask import LegalSearchEngine, default_model, load_hybrid_params, load_legal
 from run_adilet_eval import DEFAULT_MODEL, model_cache_name
 from src.chunking import get_fixed_size_chunks
 from src.embeddings import EmbeddingModel
+from src.reranker import CrossEncoderReranker, DEFAULT_RERANKER
 from src.retriever import tokenize_legal_text
 
 CACHE_PARQUET = "data/raw/adilet_legal_qa_kz.parquet"
@@ -31,6 +34,8 @@ MODELS_DIR = Path("models")
 CHUNK_SIZE, CHUNK_OVERLAP = 500, 50
 # Сколько кандидатов достаём перед фильтрацией по законам
 FILTER_POOL = 300
+# Пул реранкера, если eval_reranker.py ещё не запускался
+DEFAULT_RERANK_POOL = 30
 
 # Заголовок статьи для подписи результата. Мягче, чем src.chunking.ARTICLE_HEADING:
 # в Конституции заголовки записаны без точки («Статья 41»).
@@ -158,6 +163,22 @@ def load_engine(lang: str, model_name: str) -> LegalSearchEngine:
     )
 
 
+@st.cache_resource(show_spinner="Загрузка реранкера cross-encoder...")
+def load_reranker(model_name: str) -> CrossEncoderReranker:
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    return CrossEncoderReranker(model_name, device=device)
+
+
+def rerank_pool(lang: str) -> int:
+    """Размер пула кандидатов, выбранный eval_reranker.py на val (для чанков 500 символов)."""
+    path = Path(f"data/adilet/reranker_eval_{lang}.json")
+    if path.exists():
+        tuned = json.loads(path.read_text(encoding="utf-8"))["rerankers"].get(DEFAULT_RERANKER)
+        if tuned:
+            return tuned["best_pool"]
+    return DEFAULT_RERANK_POOL
+
+
 def available_models(lang: str) -> List[str]:
     """Модель по умолчанию для языка (дообученная, если есть), затем остальные: базовая и models/*."""
     local = sorted(p.as_posix() for p in MODELS_DIR.glob("*") if (p / "config.json").exists()) if MODELS_DIR.exists() else []
@@ -189,21 +210,30 @@ def highlight(text: str, stems: Set[str]) -> str:
     return re.sub(r"[\w\-]+", repl, html.escape(text)).replace("\n", "<br>")
 
 
-def run_search(engine: LegalSearchEngine, lang: str, query: str, mode: str, top_k: int, laws: List[str]) -> List[Dict[str, Any]]:
+def run_search(
+    engine: LegalSearchEngine, lang: str, query: str, mode: str, top_k: int, laws: List[str], rerank: bool = False
+) -> List[Dict[str, Any]]:
+    """Поиск с фильтром по законам; при rerank фильтр применяется до переранжирования."""
     by_id = {c["id"]: c for c in build_corpus(lang)}
-    pool = FILTER_POOL if laws else top_k
+    wanted = max(top_k, engine.rerank_pool) if rerank else top_k
+    pool = FILTER_POOL if laws else wanted
     hits = []
     for doc_id, _, score in engine.search(query, mode=mode, top_k=pool):
         chunk = by_id[doc_id]
         if laws and chunk["law"] not in laws:
             continue
         hits.append({**chunk, "score": score})
-        if len(hits) == top_k:
+        if len(hits) == wanted:
             break
+    if rerank:
+        reranked = engine.rerank(query, [(h["id"], h["text"], h["score"]) for h in hits], top_k)
+        hits = [{**by_id[doc_id], "score": score} for doc_id, _, score in reranked]
     return hits
 
 
-def score_text(mode: str, score: float) -> str:
+def score_text(mode: str, score: float, rerank: bool = False) -> str:
+    if rerank:
+        return f"cross-encoder {score:.3f}"
     if mode == "dense":
         return f"косинусное сходство {score:.3f}"
     if mode == "bm25":
@@ -211,14 +241,16 @@ def score_text(mode: str, score: float) -> str:
     return f"RRF {score:.4f}"
 
 
-def render_hit(rank: int, hit: Dict[str, Any], mode: str, lang: str, stems: Set[str], compact: bool = False) -> None:
+def render_hit(
+    rank: int, hit: Dict[str, Any], mode: str, lang: str, stems: Set[str], compact: bool = False, rerank: bool = False
+) -> None:
     url = f"https://adilet.zan.kz/{lang}/docs/{hit['source_id']}"
     with st.container(border=True):
         st.markdown(f"**{rank}. {hit['law']}**" + (f" · {hit['articles']}" if hit["articles"] else ""))
         if hit["article_title"] and not compact:
             st.caption(hit["article_title"])
         st.markdown(f"<div class='hit-text'>{highlight(hit['text'], stems)}</div>", unsafe_allow_html=True)
-        st.caption(f"{score_text(mode, hit['score'])} · [открыть на adilet.zan.kz]({url})")
+        st.caption(f"{score_text(mode, hit['score'], rerank)} · [открыть на adilet.zan.kz]({url})")
         if not compact:
             with st.expander("Весь фрагмент закона"):
                 st.markdown(f"<div class='hit-text'>{highlight(hit['context'], stems)}</div>", unsafe_allow_html=True)
@@ -245,6 +277,9 @@ def main() -> None:
         if mode == "hybrid":
             params = load_hybrid_params(model_name, lang)
             st.caption(f"RRF: вес Dense {params['dense_weight']}, вес BM25 {params['sparse_weight']}, k = {params['rrf_k']}")
+        rerank = st.toggle("Реранкер (cross-encoder)", help="Переранжировать лучших кандидатов выбранного метода нейросетью, читающей вопрос и фрагмент вместе.")
+        if rerank:
+            st.caption(f"{DEFAULT_RERANKER}, топ-{rerank_pool(lang)} кандидатов")
         corpus = build_corpus(lang)
         all_laws = sorted({c["law"] for c in corpus})
         laws = st.multiselect("Искать только в законах", all_laws, placeholder="Все законы")
@@ -274,27 +309,33 @@ def main() -> None:
         return
 
     engine = load_engine(lang, model_name)
+    if rerank:
+        engine.reranker = load_reranker(DEFAULT_RERANKER)
+        engine.rerank_pool = rerank_pool(lang)
     stems = query_stems(query)
     tab_search, tab_compare = st.tabs(["Результаты", "Сравнение методов"])
 
     with tab_search:
         t0 = time.time()
-        hits = run_search(engine, lang, query, mode, top_k, laws)
+        hits = run_search(engine, lang, query, mode, top_k, laws, rerank)
         elapsed_ms = (time.time() - t0) * 1000
         if not hits:
             st.info("Ничего не найдено. Попробуйте переформулировать вопрос или снять фильтр по законам.")
         else:
-            st.caption(f"{MODE_LABELS[mode]} · найдено {len(hits)} за {elapsed_ms:.0f} мс")
+            label = MODE_LABELS[mode] + (" + реранкер" if rerank else "")
+            st.caption(f"{label} · найдено {len(hits)} за {elapsed_ms:.0f} мс")
             for rank, hit in enumerate(hits, 1):
-                render_hit(rank, hit, mode, lang, stems)
+                render_hit(rank, hit, mode, lang, stems, rerank=rerank)
 
     with tab_compare:
         st.caption("Топ-3 каждого метода по одному и тому же вопросу.")
-        for col, m in zip(st.columns(3), MODE_LABELS):
+        # С включённым реранкером добавляется колонка Hybrid + реранкер
+        columns = [(m, False) for m in MODE_LABELS] + ([("hybrid", True)] if rerank else [])
+        for col, (m, m_rerank) in zip(st.columns(len(columns)), columns):
             with col:
-                st.subheader(m.upper())
-                for rank, hit in enumerate(run_search(engine, lang, query, m, 3, laws), 1):
-                    render_hit(rank, hit, m, lang, stems, compact=True)
+                st.subheader(m.upper() + (" + RERANK" if m_rerank else ""))
+                for rank, hit in enumerate(run_search(engine, lang, query, m, 3, laws, m_rerank), 1):
+                    render_hit(rank, hit, m, lang, stems, compact=True, rerank=m_rerank)
 
 
 if __name__ == "__main__":

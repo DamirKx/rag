@@ -14,7 +14,7 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -64,6 +64,30 @@ def rrf_fuse(dense: List[List[str]], sparse: List[List[str]], dense_weight: floa
     return fused
 
 
+def load_eval_data(lang: str) -> Tuple[List[str], List[str], Dict[str, list], Dict[str, List[List[str]]]]:
+    """Чанки 500 символов и вопросы val/test с эталонными чанками.
+
+    Returns:
+        (тексты чанков, id чанков, {сплит: вопросы}, {сплит: эталонные id чанков каждого вопроса})
+    """
+    df = pd.read_parquet("data/raw/adilet_legal_qa_kz.parquet")
+    sub_df = df[df["language"] == lang].copy().reset_index(drop=True)
+    sub_df["cleaned_context"] = sub_df["context"].apply(clean_adilet_context)
+    sub_df["context_id"] = [f"ctx_{i:04d}" for i in range(len(sub_df))]
+    chunks, chunk_ids, chunk_ctx = build_fixed_chunks(sub_df, CHUNK_SIZE, CHUNK_OVERLAP)
+
+    matcher = GoldChunkMatcher(chunks, chunk_ctx)
+    splits, gold = {}, {}
+    for name in ("val", "test"):
+        path = Path(f"data/adilet/splits/qa_{lang}_{name}.json")
+        if not path.exists():
+            raise FileNotFoundError(f"{path} не найден — сначала выполните разбиение в notebooks/finetune_e5.ipynb")
+        splits[name] = json.loads(path.read_text(encoding="utf-8"))
+        gold[name] = [[chunk_ids[i] for i in matcher.find(q)[0]] for q in splits[name]]
+    print(f"Чанков: {len(chunks)} | val: {len(splits['val'])} | test: {len(splits['test'])}")
+    return chunks, chunk_ids, splits, gold
+
+
 def main():
     parser = argparse.ArgumentParser(description="Подбор весов гибридного поиска на validation.")
     parser.add_argument("--lang", choices=["rus", "kaz"], default="rus")
@@ -75,21 +99,7 @@ def main():
     models = args.models or [DEFAULT_MODEL] + [p for p in [f"models/e5-small-adilet-{args.lang}"] if Path(p).exists()]
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    df = pd.read_parquet("data/raw/adilet_legal_qa_kz.parquet")
-    sub_df = df[df["language"] == args.lang].copy().reset_index(drop=True)
-    sub_df["cleaned_context"] = sub_df["context"].apply(clean_adilet_context)
-    sub_df["context_id"] = [f"ctx_{i:04d}" for i in range(len(sub_df))]
-    chunks, chunk_ids, chunk_ctx = build_fixed_chunks(sub_df, CHUNK_SIZE, CHUNK_OVERLAP)
-
-    matcher = GoldChunkMatcher(chunks, chunk_ctx)
-    splits, gold = {}, {}
-    for name in ("val", "test"):
-        path = Path(f"data/adilet/splits/qa_{args.lang}_{name}.json")
-        if not path.exists():
-            raise FileNotFoundError(f"{path} не найден — сначала выполните разбиение в notebooks/finetune_e5.ipynb")
-        splits[name] = json.loads(path.read_text(encoding="utf-8"))
-        gold[name] = [[chunk_ids[i] for i in matcher.find(q)[0]] for q in splits[name]]
-    print(f"Чанков: {len(chunks)} | val: {len(splits['val'])} | test: {len(splits['test'])}")
+    chunks, chunk_ids, splits, gold = load_eval_data(args.lang)
 
     bm25 = BM25Retriever()
     bm25.add_documents(chunks, chunk_ids)

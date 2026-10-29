@@ -7,6 +7,8 @@
 1. 'dense' — семантический векторный поиск на базе FAISS (нейросеть E5);
 2. 'bm25' — лексический поиск по ключевым словам и номерам статей;
 3. 'hybrid' — гибридное ранжирование Reciprocal Rank Fusion (RRF) Dense + BM25.
+
+Любой режим можно дополнить переранжированием кандидатов cross-encoder (флаг --rerank).
 """
 
 import os
@@ -28,6 +30,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 
 from src.embeddings import EmbeddingModel
 from src.retriever import VectorRetriever, BM25Retriever, HybridRetriever
+from src.reranker import CrossEncoderReranker, DEFAULT_RERANKER
 from prepare_adilet_data import clean_adilet_context
 from run_adilet_eval import get_or_compute_embeddings, model_cache_name, DEFAULT_MODEL
 
@@ -35,6 +38,9 @@ SEARCH_MODES = ("dense", "bm25", "hybrid")
 # Модель, дообученная в notebooks/finetune_e5.ipynb
 FINETUNED_MODEL = "models/e5-small-adilet-{lang}"
 DEFAULT_HYBRID_PARAMS = {"dense_weight": 0.5, "sparse_weight": 0.5, "rrf_k": 60}
+# Сколько кандидатов первого этапа переранжирует cross-encoder. Фрагменты законов в ask.py
+# длинные (каждый — около 6 окон реранкера), поэтому пул меньше, чем у чанков в app.py
+ASK_RERANK_POOL = 10
 
 
 def default_model(lang: str) -> str:
@@ -77,6 +83,8 @@ class LegalSearchEngine:
     """Поисковый движок по корпусу НПА с тремя режимами: dense, bm25, hybrid.
 
     BM25-индекс строится лениво — при первом обращении к режиму 'bm25' или 'hybrid'.
+    Если задан reranker, search(..., rerank=True) переранжирует rerank_pool лучших
+    кандидатов выбранного режима и возвращает оценки cross-encoder.
     """
 
     def __init__(
@@ -87,9 +95,13 @@ class LegalSearchEngine:
         cache_dir: str,
         cache_key: str,
         hybrid_params: Optional[Dict[str, Any]] = None,
+        reranker: Optional[CrossEncoderReranker] = None,
+        rerank_pool: int = 30,
     ):
         self.embedder = embedder
         self.hybrid_params = hybrid_params or dict(DEFAULT_HYBRID_PARAMS)
+        self.reranker = reranker
+        self.rerank_pool = rerank_pool
         self.docs_by_id = dict(zip(doc_ids, docs))
         self._docs = docs
         self._doc_ids = doc_ids
@@ -124,8 +136,14 @@ class LegalSearchEngine:
             )
         return self._hybrid_retriever
 
-    def search(self, query: str, mode: str, top_k: int) -> List[Tuple[str, str, float]]:
+    def search(self, query: str, mode: str, top_k: int, rerank: bool = False) -> List[Tuple[str, str, float]]:
         """Выполняет поиск и возвращает список троек (doc_id, текст, оценка)."""
+        if rerank:
+            if self.reranker is None:
+                raise ValueError("Реранкер не задан")
+            candidates = self.search(query, mode, max(top_k, self.rerank_pool))
+            return self.rerank(query, candidates, top_k)
+
         if mode == "hybrid":
             q_emb = self.embedder.encode_queries([query])[0]
             pairs = self.hybrid_retriever.search_with_scores(query, q_emb, k=top_k)
@@ -144,6 +162,11 @@ class LegalSearchEngine:
 
         return [(doc_id, self.docs_by_id[doc_id], score) for doc_id, score in pairs]
 
+    def rerank(self, query: str, candidates: List[Tuple[str, str, float]], top_k: int) -> List[Tuple[str, str, float]]:
+        """Переранжирует готовый список троек (doc_id, текст, оценка) cross-encoder."""
+        pairs = self.reranker.rerank(query, [(doc_id, text) for doc_id, text, _ in candidates], top_k=top_k)
+        return [(doc_id, self.docs_by_id[doc_id], score) for doc_id, score in pairs]
+
 
 def interactive_cli(
     lang: str = "rus",
@@ -151,7 +174,10 @@ def interactive_cli(
     search_mode: str = "hybrid",
     top_k: int = 3,
     cache_dir: str = "data/adilet/cache",
-    cache_parquet: str = "data/raw/adilet_legal_qa_kz.parquet"
+    cache_parquet: str = "data/raw/adilet_legal_qa_kz.parquet",
+    rerank: bool = False,
+    reranker_name: str = DEFAULT_RERANKER,
+    rerank_pool: int = ASK_RERANK_POOL,
 ):
     model_name = model_name or default_model(lang)
     print("=" * 80)
@@ -160,6 +186,7 @@ def interactive_cli(
     print(f" Язык документов: {lang.upper()}")
     print(f" Модель поиска:   {model_name}")
     print(f" Режим поиска:    {search_mode.upper()}")
+    print(f" Реранкер:        {f'{reranker_name} (топ-{rerank_pool} кандидатов)' if rerank else 'выключен'}")
     print(f" Количество результатов: {top_k}")
     print("-" * 80)
 
@@ -187,19 +214,25 @@ def interactive_cli(
         doc_ids=doc_ids,
         embedder=embedder,
         cache_dir=cache_dir,
-        cache_key=f"{model_cache_name(model_name)}_{lang}_structural"
+        cache_key=f"{model_cache_name(model_name)}_{lang}_structural",
+        rerank_pool=rerank_pool,
     )
+    if rerank:
+        print(f"  Загрузка реранкера {reranker_name}...")
+        engine.reranker = CrossEncoderReranker(reranker_name)
 
     print("\n[3/3] База знаний готова к работе!")
     print("=" * 80)
     print(" Введите ваш вопрос (например: 'С какого числа вступил в силу земельный кодекс?')")
     print(" Для переключения режима введите ':mode dense', ':mode bm25' или ':mode hybrid'")
+    print(" Реранкер cross-encoder: ':rerank on' / ':rerank off'")
     print(" Для выхода из программы введите 'exit' или 'q'")
     print("=" * 80)
 
     while True:
         try:
-            prompt_str = f"\n[{search_mode.upper()}] Введите вопрос > "
+            label = search_mode.upper() + (" + RERANK" if rerank else "")
+            prompt_str = f"\n[{label}] Введите вопрос > "
             query = input(prompt_str).strip()
         except (KeyboardInterrupt, EOFError):
             print("\nВыход из программы.")
@@ -222,9 +255,21 @@ def interactive_cli(
                 print("Неизвестный режим. Доступные: dense, bm25, hybrid")
             continue
 
+        if query.startswith(":rerank"):
+            parts = query.split()
+            if len(parts) > 1 and parts[1].lower() in ("on", "off"):
+                rerank = parts[1].lower() == "on"
+                if rerank and engine.reranker is None:
+                    print(f"Загрузка реранкера {reranker_name}...")
+                    engine.reranker = CrossEncoderReranker(reranker_name)
+                print(f"Реранкер {'включен' if rerank else 'выключен'}")
+            else:
+                print("Используйте ':rerank on' или ':rerank off'")
+            continue
+
         # Выполнение поиска
         t0 = time.time()
-        results = engine.search(query, mode=search_mode, top_k=top_k)
+        results = engine.search(query, mode=search_mode, top_k=top_k, rerank=rerank)
         elapsed_ms = (time.time() - t0) * 1000.0
 
         if not results:
@@ -240,7 +285,7 @@ def interactive_cli(
             source_line, _, body_text = text.partition("\n")
             preview = format_preview(body_text, max_chars=400)
 
-            score_str = f"{score:.2f}" if search_mode == "bm25" else f"{score:.4f}"
+            score_str = f"{score:.2f}" if search_mode == "bm25" and not rerank else f"{score:.4f}"
             print(f" [{rank}] {source_line} | ID: {doc_id} | Релевантность: {score_str}")
             print(f"     \"{preview}\"")
             print()
@@ -254,6 +299,10 @@ def main():
     parser.add_argument("--mode", choices=list(SEARCH_MODES), default="hybrid", help="Режим поиска.")
     parser.add_argument("--top-k", type=int, default=3, help="Количество возвращаемых статей.")
     parser.add_argument("--cache-dir", type=str, default="data/adilet/cache", help="Папка с кэшем векторов.")
+    parser.add_argument("--rerank", action="store_true", help="Переранжировать кандидатов cross-encoder.")
+    parser.add_argument("--reranker", type=str, default=DEFAULT_RERANKER, help=f"Модель реранкера (по умолчанию {DEFAULT_RERANKER}).")
+    parser.add_argument("--rerank-pool", type=int, default=ASK_RERANK_POOL,
+                        help=f"Сколько кандидатов переранжировать (по умолчанию {ASK_RERANK_POOL}).")
     args = parser.parse_args()
 
     interactive_cli(
@@ -261,7 +310,10 @@ def main():
         model_name=args.model,
         search_mode=args.mode,
         top_k=args.top_k,
-        cache_dir=args.cache_dir
+        cache_dir=args.cache_dir,
+        rerank=args.rerank,
+        reranker_name=args.reranker,
+        rerank_pool=args.rerank_pool,
     )
 
 
