@@ -3,8 +3,10 @@
 Первый этап — Hybrid (RRF) с дообученной моделью эмбеддингов (если есть) и весами из
 data/adilet/hybrid_tuning_{lang}.json. Каждый реранкер один раз оценивает топ-MAX_POOL
 кандидатов первого этапа, затем для каждого размера пула N переранжируются топ-N, а
-остальные кандидаты идут следом в исходном порядке. N выбирается по MRR@10 на val,
-test считается для итогового сравнения. Результат сохраняется в
+остальные кандидаты идут следом в исходном порядке. N — наименьший пул, чей MRR@10
+на val отстаёт от лучшего не больше чем на POOL_TOLERANCE (реранкер работает
+пропорционально N, а прирост от больших пулов в пределах шума); test считается для
+итогового сравнения. Результат сохраняется в
 data/adilet/reranker_eval_{lang}.json и подхватывается веб-демо (app.py).
 
 Запуск:
@@ -37,6 +39,8 @@ from tune_hybrid import CHUNK_SIZE, CHUNK_OVERLAP, EVAL_K, ir_metrics, load_eval
 RERANKERS = [DEFAULT_RERANKER, "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"]
 POOL_SIZES = [10, 20, 30, 50]
 MAX_POOL = max(POOL_SIZES)
+# Допустимая потеря val MRR@10 ради меньшего (более быстрого) пула
+POOL_TOLERANCE = 0.002
 
 
 def apply_rerank(candidates: List[List[str]], scores: List[Dict[str, float]], pool: int) -> List[List[str]]:
@@ -45,6 +49,12 @@ def apply_rerank(candidates: List[List[str]], scores: List[Dict[str, float]], po
         sorted(ids[:pool], key=lambda d: -s[d]) + ids[pool:]
         for ids, s in zip(candidates, scores)
     ]
+
+
+def choose_pool(val_mrr: Dict[int, float], tolerance: float = POOL_TOLERANCE) -> int:
+    """Наименьший пул, чей MRR@10 не хуже лучшего более чем на tolerance."""
+    best = max(val_mrr.values())
+    return min(pool for pool, mrr in val_mrr.items() if mrr >= best - tolerance)
 
 
 def main():
@@ -90,6 +100,7 @@ def main():
         "language": args.lang,
         "first_stage": {"method": "hybrid", "model_name": Path(model_name).as_posix(), **hybrid_params},
         "selection_metric": "val MRR@10",
+        "selection_rule": f"наименьший пул в пределах {POOL_TOLERANCE} от лучшего",
         "pool_sizes": POOL_SIZES,
         "hybrid": {name: ir_metrics(gold[name], [c[:EVAL_K] for c in candidates[name]]) for name in splits},
         "rerankers": {},
@@ -121,9 +132,10 @@ def main():
                    for name in splits}
             for pool in POOL_SIZES
         }
-        best_pool = max(POOL_SIZES, key=lambda pool: by_pool[pool]["val"]["MRR@10"])
+        best_pool = choose_pool({pool: by_pool[pool]["val"]["MRR@10"] for pool in POOL_SIZES})
         report["rerankers"][reranker_name] = {
             "best_pool": best_pool,
+            "fp16": reranker.fp16,
             "ms_per_query_at_max_pool": round(sec_per_query["test"] * 1000, 1),
             "by_pool": {str(pool): m for pool, m in by_pool.items()},
         }
@@ -132,7 +144,7 @@ def main():
         for name in splits:
             table = pd.DataFrame({label: r[name] for label, r in rows.items()}).T
             print(f"\n{name}:\n{table.round(4).to_string()}")
-        print(f"Лучший пул по val MRR@10: {best_pool}")
+        print(f"Выбранный пул (val MRR@10, допуск {POOL_TOLERANCE}): {best_pool}")
 
         del reranker
         if device == "cuda":

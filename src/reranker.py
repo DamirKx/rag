@@ -12,6 +12,7 @@
 
 from typing import List, Optional, Sequence, Tuple
 
+import torch
 from sentence_transformers import CrossEncoder
 
 from src.chunking import get_fixed_size_chunks
@@ -31,6 +32,7 @@ class CrossEncoderReranker:
         batch_size: int = 32,
         window_chars: int = 1000,
         window_overlap: int = 100,
+        fp16: Optional[bool] = None,
     ):
         """Загружает модель cross-encoder.
 
@@ -43,12 +45,19 @@ class CrossEncoderReranker:
             window_chars (int): Длина окна (символов) для документов длиннее неё.
                                 ~1000 символов русского текста укладываются в 512 токенов вместе с запросом.
             window_overlap (int): Перекрытие соседних окон в символах.
+            fp16 (Optional[bool]): Инференс в половинной точности; None — включается на GPU.
+                                   Примерно вдвое быстрее, на порядок кандидатов практически не влияет.
         """
         self.model_name = model_name
         self.batch_size = batch_size
         self.window_chars = window_chars
         self.window_overlap = window_overlap
         self.model = CrossEncoder(model_name, device=device, max_length=max_length)
+        if fp16 is None:
+            fp16 = device == "cuda" if device is not None else torch.cuda.is_available()
+        self.fp16 = fp16
+        if fp16:
+            self.model.half()
 
     def score(self, query: str, documents: Sequence[str]) -> List[float]:
         """Возвращает оценки релевантности каждого документа запросу (чем выше, тем релевантнее)."""
