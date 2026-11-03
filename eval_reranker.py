@@ -32,7 +32,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 from ask import default_model, load_bm25_params, load_hybrid_params
 from src.embeddings import EmbeddingModel
 from src.retriever import VectorRetriever, BM25Retriever
-from src.reranker import CrossEncoderReranker, DEFAULT_RERANKER
+from src.reranker import CrossEncoderReranker, DEFAULT_RERANKER, default_reranker
 from run_adilet_eval import get_or_compute_embeddings, model_cache_name
 from tune_hybrid import CHUNK_SIZE, CHUNK_OVERLAP, EVAL_K, ir_metrics, load_eval_data, rrf_fuse
 
@@ -61,9 +61,13 @@ def main():
     parser = argparse.ArgumentParser(description="Оценка реранкеров cross-encoder на validation / test.")
     parser.add_argument("--lang", choices=["rus", "kaz"], default="rus")
     parser.add_argument("--model", default=None, help="Модель эмбеддингов первого этапа (по умолчанию как в ask.py).")
-    parser.add_argument("--rerankers", nargs="+", default=RERANKERS)
+    parser.add_argument("--rerankers", nargs="+", default=None,
+                        help="Реранкеры (по умолчанию исходные с Hub и дообученный из models/, если есть).")
     parser.add_argument("--cache-dir", default="data/adilet/cache")
     args = parser.parse_args()
+    if args.rerankers is None:
+        finetuned = default_reranker(args.lang)
+        args.rerankers = RERANKERS + ([finetuned] if finetuned != DEFAULT_RERANKER else [])
 
     model_name = args.model or default_model(args.lang)
     hybrid_params = load_hybrid_params(model_name, args.lang)
@@ -107,6 +111,16 @@ def main():
         "hybrid": {name: ir_metrics(gold[name], [c[:EVAL_K] for c in candidates[name]]) for name in splits},
         "rerankers": {},
     }
+    # Реранкеры, уже оценённые на том же первом этапе, сохраняются: можно досчитать одну новую модель
+    out = Path(f"data/adilet/reranker_eval_{args.lang}.json")
+    if out.exists():
+        previous = json.loads(out.read_text(encoding="utf-8"))
+        if previous.get("first_stage") == report["first_stage"]:
+            report["rerankers"] = {
+                name: r for name, r in previous.get("rerankers", {}).items() if name not in args.rerankers
+            }
+            if report["rerankers"]:
+                print(f"Из прежнего отчёта сохранены: {list(report['rerankers'])}")
     # Доля вопросов, у которых эталонный чанк вообще есть в пуле: потолок для реранкера
     ceiling = {
         name: {f"Hit@{n}": sum(any(d in set(g) for d in c[:n]) for c, g in zip(candidates[name], gold[name])) / len(gold[name])
@@ -152,7 +166,6 @@ def main():
         if device == "cuda":
             torch.cuda.empty_cache()
 
-    out = Path(f"data/adilet/reranker_eval_{args.lang}.json")
     out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\nОтчёт сохранён: {out}")
 

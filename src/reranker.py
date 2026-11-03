@@ -10,6 +10,7 @@
 оценкой документа служит максимум по окнам (MaxP): иначе модель увидела бы только начало текста.
 """
 
+from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
 
 import torch
@@ -19,6 +20,14 @@ from src.chunking import get_fixed_size_chunks
 
 # Мультиязычный реранкер на базе bge-m3: поддерживает русский и казахский языки
 DEFAULT_RERANKER = "BAAI/bge-reranker-v2-m3"
+# Он же, дообученный в notebooks/finetune_reranker.ipynb (папка скачивается с Google Drive)
+FINETUNED_RERANKER = "models/reranker-bge-m3-adilet-{lang}"
+
+
+def default_reranker(lang: str) -> str:
+    """Дообученный реранкер для языка, если он есть в models/, иначе исходный с Hub."""
+    path = FINETUNED_RERANKER.format(lang=lang)
+    return path if (Path(path) / "config.json").exists() else DEFAULT_RERANKER
 
 
 class CrossEncoderReranker:

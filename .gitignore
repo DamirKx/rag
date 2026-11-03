@@ -72,26 +72,32 @@ Desktop.ini
 .DS_Store
 
 # Project specific / local data & cache (embeddings, indices, model weights)
+# Пути с «/» в начале — только от корня проекта (иначе, например, coursework/figures/ тоже игнорировался бы)
 *.log
-models/
-checkpoints/
-data/cache/
-data/raw/
-data/scans/
+/models/
+/checkpoints/
+/data/raw/
+/data/scans/
 *.faiss
 *.index
+# Архивы (например, модели для загрузки на Google Drive)
+*.zip
 
 # Large generated Adilet corpora & full datasets (regenerated via prepare_adilet_data.py)
-data/adilet/corpus_*.txt
-data/adilet/*_full.json
+/data/adilet/corpus_*.txt
+/data/adilet/*_full.json
 # Разбиение train/val/test из notebooks/finetune_e5.ipynb (воспроизводится по SEED)
-data/adilet/splits/
+/data/adilet/splits/
+# Кэш эмбеддингов (пересчитывается автоматически)
+/data/adilet/cache/
+*.npy
+*.npz
 
 # Streamlit: локальные секреты
 .streamlit/secrets.toml
-data/adilet/cache/
-*.npy
-*.npz
+
+# Временные файлы Word / Excel (появляются, пока документ открыт)
+~$*
 
 # ML/DL model weights & serialized artifacts (PyTorch, SafeTensors, ONNX, Pickles)
 *.pt
@@ -105,9 +111,9 @@ data/adilet/cache/
 
 # Experiment tracking & results
 wandb/
-runs/
-results/
-reports/
-figures/
+/runs/
+/results/
+/reports/
+/figures/
 hf_cache/
 .huggingface/

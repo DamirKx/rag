@@ -9,7 +9,7 @@
 1. **Dense Retrieval (Векторный поиск):** плотные векторные представления на базе Transformer-моделей семейства `E5` с индексированием в `FAISS` (IndexFlatIP).
 2. **Sparse Retrieval (Лексический поиск):** алгоритм `Okapi BM25` с адаптивной юридической токенизацией для точного поиска номеров статей, законов и числовых норм.
 3. **Hybrid Retrieval (Гибридный поиск):** устойчивое слияние списков выдачи через алгоритм `Reciprocal Rank Fusion (RRF)`.
-4. **Реранкинг (второй этап):** cross-encoder `BAAI/bge-reranker-v2-m3` переоценивает топ-N кандидатов любого метода, читая вопрос и фрагмент вместе. Длинные документы оцениваются по окнам (максимум по окнам, MaxP).
+4. **Реранкинг (второй этап):** cross-encoder `BAAI/bge-reranker-v2-m3` (по умолчанию — дообученный на данных Adilet, `models/reranker-bge-m3-adilet-rus`, если он скачан) переоценивает топ-N кандидатов любого метода, читая вопрос и фрагмент вместе. Длинные документы оцениваются по окнам (максимум по окнам, MaxP).
 
 ## Модели эмбеддингов
 | Модель | Роль | Лимит | Размер вектора |
@@ -144,9 +144,17 @@ streamlit run app.py
 ### 6.2. Оценка реранкера
 ```bash
 python eval_reranker.py --lang rus
+# досчитать одну модель, сохранив уже оценённые на том же первом этапе:
+python eval_reranker.py --lang rus --rerankers models/reranker-bge-m3-adilet-rus
 ```
 Первый этап — Hybrid с дообученной моделью и весами из `tune_hybrid.py`; реранкеры сравниваются на val/test
 из `data/adilet/splits`, размер пула (10 / 20 / 30 / 50) выбирается по MRR@10 на val.
+
+**Дообучение реранкера** — `notebooks/finetune_reranker.ipynb` в Google Colab (GPU T4, ~1 ч): hard negatives
+из выдачи гибрида, `BinaryCrossEntropyLoss`, выбор лучшей точки по val. Итоговая модель сохраняется на Google Drive
+в `models/reranker-bge-m3-adilet-rus/`; после скачивания в ту же папку проекта её используют по умолчанию
+`ask.py`, веб-демо и `eval_reranker.py`. Drive отдаёт веса отдельным файлом `model-001.safetensors` —
+его нужно переименовать в `model.safetensors`.
 
 ### 6.3. Подбор BM25
 ```bash
