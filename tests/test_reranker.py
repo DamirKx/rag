@@ -105,3 +105,16 @@ def test_default_reranker_prefers_finetuned(tmp_path, monkeypatch):
     assert reranker_module.default_reranker("rus") == "models/reranker-bge-m3-adilet-rus"
     # для языка без дообученной модели — исходная
     assert reranker_module.default_reranker("kaz") == reranker_module.DEFAULT_RERANKER
+
+
+def test_demo_lists_only_embedding_models(tmp_path, monkeypatch):
+    app = pytest.importorskip("app")
+    for name, model_type in [("e5-tuned", "SentenceTransformer"), ("reranker-tuned", "CrossEncoder")]:
+        d = tmp_path / name
+        d.mkdir()
+        (d / "config.json").write_text("{}", encoding="utf-8")
+        (d / "config_sentence_transformers.json").write_text(f'{{"model_type": "{model_type}"}}', encoding="utf-8")
+    monkeypatch.setattr(app, "MODELS_DIR", tmp_path)
+    models = app.available_models("kaz")
+    assert (tmp_path / "e5-tuned").as_posix() in models
+    assert not any("reranker-tuned" in m for m in models)

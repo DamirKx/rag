@@ -180,9 +180,19 @@ def rerank_pool(lang: str) -> int:
     return DEFAULT_RERANK_POOL
 
 
+def is_embedding_model(path: Path) -> bool:
+    """Папка с моделью эмбеддингов (не реранкер cross-encoder, который тоже лежит в models/)."""
+    if not (path / "config.json").exists():
+        return False
+    st_config = path / "config_sentence_transformers.json"
+    if st_config.exists():
+        return json.loads(st_config.read_text(encoding="utf-8")).get("model_type") != "CrossEncoder"
+    return True
+
+
 def available_models(lang: str) -> List[str]:
     """Модель по умолчанию для языка (дообученная, если есть), затем остальные: базовая и models/*."""
-    local = sorted(p.as_posix() for p in MODELS_DIR.glob("*") if (p / "config.json").exists()) if MODELS_DIR.exists() else []
+    local = sorted(p.as_posix() for p in MODELS_DIR.glob("*") if is_embedding_model(p)) if MODELS_DIR.exists() else []
     first = default_model(lang)
     return [first] + [m for m in [DEFAULT_MODEL] + local if m != first]
 
