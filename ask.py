@@ -49,6 +49,18 @@ def default_model(lang: str) -> str:
     return path if (Path(path) / "config.json").exists() else DEFAULT_MODEL
 
 
+def load_bm25_params(lang: str) -> Dict[str, Any]:
+    """Параметры BM25, подобранные tune_bm25.py на val для фиксированных чанков 500 символов.
+
+    Пустой словарь (настройки BM25Retriever по умолчанию, как у прежнего rank_bm25), если подбора не было.
+    На фрагментах законов целиком (ask.py) эти параметры хуже настроек по умолчанию — там их не используем.
+    """
+    path = Path(f"data/adilet/bm25_tuning_{lang}.json")
+    if path.exists():
+        return dict(json.loads(path.read_text(encoding="utf-8"))["best"])
+    return {}
+
+
 def load_hybrid_params(model_name: str, lang: str) -> Dict[str, Any]:
     """Параметры RRF, подобранные tune_hybrid.py на val для фиксированных чанков 500 символов."""
     path = Path(f"data/adilet/hybrid_tuning_{lang}.json")
@@ -97,9 +109,11 @@ class LegalSearchEngine:
         hybrid_params: Optional[Dict[str, Any]] = None,
         reranker: Optional[CrossEncoderReranker] = None,
         rerank_pool: int = 30,
+        bm25_params: Optional[Dict[str, Any]] = None,
     ):
         self.embedder = embedder
         self.hybrid_params = hybrid_params or dict(DEFAULT_HYBRID_PARAMS)
+        self.bm25_params = dict(bm25_params or {})
         self.reranker = reranker
         self.rerank_pool = rerank_pool
         self.docs_by_id = dict(zip(doc_ids, docs))
@@ -122,7 +136,7 @@ class LegalSearchEngine:
     @property
     def bm25_retriever(self) -> BM25Retriever:
         if self._bm25_retriever is None:
-            self._bm25_retriever = BM25Retriever()
+            self._bm25_retriever = BM25Retriever(**self.bm25_params)
             self._bm25_retriever.add_documents(self._docs, self._doc_ids)
         return self._bm25_retriever
 
@@ -207,8 +221,9 @@ def interactive_cli(
     # 2. Инициализация модели и загрузка кэша эмбеддингов
     print("\n[2/3] Инициализация поискового индекса...")
     embedder = EmbeddingModel(model_name=model_name, device="cpu")
-    # Веса гибрида из tune_hybrid.py подобраны для чанков 500 символов, а здесь индексируются
-    # фрагменты целиком, поэтому используются параметры по умолчанию
+    # Веса гибрида (tune_hybrid.py) и параметры BM25 (tune_bm25.py) подобраны для чанков 500 символов,
+    # а здесь индексируются фрагменты целиком, поэтому используются параметры по умолчанию
+    # (подобранные для чанков BM25-параметры на целых фрагментах хуже: val MRR@10 0.676 против 0.713)
     engine = LegalSearchEngine(
         docs=docs,
         doc_ids=doc_ids,

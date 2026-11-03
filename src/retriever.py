@@ -4,11 +4,14 @@
 поиска k ближайших соседей (k-NN) в пространстве высокой размерности.
 """
 
+from collections import Counter
 from typing import List, Tuple, Dict, Any, Optional
 import re
 import faiss
 import numpy as np
-from rank_bm25 import BM25Okapi
+import scipy.sparse as sp
+
+from src.text_norm import get_normalizer
 
 
 class VectorRetriever:
@@ -137,21 +140,67 @@ def tokenize_legal_text(text: str) -> List[str]:
 
 
 class BM25Retriever:
-    """Лексический ретривер на основе алгоритма BM25 (Okapi BM25).
+    """Лексический ретривер Okapi BM25 на разреженных матрицах (scipy.sparse).
 
     Специализируется на точном поиске ключевых слов:
     - Номера законов, статей и пунктов (например, '№ 221-VII', 'статья 122', 'пункт 8-1');
     - Даты и числовые нормативы ('05.04.2023', '311');
     - Специальные аббревиатуры и термины ('МРП', 'ЗҚАИ').
+
+    Оценка документа d по запросу q:
+
+        score(d, q) = Σ_{t ∈ q} idf(t) · tf(t, d) · (k1 + 1) / (tf(t, d) + k1 · (1 − b + b · |d| / avgdl))
+
+    Вес каждой пары «документ — слово» не зависит от запроса, поэтому при индексации один раз
+    строится разреженная матрица весов W (слова × документы), а оценки пачки запросов — это одно
+    произведение Q · W, где Q — разреженная матрица «запросы × слова» (сколько раз слово в запросе).
+    Это в десятки раз быстрее, чем перебор документов в цикле Python.
+
+    Параметры:
+    - k1 — насыщение по частоте: при малом k1 важен сам факт вхождения слова, а не число повторов;
+    - b — нормировка по длине документа (0 — нет, 1 — полная);
+    - normalizer — приведение словоформ к основе (см. src/text_norm.py): 'none', 'prefixN', 'snowball', 'lemma';
+    - idf — 'okapi' (как в библиотеке rank_bm25: у слов, которые есть больше чем в половине документов,
+      idf заменяется на epsilon · средний idf) или 'lucene' (log(1 + (N − df + 0.5) / (df + 0.5)), всегда > 0).
+
+    По умолчанию (k1=1.5, b=0.75, 'none', 'okapi') оценки совпадают с rank_bm25.BM25Okapi,
+    которым проект пользовался раньше, — старые результаты воспроизводятся.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        k1: float = 1.5,
+        b: float = 0.75,
+        normalizer: str = "none",
+        idf: str = "okapi",
+        epsilon: float = 0.25,
+    ):
+        if idf not in ("okapi", "lucene"):
+            raise ValueError(f"idf должен быть 'okapi' или 'lucene', получено {idf!r}")
+        self.k1 = k1
+        self.b = b
+        self.normalizer_name = normalizer
+        self.normalize = get_normalizer(normalizer)
+        self.idf_variant = idf
+        self.epsilon = epsilon
+
         self.documents: List[str] = []
         self.doc_ids: List[str] = []
-        self.bm25: Optional[BM25Okapi] = None
+        self.vocab: Dict[str, int] = {}
+        self._tf: Optional[sp.csr_matrix] = None   # документы × слова, число вхождений
+        self._weights: Optional[sp.csr_matrix] = None   # слова × документы, вес BM25
+
+    @property
+    def params(self) -> Dict[str, Any]:
+        """Параметры индекса (для отчётов)."""
+        return {"k1": self.k1, "b": self.b, "normalizer": self.normalizer_name, "idf": self.idf_variant}
+
+    def tokenize(self, text: str) -> List[str]:
+        """Токены текста после нормализации словоформ — одинаково для документов и запросов."""
+        return self.normalize(tokenize_legal_text(text))
 
     def add_documents(self, documents: List[str], doc_ids: List[str]) -> None:
-        """Индексирует текстовые документы с предварительной токенизацией.
+        """Индексирует текстовые документы (повторный вызов заменяет индекс).
 
         Args:
             documents (List[str]): Список исходных текстов чанков.
@@ -162,8 +211,97 @@ class BM25Retriever:
         )
         self.documents = list(documents)
         self.doc_ids = list(doc_ids)
-        tokenized_corpus = [tokenize_legal_text(doc) for doc in self.documents]
-        self.bm25 = BM25Okapi(tokenized_corpus)
+
+        vocab: Dict[str, int] = {}
+        rows, cols, counts = [], [], []
+        for doc_idx, doc in enumerate(self.documents):
+            for token, count in Counter(self.tokenize(doc)).items():
+                rows.append(doc_idx)
+                cols.append(vocab.setdefault(token, len(vocab)))
+                counts.append(count)
+        self.vocab = vocab
+        self._tf = sp.csr_matrix(
+            (np.asarray(counts, dtype=np.float64), (rows, cols)),
+            shape=(len(self.documents), len(vocab)),
+        )
+        self._compute_weights()
+
+    def set_params(self, k1: Optional[float] = None, b: Optional[float] = None, idf: Optional[str] = None) -> None:
+        """Меняет k1 / b / idf и пересчитывает веса без повторной токенизации корпуса (для подбора на val)."""
+        if idf is not None and idf not in ("okapi", "lucene"):
+            raise ValueError(f"idf должен быть 'okapi' или 'lucene', получено {idf!r}")
+        self.k1 = self.k1 if k1 is None else k1
+        self.b = self.b if b is None else b
+        self.idf_variant = self.idf_variant if idf is None else idf
+        if self._tf is not None:
+            self._compute_weights()
+
+    def _idf(self, df: np.ndarray, n_docs: int) -> np.ndarray:
+        if self.idf_variant == "lucene":
+            return np.log1p((n_docs - df + 0.5) / (df + 0.5))
+        idf = np.log(n_docs - df + 0.5) - np.log(df + 0.5)
+        # Как в rank_bm25: отрицательный idf (слово в > половине документов) заменяется на epsilon · средний idf
+        idf[idf < 0] = self.epsilon * idf.mean()
+        return idf
+
+    def _compute_weights(self) -> None:
+        tf = self._tf
+        n_docs, n_terms = tf.shape
+        if n_docs == 0 or n_terms == 0:
+            self._weights = sp.csr_matrix((n_terms, n_docs))
+            return
+        doc_len = np.asarray(tf.sum(axis=1)).ravel()
+        avgdl = doc_len.mean() or 1.0
+        df = np.bincount(tf.indices, minlength=n_terms)
+        idf = self._idf(df, n_docs)
+
+        coo = tf.tocoo()
+        norm = self.k1 * (1 - self.b + self.b * doc_len[coo.row] / avgdl)
+        values = idf[coo.col] * coo.data * (self.k1 + 1) / (coo.data + norm)
+        self._weights = sp.csr_matrix((values, (coo.col, coo.row)), shape=(n_terms, n_docs))
+
+    def _query_matrix(self, queries: List[str]) -> sp.csr_matrix:
+        """Запросы × слова: сколько раз слово словаря встречается в запросе (как в rank_bm25)."""
+        rows, cols, counts = [], [], []
+        for q_idx, query in enumerate(queries):
+            for token, count in Counter(self.tokenize(query)).items():
+                term = self.vocab.get(token)
+                if term is not None:
+                    rows.append(q_idx)
+                    cols.append(term)
+                    counts.append(count)
+        return sp.csr_matrix(
+            (np.asarray(counts, dtype=np.float64), (rows, cols)), shape=(len(queries), len(self.vocab))
+        )
+
+    def get_scores(self, query: str) -> np.ndarray:
+        """Оценки BM25 запроса по всем документам индекса (массив длины N_docs)."""
+        if self._weights is None:
+            return np.zeros(0)
+        return (self._query_matrix([query]) @ self._weights).toarray().ravel()
+
+    def batch_search_with_scores(
+        self, queries: List[str], k: int = 5, batch_size: int = 256
+    ) -> List[List[Tuple[str, float]]]:
+        """Пакетный поиск: для каждого запроса — топ-k пар (doc_id, score) с положительной оценкой.
+
+        Запросы обрабатываются пачками по batch_size, чтобы плотная матрица оценок
+        (пачка × N_docs) занимала немного памяти. При равных оценках выше документ с меньшим номером.
+        """
+        if self._weights is None or not self.documents:
+            return [[] for _ in queries]
+        k = min(k, len(self.documents))
+        results: List[List[Tuple[str, float]]] = []
+        for start in range(0, len(queries), batch_size):
+            scores = (self._query_matrix(queries[start:start + batch_size]) @ self._weights).toarray()
+            if k < scores.shape[1]:
+                top = np.argpartition(-scores, k - 1, axis=1)[:, :k]
+            else:
+                top = np.tile(np.arange(scores.shape[1]), (scores.shape[0], 1))
+            for row, cand in zip(scores, top):
+                order = cand[np.lexsort((cand, -row[cand]))]
+                results.append([(self.doc_ids[i], float(row[i])) for i in order if row[i] > 0])
+        return results
 
     def search(self, query: str, k: int = 5) -> List[Tuple[str, float]]:
         """Осуществляет поиск k наиболее релевантных документов по текстовому запросу.
@@ -175,26 +313,11 @@ class BM25Retriever:
         Returns:
             List[Tuple[str, float]]: Список пар (doc_id, score), отсортированных по убыванию релевантности.
         """
-        if not self.bm25 or not self.documents:
-            return []
-
-        tokens = tokenize_legal_text(query)
-        if not tokens:
-            return []
-
-        scores = self.bm25.get_scores(tokens)
-        actual_k = min(k, len(self.documents))
-        top_indices = np.argsort(scores)[::-1][:actual_k]
-
-        return [(self.doc_ids[idx], float(scores[idx])) for idx in top_indices if scores[idx] > 0]
+        return self.batch_search_with_scores([query], k=k)[0]
 
     def batch_search(self, queries: List[str], k: int = 5) -> List[List[str]]:
         """Пакетный поиск топ-k doc_id для списка текстовых запросов."""
-        results = []
-        for q in queries:
-            top_pairs = self.search(q, k=k)
-            results.append([doc_id for doc_id, _ in top_pairs])
-        return results
+        return [[doc_id for doc_id, _ in pairs] for pairs in self.batch_search_with_scores(queries, k=k)]
 
 
 class HybridRetriever:

@@ -16,6 +16,9 @@ class FakeCrossEncoder:
     def __init__(self, *args, **kwargs):
         self.pairs = []
 
+    def half(self):
+        return self
+
     def predict(self, pairs, **kwargs):
         self.pairs.extend(pairs)
         return [len(set(tokenize_legal_text(q)) & set(tokenize_legal_text(d))) for q, d in pairs]

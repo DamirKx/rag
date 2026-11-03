@@ -27,6 +27,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
         pass
 
 from src.embeddings import EmbeddingModel
+from ask import load_bm25_params
 from src.retriever import VectorRetriever, BM25Retriever
 from src.eval import calculate_mrr, calculate_hit_rate_at_k, calculate_recall_at_k
 from prepare_adilet_data import clean_adilet_context
@@ -101,20 +102,29 @@ def main():
 
     chunks, chunk_ids, splits, gold = load_eval_data(args.lang)
 
-    bm25 = BM25Retriever()
-    bm25.add_documents(chunks, chunk_ids)
+    def bm25_lists(params: Dict) -> Dict[str, List[List[str]]]:
+        bm25 = BM25Retriever(**params)
+        bm25.add_documents(chunks, chunk_ids)
+        return {name: bm25.batch_search([q["query"] for q in items], k=POOL) for name, items in splits.items()}
+
+    # BM25 с параметрами из tune_bm25.py (им пользуется система) и прежний (rank_bm25 по умолчанию) — для сравнения
+    bm25_params = load_bm25_params(args.lang)
     t0 = time.time()
-    sparse = {name: bm25.batch_search([q["query"] for q in items], k=POOL) for name, items in splits.items()}
-    print(f"BM25: {time.time() - t0:.1f} сек.")
+    sparse = bm25_lists(bm25_params)
+    sparse_default = bm25_lists({}) if bm25_params else None
+    print(f"BM25 {bm25_params or 'по умолчанию'}: {time.time() - t0:.1f} сек.")
 
     report = {
         "language": args.lang,
         "selection_metric": "val MRR@10",
         "grid": {"dense_weight": DENSE_WEIGHTS, "rrf_k": RRF_KS},
         "pool": POOL,
+        "bm25_params": bm25_params,
         "bm25": {name: ir_metrics(gold[name], [p[:EVAL_K] for p in sparse[name]]) for name in splits},
         "models": {},
     }
+    if sparse_default:
+        report["bm25_default"] = {name: ir_metrics(gold[name], [p[:EVAL_K] for p in sparse_default[name]]) for name in splits}
 
     for model_name in models:
         print(f"\n=== {model_name}")
@@ -130,17 +140,19 @@ def main():
             _, idx = index.search(embedder.encode_queries([q["query"] for q in items]), k=POOL)
             dense[name] = [[chunk_ids[i] for i in row if i >= 0] for row in idx]
 
-        grid = []
-        for w in DENSE_WEIGHTS:
-            for rrf_k in RRF_KS:
-                pred = rrf_fuse(dense["val"], sparse["val"], w, rrf_k, EVAL_K)
-                grid.append({"dense_weight": w, "rrf_k": rrf_k, "val_MRR@10": calculate_mrr(gold["val"], pred)})
-        best = max(grid, key=lambda g: g["val_MRR@10"])
-        best_params = {"dense_weight": best["dense_weight"], "rrf_k": best["rrf_k"]}
+        def tune(sparse_lists):
+            grid = []
+            for w in DENSE_WEIGHTS:
+                for rrf_k in RRF_KS:
+                    pred = rrf_fuse(dense["val"], sparse_lists["val"], w, rrf_k, EVAL_K)
+                    grid.append({"dense_weight": w, "rrf_k": rrf_k, "val_MRR@10": calculate_mrr(gold["val"], pred)})
+            best = max(grid, key=lambda g: g["val_MRR@10"])
+            return {"dense_weight": best["dense_weight"], "rrf_k": best["rrf_k"]}, grid
 
-        def hybrid(params, name):
-            return ir_metrics(gold[name], rrf_fuse(dense[name], sparse[name], params["dense_weight"], params["rrf_k"], EVAL_K))
+        def hybrid(params, name, sparse_lists=sparse):
+            return ir_metrics(gold[name], rrf_fuse(dense[name], sparse_lists[name], params["dense_weight"], params["rrf_k"], EVAL_K))
 
+        best_params, grid = tune(sparse)
         result = {
             **best_params,
             "sparse_weight": round(1 - best_params["dense_weight"], 2),
@@ -149,14 +161,25 @@ def main():
             "hybrid_tuned": {name: hybrid(best_params, name) for name in splits},
             "grid": grid,
         }
-        report["models"][Path(model_name).as_posix()] = result
-
         rows = {
             "BM25": report["bm25"],
             "Dense": result["dense"],
             "Hybrid (0.5 / 60)": result["hybrid_default"],
             f"Hybrid ({best_params['dense_weight']} / {best_params['rrf_k']})": result["hybrid_tuned"],
         }
+        if sparse_default:
+            # Тот же подбор весов, но с прежним BM25 — показывает вклад нового BM25 в гибрид
+            old_params, _ = tune(sparse_default)
+            result["bm25_default_hybrid_tuned"] = {
+                **old_params, **{name: hybrid(old_params, name, sparse_default) for name in splits}
+            }
+            rows = {
+                "BM25 (прежний)": report["bm25_default"],
+                **rows,
+                f"Hybrid с прежним BM25 ({old_params['dense_weight']} / {old_params['rrf_k']})":
+                    {name: result["bm25_default_hybrid_tuned"][name] for name in splits},
+            }
+        report["models"][Path(model_name).as_posix()] = result
         for name in ("val", "test"):
             table = pd.DataFrame({label: r[name] for label, r in rows.items()}).T
             print(f"\n{name}:\n{table.round(4).to_string()}")
