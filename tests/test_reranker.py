@@ -94,3 +94,14 @@ def test_ask_cli_rerank_toggle(fake_embedder, tmp_path, monkeypatch, capsys):
     assert "Реранкер включен" in out and "Реранкер выключен" in out
     assert "Закон об образовании" in out
     assert "Используйте ':rerank on'" in out
+
+
+def test_default_reranker_prefers_finetuned(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert reranker_module.default_reranker("rus") == reranker_module.DEFAULT_RERANKER
+    model_dir = tmp_path / "models" / "reranker-bge-m3-adilet-rus"
+    model_dir.mkdir(parents=True)
+    (model_dir / "config.json").write_text("{}", encoding="utf-8")
+    assert reranker_module.default_reranker("rus") == "models/reranker-bge-m3-adilet-rus"
+    # для языка без дообученной модели — исходная
+    assert reranker_module.default_reranker("kaz") == reranker_module.DEFAULT_RERANKER

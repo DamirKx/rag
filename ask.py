@@ -30,7 +30,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 
 from src.embeddings import EmbeddingModel
 from src.retriever import VectorRetriever, BM25Retriever, HybridRetriever
-from src.reranker import CrossEncoderReranker, DEFAULT_RERANKER
+from src.reranker import CrossEncoderReranker, DEFAULT_RERANKER, FINETUNED_RERANKER, default_reranker
 from prepare_adilet_data import clean_adilet_context
 from run_adilet_eval import get_or_compute_embeddings, model_cache_name, DEFAULT_MODEL
 
@@ -190,10 +190,11 @@ def interactive_cli(
     cache_dir: str = "data/adilet/cache",
     cache_parquet: str = "data/raw/adilet_legal_qa_kz.parquet",
     rerank: bool = False,
-    reranker_name: str = DEFAULT_RERANKER,
+    reranker_name: Optional[str] = None,
     rerank_pool: int = ASK_RERANK_POOL,
 ):
     model_name = model_name or default_model(lang)
+    reranker_name = reranker_name or default_reranker(lang)
     print("=" * 80)
     print("  ИНТЕРАКТИВНЫЙ ПОИСК ПО БАЗЕ ЗАКОНОДАТЕЛЬСТВА РК (Adilet Legal QA)")
     print("=" * 80)
@@ -315,7 +316,8 @@ def main():
     parser.add_argument("--top-k", type=int, default=3, help="Количество возвращаемых статей.")
     parser.add_argument("--cache-dir", type=str, default="data/adilet/cache", help="Папка с кэшем векторов.")
     parser.add_argument("--rerank", action="store_true", help="Переранжировать кандидатов cross-encoder.")
-    parser.add_argument("--reranker", type=str, default=DEFAULT_RERANKER, help=f"Модель реранкера (по умолчанию {DEFAULT_RERANKER}).")
+    parser.add_argument("--reranker", type=str, default=None,
+                        help=f"Модель реранкера (по умолчанию {FINETUNED_RERANKER}, если есть, иначе {DEFAULT_RERANKER}).")
     parser.add_argument("--rerank-pool", type=int, default=ASK_RERANK_POOL,
                         help=f"Сколько кандидатов переранжировать (по умолчанию {ASK_RERANK_POOL}).")
     args = parser.parse_args()

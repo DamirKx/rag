@@ -25,7 +25,7 @@ from ask import LegalSearchEngine, default_model, load_bm25_params, load_hybrid_
 from run_adilet_eval import DEFAULT_MODEL, model_cache_name
 from src.chunking import get_fixed_size_chunks
 from src.embeddings import EmbeddingModel
-from src.reranker import CrossEncoderReranker, DEFAULT_RERANKER
+from src.reranker import CrossEncoderReranker, default_reranker
 from src.retriever import tokenize_legal_text
 
 CACHE_PARQUET = "data/raw/adilet_legal_qa_kz.parquet"
@@ -174,7 +174,7 @@ def rerank_pool(lang: str) -> int:
     """Размер пула кандидатов, выбранный eval_reranker.py на val (для чанков 500 символов)."""
     path = Path(f"data/adilet/reranker_eval_{lang}.json")
     if path.exists():
-        tuned = json.loads(path.read_text(encoding="utf-8"))["rerankers"].get(DEFAULT_RERANKER)
+        tuned = json.loads(path.read_text(encoding="utf-8"))["rerankers"].get(default_reranker(lang))
         if tuned:
             return tuned["best_pool"]
     return DEFAULT_RERANK_POOL
@@ -280,7 +280,7 @@ def main() -> None:
             st.caption(f"RRF: вес Dense {params['dense_weight']}, вес BM25 {params['sparse_weight']}, k = {params['rrf_k']}")
         rerank = st.toggle("Реранкер (cross-encoder)", help="Переранжировать лучших кандидатов выбранного метода нейросетью, читающей вопрос и фрагмент вместе.")
         if rerank:
-            st.caption(f"{DEFAULT_RERANKER}, топ-{rerank_pool(lang)} кандидатов")
+            st.caption(f"{default_reranker(lang)}, топ-{rerank_pool(lang)} кандидатов")
         corpus = build_corpus(lang)
         all_laws = sorted({c["law"] for c in corpus})
         laws = st.multiselect("Искать только в законах", all_laws, placeholder="Все законы")
@@ -311,7 +311,7 @@ def main() -> None:
 
     engine = load_engine(lang, model_name)
     if rerank:
-        engine.reranker = load_reranker(DEFAULT_RERANKER)
+        engine.reranker = load_reranker(default_reranker(lang))
         engine.rerank_pool = rerank_pool(lang)
     stems = query_stems(query)
     tab_search, tab_compare = st.tabs(["Результаты", "Сравнение методов"])
