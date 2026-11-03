@@ -29,7 +29,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     except Exception:
         pass
 
-from ask import default_model, load_hybrid_params
+from ask import default_model, load_bm25_params, load_hybrid_params
 from src.embeddings import EmbeddingModel
 from src.retriever import VectorRetriever, BM25Retriever
 from src.reranker import CrossEncoderReranker, DEFAULT_RERANKER
@@ -76,7 +76,8 @@ def main():
 
     # Первый этап: те же пулы dense и BM25, что для RRF в HybridRetriever при k = MAX_POOL
     first_pool = max(MAX_POOL * 4, 20)
-    bm25 = BM25Retriever()
+    bm25_params = load_bm25_params(args.lang)
+    bm25 = BM25Retriever(**bm25_params)
     bm25.add_documents(chunks, chunk_ids)
     embedder = EmbeddingModel(model_name, device=device)
     chunk_emb = get_or_compute_embeddings(
@@ -98,7 +99,8 @@ def main():
 
     report = {
         "language": args.lang,
-        "first_stage": {"method": "hybrid", "model_name": Path(model_name).as_posix(), **hybrid_params},
+        "first_stage": {"method": "hybrid", "model_name": Path(model_name).as_posix(), **hybrid_params,
+                        "bm25_params": bm25_params},
         "selection_metric": "val MRR@10",
         "selection_rule": f"наименьший пул в пределах {POOL_TOLERANCE} от лучшего",
         "pool_sizes": POOL_SIZES,

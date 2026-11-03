@@ -21,7 +21,7 @@ import pandas as pd
 import streamlit as st
 import torch
 
-from ask import LegalSearchEngine, default_model, load_hybrid_params, load_legal_corpus
+from ask import LegalSearchEngine, default_model, load_bm25_params, load_hybrid_params, load_legal_corpus
 from run_adilet_eval import DEFAULT_MODEL, model_cache_name
 from src.chunking import get_fixed_size_chunks
 from src.embeddings import EmbeddingModel
@@ -160,6 +160,7 @@ def load_engine(lang: str, model_name: str) -> LegalSearchEngine:
         cache_dir=CACHE_DIR,
         cache_key=f"{model_cache_name(model_name)}_{lang}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}",
         hybrid_params=load_hybrid_params(model_name, lang),
+        bm25_params=load_bm25_params(lang),
     )
 
 

@@ -47,6 +47,7 @@
 ├── ask.py                    # Интерактивный поиск по законам (dense / bm25 / hybrid)
 ├── prepare_adilet_data.py    # Загрузка, фильтрация веб-шума (шапки и подвалы) и подготовка датасета «Әділет»
 ├── run_adilet_eval.py        # Пайплайн бенчмарка на реальном датасете Adilet Legal QA
+├── tune_bm25.py              # Подбор BM25 (нормализация слов, idf, k1, b) на validation
 ├── tune_hybrid.py            # Подбор весов RRF на validation
 ├── eval_reranker.py          # Оценка реранкеров поверх Hybrid и выбор размера пула на validation
 ├── run_real_data.py          # Базовый пайплайн оценки на исходных данных из data/
@@ -146,6 +147,18 @@ python eval_reranker.py --lang rus
 ```
 Первый этап — Hybrid с дообученной моделью и весами из `tune_hybrid.py`; реранкеры сравниваются на val/test
 из `data/adilet/splits`, размер пула (10 / 20 / 30 / 50) выбирается по MRR@10 на val.
+
+### 6.3. Подбор BM25
+```bash
+python tune_bm25.py --lang rus     # нормализация слов × idf × k1 × b, выбор по val MRR@10
+python tune_hybrid.py --lang rus   # после него — заново подобрать веса гибрида
+```
+BM25 (`src/retriever.py`) считается разреженными матрицами `scipy.sparse`; с настройками по умолчанию
+оценки совпадают с прежней библиотекой `rank_bm25`. Нормализация словоформ (`src/text_norm.py`): обрезка
+до N букв, стеммер Snowball (`PyStemmer`) или лемматизация (`pymorphy3`); номера статей и законов не меняются.
+Подобранные параметры (`data/adilet/bm25_tuning_{lang}.json`) используют веб-демо, `tune_hybrid.py` и
+`eval_reranker.py`. `ask.py` ищет по фрагментам целиком и оставляет настройки по умолчанию — для длинных
+фрагментов параметры, подобранные на чанках, хуже.
 
 ### 7. Тесты
 ```bash

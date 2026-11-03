@@ -3,6 +3,12 @@ numpy==2.5.3
 pyarrow==26.0.0
 faiss-cpu==1.15.1
 sentence-transformers==6.1.0
+scipy==1.18.1
+
+# BM25 (src/retriever.py): нормализация словоформ — стеммер Snowball и лемматизатор для русского
+PyStemmer==3.1.0
+pymorphy3==2.0.6
+# Прежняя реализация BM25: только для проверки совпадения оценок в tests/test_bm25.py
 rank-bm25==0.2.2
 
 # Загрузка датасета по hf:// URL в prepare_adilet_data.py
