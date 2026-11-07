@@ -118,3 +118,92 @@ def test_ask_cli_smoke(fake_embedder, tmp_path, monkeypatch, capsys):
     assert "Неизвестный режим" in out
     assert "Ничего не найдено" in out
     assert "До свидания" in out
+
+
+# ---------------------------------------------------------------------------------------------
+# Ответ языковой модели в консоли (ask.py --generate)
+# ---------------------------------------------------------------------------------------------
+
+from src.generation import (  # noqa: E402
+    STATUS_ANSWERED, STATUS_NO_CONTEXT, STATUS_REFUSED, STATUS_UNVERIFIED, Answer, GroundedAnswerer, Passage,
+)
+
+PASSAGES = [
+    Passage(id="c1", text="Земельный налог уплачивается ежегодно до 1 апреля.", law="Налоговый кодекс РК",
+            articles="ст. 5", score=0.9, source_id="K1700000120"),
+    Passage(id="c2", text="Порядок регистрации прав.", law="Закон РК «О регистрации»", articles="ст. 3",
+            score=0.4, source_id="Z0700000310"),
+]
+
+
+def make_answer(status, text, **kwargs):
+    return Answer(status=status, text=text, passages=PASSAGES, **kwargs)
+
+
+def test_format_answer_answered_lists_cited_sources():
+    answerer = GroundedAnswerer(None, min_sentence_support=0.6)
+    answer = make_answer(
+        STATUS_ANSWERED, "Налог уплачивается ежегодно до 1 апреля [1].", cited=[1],
+        checks={"min_sentence_support": 0.8, "answer_relevance": 1.23}, usage={"latency_s": 2.5},
+    )
+    out = ask.format_answer(answer, answerer, "rus")
+    assert "до 1 апреля [1]" in out
+    assert "[1] Налоговый кодекс РК, ст. 5 — https://adilet.zan.kz/rus/docs/K1700000120" in out
+    assert "Закон РК «О регистрации»" not in out  # источник без ссылки в ответе не выводится
+    assert "соответствие вопросу 1.23" in out and "2.5 с" in out
+
+
+def test_format_answer_no_context_and_refusal():
+    answerer = GroundedAnswerer(None, min_retrieval_score=0.5)
+    out = ask.format_answer(make_answer(STATUS_NO_CONTEXT, "Ответа нет.", checks={"top_score": 0.12}), answerer, "rus")
+    assert "Модель не вызывалась" in out and "0.12" in out
+    out = ask.format_answer(make_answer(STATUS_REFUSED, "Ответа нет.", raw="Ответа нет."), answerer, "rus")
+    assert "не нашла в них ответа" in out
+
+
+def test_format_answer_unverified_hides_model_text():
+    answerer = GroundedAnswerer(None)
+    answer = make_answer(
+        STATUS_UNVERIFIED, "Не удалось сформировать ответ.", raw="Налог платят до 15 мая [1].", cited=[1],
+        checks={"problems": ["числа, которых нет в тексте закона: 15"]},
+    )
+    out = ask.format_answer(answer, answerer, "rus")
+    assert "15 мая" not in out  # отклонённый ответ модели не показывается
+    assert "> Земельный налог уплачивается ежегодно до 1 апреля." in out
+    assert "числа, которых нет в тексте закона: 15" in out
+
+
+def test_ask_cli_answer_toggle(fake_embedder, tmp_path, monkeypatch, capsys):
+    corpus = pd.DataFrame({
+        "source_title": ["Земельный кодекс", "Закон об образовании", "Закон о регистрации"],
+        "cleaned_context": [
+            "Статья 1. Земельный налог уплачивается ежегодно.",
+            "Статья 2. Образовательный грант выдаётся военнослужащим.",
+            "Статья 3. Порядок регистрации прав.",
+        ],
+    })
+    monkeypatch.setattr(ask, "load_legal_corpus", lambda *_: corpus)
+    monkeypatch.setattr(ask, "EmbeddingModel", lambda **_: fake_embedder)
+    monkeypatch.setattr(ask, "CrossEncoderReranker", lambda name: object())
+
+    created = []
+
+    class FakeRAG:
+        def __init__(self, *args, **kwargs):
+            self.answerer = GroundedAnswerer(None)
+            created.append(self)
+
+        def ask(self, query):
+            return make_answer(STATUS_ANSWERED, f"Ответ на «{query}» [1].", cited=[1],
+                               checks={"min_sentence_support": 1.0, "answer_relevance": None}, usage={})
+
+    monkeypatch.setattr(ask, "RAGAnswerer", FakeRAG)
+    commands = iter(["земельный налог", ":answer on", "земельный налог", ":answer off", "земельный налог", "q"])
+    monkeypatch.setattr(builtins, "input", lambda _prompt="": next(commands))
+
+    ask.interactive_cli(search_mode="bm25", top_k=1, cache_dir=str(tmp_path))
+
+    out = capsys.readouterr().out
+    assert len(created) == 1  # конвейер ответа строится один раз, при первом ':answer on'
+    assert out.count("💬 Ответ:") == 1 and "Ответ на «земельный налог» [1]." in out
+    assert out.count("🔎 Найдено") == 3  # обычная выдача поиска печатается и с ответом

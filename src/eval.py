@@ -9,7 +9,9 @@
 3. Recall@k — доля всех найденных релевантных фрагментов от общего их числа.
 """
 
-from typing import List
+import re
+from collections import Counter
+from typing import Callable, List, Optional
 
 
 def _check_lengths(relevant_docs: List[List[str]], retrieved_docs: List[List[str]]) -> None:
@@ -154,3 +156,43 @@ def calculate_recall_at_k(relevant_docs: List[List[str]], retrieved_docs: List[L
         evaluated += 1
 
     return total_recall / evaluated if evaluated else 0.0
+
+
+# ---------------------------------------------------------------------------------------------
+# Метрики качества сгенерированного ответа (сравнение с эталонным ответом датасета)
+# ---------------------------------------------------------------------------------------------
+
+def answer_tokens(text: str, normalize: Optional[Callable[[List[str]], List[str]]] = None) -> List[str]:
+    """Токены ответа для сравнения: без ссылок [n], нижний регистр, основы слов (normalize)."""
+    from src.retriever import tokenize_legal_text  # локальный импорт: модуль метрик не тянет зависимости поиска
+
+    tokens = tokenize_legal_text(re.sub(r"\[\s*\d+(?:\s*[,;]\s*\d+)*\s*\]", " ", text.replace("ё", "е")))
+    return normalize(tokens) if normalize else tokens
+
+
+def answer_token_f1(prediction: List[str], reference: List[str]) -> float:
+    """F1 по мультимножеству токенов (как в SQuAD): баланс точности и полноты ответа."""
+    if not prediction or not reference:
+        return float(prediction == reference)
+    common = sum((Counter(prediction) & Counter(reference)).values())
+    if common == 0:
+        return 0.0
+    precision, recall = common / len(prediction), common / len(reference)
+    return 2 * precision * recall / (precision + recall)
+
+
+def answer_rouge_l(prediction: List[str], reference: List[str]) -> float:
+    """ROUGE-L (F-мера по наибольшей общей подпоследовательности токенов): учитывает порядок слов."""
+    if not prediction or not reference:
+        return float(prediction == reference)
+    prev = [0] * (len(reference) + 1)
+    for p in prediction:
+        cur = [0]
+        for j, r in enumerate(reference, 1):
+            cur.append(prev[j - 1] + 1 if p == r else max(prev[j], cur[j - 1]))
+        prev = cur
+    lcs = prev[-1]
+    if lcs == 0:
+        return 0.0
+    precision, recall = lcs / len(prediction), lcs / len(reference)
+    return 2 * precision * recall / (precision + recall)
