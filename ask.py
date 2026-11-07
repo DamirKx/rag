@@ -9,6 +9,11 @@
 3. 'hybrid' — гибридное ранжирование Reciprocal Rank Fusion (RRF) Dense + BM25.
 
 Любой режим можно дополнить переранжированием кандидатов cross-encoder (флаг --rerank).
+
+С флагом --generate (или командой ':answer on') над результатами поиска выводится ответ локальной
+языковой модели (src/generation.py) со ссылками на статьи. Ответ строится по той же схеме, на которой
+eval_generation.py подбирал пороги проверки: чанки 500 символов, гибридный поиск, реранкер, 3 лучших чанка.
+Ответ, не подтверждённый текстом закона, не показывается.
 """
 
 import os
@@ -28,13 +33,20 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     except Exception:
         pass
 
+from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus, law_titles
 from src.embeddings import EmbeddingModel
+from src.generation import (
+    DEFAULT_LLM, DEFAULT_TOP_K, STATUS_ANSWERED, STATUS_NO_CONTEXT, STATUS_REFUSED,
+    Answer, GroundedAnswerer, OllamaClient, OllamaError, Passage, load_generation_params, reranker_relevance,
+)
 from src.retriever import VectorRetriever, BM25Retriever, HybridRetriever
 from src.reranker import CrossEncoderReranker, DEFAULT_RERANKER, FINETUNED_RERANKER, default_reranker
 from prepare_adilet_data import clean_adilet_context
 from run_adilet_eval import get_or_compute_embeddings, model_cache_name, DEFAULT_MODEL
 
 SEARCH_MODES = ("dense", "bm25", "hybrid")
+# Пул реранкера для чанков 500 символов, если eval_reranker.py ещё не запускался
+DEFAULT_CHUNK_RERANK_POOL = 30
 # Модель, дообученная в notebooks/finetune_e5.ipynb
 FINETUNED_MODEL = "models/e5-small-adilet-{lang}"
 DEFAULT_HYBRID_PARAMS = {"dense_weight": 0.5, "sparse_weight": 0.5, "rrf_k": 60}
@@ -69,6 +81,16 @@ def load_hybrid_params(model_name: str, lang: str) -> Dict[str, Any]:
         if tuned:
             return {key: tuned[key] for key in DEFAULT_HYBRID_PARAMS}
     return dict(DEFAULT_HYBRID_PARAMS)
+
+
+def load_rerank_pool(lang: str, reranker: Optional[str] = None) -> int:
+    """Размер пула кандидатов реранкера, выбранный eval_reranker.py на val (для чанков 500 символов)."""
+    path = Path(f"data/adilet/reranker_eval_{lang}.json")
+    if path.exists():
+        tuned = json.loads(path.read_text(encoding="utf-8"))["rerankers"].get(reranker or default_reranker(lang))
+        if tuned:
+            return tuned["best_pool"]
+    return DEFAULT_CHUNK_RERANK_POOL
 
 
 def load_legal_corpus(cache_parquet: str, lang: str) -> pd.DataFrame:
@@ -182,6 +204,95 @@ class LegalSearchEngine:
         return [(doc_id, self.docs_by_id[doc_id], score) for doc_id, score in pairs]
 
 
+class RAGAnswerer:
+    """Ответ на вопрос: гибридный поиск по чанкам 500 символов → реранкер → языковая модель с проверкой.
+
+    Та же схема, что в веб-демо (app.py) и в eval_generation.py, поэтому подходят пороги проверки,
+    подобранные на validation, и готовый кэш эмбеддингов чанков.
+    """
+
+    def __init__(
+        self,
+        lang: str,
+        embedder: EmbeddingModel,
+        model_name: str,
+        reranker: CrossEncoderReranker,
+        reranker_name: str,
+        cache_dir: str,
+        cache_parquet: str,
+        llm: str = DEFAULT_LLM,
+        top_k: int = DEFAULT_TOP_K,
+    ):
+        self.lang = lang
+        self.top_k = top_k
+        titles = law_titles(pd.read_parquet(cache_parquet, columns=["context", "source_id", "doc_type", "language"]))
+        corpus = build_chunk_corpus(load_legal_corpus(cache_parquet, lang), titles)
+        self.chunks_by_id = {c["id"]: c for c in corpus}
+        self.engine = LegalSearchEngine(
+            docs=[c["text"] for c in corpus],
+            doc_ids=[c["id"] for c in corpus],
+            embedder=embedder,
+            cache_dir=cache_dir,
+            cache_key=f"{model_cache_name(model_name)}_{lang}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}",
+            hybrid_params=load_hybrid_params(model_name, lang),
+            bm25_params=load_bm25_params(lang),
+            reranker=reranker,
+            rerank_pool=load_rerank_pool(lang, reranker_name),
+        )
+        # Пороги в шкале реранкера отключаются, если они подобраны для другой модели реранкера
+        params = load_generation_params(lang, reranker_name)
+        self.answerer = GroundedAnswerer(
+            OllamaClient(llm), lang,
+            min_retrieval_score=params["min_retrieval_score"],
+            min_sentence_support=params["min_sentence_support"],
+            min_answer_relevance=params["min_answer_relevance"],
+            relevance_scorer=reranker_relevance(reranker),
+        )
+
+    def ask(self, query: str) -> Answer:
+        """Ищет top_k чанков и отвечает по ним; OllamaError — если модель недоступна."""
+        hits = self.engine.search(query, mode="hybrid", top_k=self.top_k, rerank=True)
+        passages = [Passage.from_hit({**self.chunks_by_id[doc_id], "score": score}) for doc_id, _, score in hits]
+        return self.answerer.answer(query, passages)
+
+
+def format_answer(answer: Answer, answerer: GroundedAnswerer, lang: str) -> str:
+    """Текст ответа для консоли: ответ с источниками, отказ или цитата закона с причинами."""
+    def source(n: int) -> str:
+        p = answer.passages[n - 1]
+        return f"  [{n}] {p.label} — https://adilet.zan.kz/{lang}/docs/{p.source_id}"
+
+    lines = ["💬 Ответ:"]
+    if answer.status == STATUS_ANSWERED:
+        lines.append(answer.text)
+        lines.append("\nИсточники:")
+        lines.extend(source(n) for n in answer.cited)
+        relevance = answer.checks.get("answer_relevance")
+        lines.append(
+            f"✓ Проверено: все числа есть в тексте закона; слова каждого предложения найдены во фрагментах "
+            f"не меньше чем на {answerer.min_sentence_support:.0%} (минимум {answer.checks['min_sentence_support']:.0%})"
+            + (f"; соответствие вопросу {relevance:.2f}" if relevance is not None else "")
+            + f" · {answer.usage.get('latency_s') or 0:.1f} с"
+        )
+    elif answer.status == STATUS_NO_CONTEXT:
+        lines.append(answer.text)
+        top = answer.checks.get("top_score")
+        if top is not None:
+            lines.append(
+                f"Модель не вызывалась: лучший фрагмент получил оценку реранкера {top:.2f} — ниже порога "
+                f"{answerer.min_retrieval_score}. Скорее всего, нужного закона нет в корпусе."
+            )
+    elif answer.status == STATUS_REFUSED:
+        lines.append(answer.text)
+        lines.append("Модель прочитала найденные фрагменты и не нашла в них ответа.")
+    else:
+        lines.append(answer.text)
+        lines.append("> " + answer.passages[0].text.strip().replace("\n", "\n> "))
+        lines.append(source(1))
+        lines.append("Ответ модели не показан, проверка нашла: " + "; ".join(answer.checks["problems"]) + ".")
+    return "\n".join(lines)
+
+
 def interactive_cli(
     lang: str = "rus",
     model_name: Optional[str] = None,
@@ -192,9 +303,12 @@ def interactive_cli(
     rerank: bool = False,
     reranker_name: Optional[str] = None,
     rerank_pool: int = ASK_RERANK_POOL,
+    generate: bool = False,
+    llm: str = DEFAULT_LLM,
 ):
     model_name = model_name or default_model(lang)
     reranker_name = reranker_name or default_reranker(lang)
+    rag: Optional[RAGAnswerer] = None
     print("=" * 80)
     print("  ИНТЕРАКТИВНЫЙ ПОИСК ПО БАЗЕ ЗАКОНОДАТЕЛЬСТВА РК (Adilet Legal QA)")
     print("=" * 80)
@@ -203,6 +317,7 @@ def interactive_cli(
     print(f" Режим поиска:    {search_mode.upper()}")
     print(f" Реранкер:        {f'{reranker_name} (топ-{rerank_pool} кандидатов)' if rerank else 'выключен'}")
     print(f" Количество результатов: {top_k}")
+    print(f" Ответ модели:    {f'{llm} (Ollama) по {DEFAULT_TOP_K} лучшим чанкам' if generate else 'выключен'}")
     print("-" * 80)
 
     # 1. Загрузка корпуса
@@ -233,21 +348,38 @@ def interactive_cli(
         cache_key=f"{model_cache_name(model_name)}_{lang}_structural",
         rerank_pool=rerank_pool,
     )
+    def get_reranker() -> CrossEncoderReranker:
+        if engine.reranker is None:
+            print(f"  Загрузка реранкера {reranker_name}...")
+            engine.reranker = CrossEncoderReranker(reranker_name)
+        return engine.reranker
+
+    def get_rag() -> RAGAnswerer:
+        nonlocal rag
+        if rag is None:
+            print("  Подготовка генерации ответа: индекс чанков 500 символов...")
+            rag = RAGAnswerer(
+                lang, embedder, model_name, get_reranker(), reranker_name, cache_dir, cache_parquet, llm=llm,
+            )
+        return rag
+
     if rerank:
-        print(f"  Загрузка реранкера {reranker_name}...")
-        engine.reranker = CrossEncoderReranker(reranker_name)
+        get_reranker()
+    if generate:
+        get_rag()
 
     print("\n[3/3] База знаний готова к работе!")
     print("=" * 80)
     print(" Введите ваш вопрос (например: 'С какого числа вступил в силу земельный кодекс?')")
     print(" Для переключения режима введите ':mode dense', ':mode bm25' или ':mode hybrid'")
     print(" Реранкер cross-encoder: ':rerank on' / ':rerank off'")
+    print(f" Ответ языковой модели ({llm}): ':answer on' / ':answer off'")
     print(" Для выхода из программы введите 'exit' или 'q'")
     print("=" * 80)
 
     while True:
         try:
-            label = search_mode.upper() + (" + RERANK" if rerank else "")
+            label = search_mode.upper() + (" + RERANK" if rerank else "") + (" + ОТВЕТ" if generate else "")
             prompt_str = f"\n[{label}] Введите вопрос > "
             query = input(prompt_str).strip()
         except (KeyboardInterrupt, EOFError):
@@ -275,13 +407,33 @@ def interactive_cli(
             parts = query.split()
             if len(parts) > 1 and parts[1].lower() in ("on", "off"):
                 rerank = parts[1].lower() == "on"
-                if rerank and engine.reranker is None:
-                    print(f"Загрузка реранкера {reranker_name}...")
-                    engine.reranker = CrossEncoderReranker(reranker_name)
+                if rerank:
+                    get_reranker()
                 print(f"Реранкер {'включен' if rerank else 'выключен'}")
             else:
                 print("Используйте ':rerank on' или ':rerank off'")
             continue
+
+        if query.startswith(":answer"):
+            parts = query.split()
+            if len(parts) > 1 and parts[1].lower() in ("on", "off"):
+                generate = parts[1].lower() == "on"
+                if generate:
+                    get_rag()
+                print(f"Ответ модели {'включен' if generate else 'выключен'}")
+            else:
+                print("Используйте ':answer on' или ':answer off'")
+            continue
+
+        if generate:
+            print(f"\n{llm} формулирует ответ по найденным фрагментам...")
+            try:
+                answer = get_rag().ask(query)
+                print("-" * 80)
+                print(format_answer(answer, rag.answerer, lang))
+                print("-" * 80)
+            except OllamaError as e:
+                print(f"\n⚠ {e}")
 
         # Выполнение поиска
         t0 = time.time()
@@ -320,6 +472,9 @@ def main():
                         help=f"Модель реранкера (по умолчанию {FINETUNED_RERANKER}, если есть, иначе {DEFAULT_RERANKER}).")
     parser.add_argument("--rerank-pool", type=int, default=ASK_RERANK_POOL,
                         help=f"Сколько кандидатов переранжировать (по умолчанию {ASK_RERANK_POOL}).")
+    parser.add_argument("--generate", action="store_true",
+                        help="Выводить ответ локальной языковой модели по найденным фрагментам (нужна Ollama).")
+    parser.add_argument("--llm", type=str, default=DEFAULT_LLM, help=f"Модель Ollama (по умолчанию {DEFAULT_LLM}).")
     args = parser.parse_args()
 
     interactive_cli(
@@ -331,6 +486,8 @@ def main():
         rerank=args.rerank,
         reranker_name=args.reranker,
         rerank_pool=args.rerank_pool,
+        generate=args.generate,
+        llm=args.llm,
     )
 
 
