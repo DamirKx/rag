@@ -1,13 +1,16 @@
 {
   "params": {
     "min_retrieval_score": 0.928,
-    "min_sentence_support": 0.75,
-    "min_answer_relevance": 0.011,
+    "min_sentence_support": 0.8,
+    "min_answer_relevance": 0.022,
+    "min_entailment": null,
     "reranker": "models/reranker-bge-m3-adilet-rus",
     "embedder": "models/e5-small-adilet-rus",
     "llm": "qwen2.5:3b",
     "top_k": 3,
-    "rerank_pool": 20
+    "rerank_pool": 20,
+    "expand_window": 300,
+    "nli": null
   },
   "tuning_val": {
     "rule": "наибольший порог, при котором отбраковывается не больше 5% хороших случаев val",
@@ -78,134 +81,200 @@
       ]
     },
     "min_sentence_support": {
-      "n_good": 140,
-      "n_bad": 82,
+      "n_good": 149,
+      "n_bad": 68,
       "curve": [
         {
           "threshold": 0.05,
           "reject_good": 0.0,
-          "reject_bad": 0.0122
+          "reject_bad": 0.0
         },
         {
           "threshold": 0.1,
           "reject_good": 0.0,
-          "reject_bad": 0.0122
+          "reject_bad": 0.0
         },
         {
           "threshold": 0.2,
           "reject_good": 0.0,
-          "reject_bad": 0.0122
+          "reject_bad": 0.0
         },
         {
           "threshold": 0.3,
           "reject_good": 0.0,
-          "reject_bad": 0.0122
+          "reject_bad": 0.0
         },
         {
           "threshold": 0.4,
           "reject_good": 0.0,
-          "reject_bad": 0.0366
+          "reject_bad": 0.0
         },
         {
           "threshold": 0.5,
           "reject_good": 0.0,
-          "reject_bad": 0.0366
+          "reject_bad": 0.0
         },
         {
           "threshold": 0.6,
-          "reject_good": 0.0214,
-          "reject_bad": 0.0732
+          "reject_good": 0.0,
+          "reject_bad": 0.0294
         },
         {
           "threshold": 0.7,
-          "reject_good": 0.0357,
-          "reject_bad": 0.1341
+          "reject_good": 0.0201,
+          "reject_bad": 0.0441
         },
         {
           "threshold": 0.8,
-          "reject_good": 0.0571,
-          "reject_bad": 0.1707
+          "reject_good": 0.0403,
+          "reject_bad": 0.1176
         },
         {
           "threshold": 0.9,
-          "reject_good": 0.15,
-          "reject_bad": 0.2439
+          "reject_good": 0.1208,
+          "reject_bad": 0.2353
         },
         {
           "threshold": 0.95,
-          "reject_good": 0.2357,
-          "reject_bad": 0.3537
+          "reject_good": 0.1879,
+          "reject_bad": 0.2794
         },
         {
           "threshold": 0.99,
-          "reject_good": 0.2571,
-          "reject_bad": 0.3537
+          "reject_good": 0.2282,
+          "reject_bad": 0.3088
         }
       ]
     },
     "min_answer_relevance": {
-      "n_good": 140,
-      "n_bad": 82,
+      "n_good": 149,
+      "n_bad": 68,
       "curve": [
         {
           "threshold": 0.05,
-          "reject_good": 0.1357,
-          "reject_bad": 0.1829
+          "reject_good": 0.0805,
+          "reject_bad": 0.1618
         },
         {
           "threshold": 0.1,
-          "reject_good": 0.1714,
-          "reject_bad": 0.2439
+          "reject_good": 0.1275,
+          "reject_bad": 0.1912
         },
         {
           "threshold": 0.2,
-          "reject_good": 0.1929,
-          "reject_bad": 0.2927
+          "reject_good": 0.1409,
+          "reject_bad": 0.2059
         },
         {
           "threshold": 0.3,
-          "reject_good": 0.2143,
-          "reject_bad": 0.3171
+          "reject_good": 0.1611,
+          "reject_bad": 0.2206
         },
         {
           "threshold": 0.4,
-          "reject_good": 0.2286,
-          "reject_bad": 0.3293
+          "reject_good": 0.1678,
+          "reject_bad": 0.2353
         },
         {
           "threshold": 0.5,
-          "reject_good": 0.2357,
-          "reject_bad": 0.3293
+          "reject_good": 0.1745,
+          "reject_bad": 0.2647
         },
         {
           "threshold": 0.6,
-          "reject_good": 0.2357,
-          "reject_bad": 0.3902
+          "reject_good": 0.1745,
+          "reject_bad": 0.2941
         },
         {
           "threshold": 0.7,
-          "reject_good": 0.2429,
-          "reject_bad": 0.4024
+          "reject_good": 0.1879,
+          "reject_bad": 0.3088
         },
         {
           "threshold": 0.8,
-          "reject_good": 0.2643,
-          "reject_bad": 0.439
+          "reject_good": 0.1946,
+          "reject_bad": 0.3235
         },
         {
           "threshold": 0.9,
-          "reject_good": 0.2929,
-          "reject_bad": 0.4756
+          "reject_good": 0.2215,
+          "reject_bad": 0.3824
         },
         {
           "threshold": 0.95,
-          "reject_good": 0.3429,
-          "reject_bad": 0.5
+          "reject_good": 0.2752,
+          "reject_bad": 0.4265
         },
         {
           "threshold": 0.99,
-          "reject_good": 0.4571,
-          "reject_bad": 0.5732
+          "reject_good": 0.349,
+          "reject_bad": 0.5441
+        }
+      ]
+    },
+    "min_entailment": {
+      "n_good": 0,
+      "n_bad": 0,
+      "curve": [
+        {
+          "threshold": 0.05,
+          "reject_good": null,
+          "reject_bad": null
+        },
+        {
+          "threshold": 0.1,
+          "reject_good": null,
+          "reject_bad": null
+        },
+        {
+          "threshold": 0.2,
+          "reject_good": null,
+          "reject_bad": null
+        },
+        {
+          "threshold": 0.3,
+          "reject_good": null,
+          "reject_bad": null
+        },
+        {
+          "threshold": 0.4,
+          "reject_good": null,
+          "reject_bad": null
+        },
+        {
+          "threshold": 0.5,
+          "reject_good": null,
+          "reject_bad": null
+        },
+        {
+          "threshold": 0.6,
+          "reject_good": null,
+          "reject_bad": null
+        },
+        {
+          "threshold": 0.7,
+          "reject_good": null,
+          "reject_bad": null
+        },
+        {
+          "threshold": 0.8,
+          "reject_good": null,
+          "reject_bad": null
+        },
+        {
+          "threshold": 0.9,
+          "reject_good": null,
+          "reject_bad": null
+        },
+        {
+          "threshold": 0.95,
+          "reject_good": null,
+          "reject_bad": null
+        },
+        {
+          "threshold": 0.99,
+          "reject_good": null,
+          "reject_bad": null
         }
       ]
     }
@@ -222,77 +291,78 @@
     "n_questions": 200,
     "raw_model": {
       "answerable": {
-        "refused": 0.17,
-        "with_unsupported_numbers": 0.01
+        "refused": 0.125,
+        "with_unsupported_numbers": 0.035
       },
       "no_gold": {
-        "refused": 0.59,
-        "with_unsupported_numbers": 0.025
+        "refused": 0.66,
+        "with_unsupported_numbers": 0.02
       }
     },
-    "latency_s_mean": 3.64,
-    "completion_tokens_mean": 52.5,
+    "retried": 0.1,
+    "latency_s_mean": 4.25,
+    "completion_tokens_mean": 54.8,
     "configs": {
       "llm": {
         "label": "только модель (промпт)",
         "answerable": {
           "n": 200,
-          "answered": 0.83,
-          "refused": 0.17,
+          "answered": 0.875,
+          "refused": 0.125,
           "unverified": 0.0,
-          "answered_ungrounded": 0.065,
-          "token_f1": 0.4231,
-          "rouge_l": 0.3919,
-          "answered_from_gold": 0.515,
-          "missed_with_gold": 0.145
+          "answered_ungrounded": 0.08,
+          "token_f1": 0.4552,
+          "rouge_l": 0.4122,
+          "answered_from_gold": 0.63,
+          "missed_with_gold": 0.1
         },
         "no_gold": {
           "n": 200,
-          "answered": 0.41,
-          "refused": 0.59,
+          "answered": 0.34,
+          "refused": 0.66,
           "unverified": 0.0,
-          "answered_ungrounded": 0.07
+          "answered_ungrounded": 0.055
         }
       },
       "gate": {
         "label": "+ порог реранкера",
         "answerable": {
           "n": 200,
-          "answered": 0.765,
-          "refused": 0.235,
+          "answered": 0.81,
+          "refused": 0.19,
           "unverified": 0.0,
           "answered_ungrounded": 0.055,
-          "token_f1": 0.4322,
-          "rouge_l": 0.4003,
-          "answered_from_gold": 0.485,
-          "missed_with_gold": 0.195
+          "token_f1": 0.4681,
+          "rouge_l": 0.4242,
+          "answered_from_gold": 0.59,
+          "missed_with_gold": 0.155
         },
         "no_gold": {
           "n": 200,
-          "answered": 0.215,
-          "refused": 0.785,
+          "answered": 0.235,
+          "refused": 0.765,
           "unverified": 0.0,
-          "answered_ungrounded": 0.03
+          "answered_ungrounded": 0.035
         }
       },
       "grounding": {
         "label": "+ проверка по тексту закона",
         "answerable": {
           "n": 200,
-          "answered": 0.61,
-          "refused": 0.235,
-          "unverified": 0.155,
+          "answered": 0.72,
+          "refused": 0.19,
+          "unverified": 0.09,
           "answered_ungrounded": 0.0,
-          "token_f1": 0.4908,
-          "rouge_l": 0.4556,
-          "answered_from_gold": 0.375,
-          "missed_with_gold": 0.315
+          "token_f1": 0.494,
+          "rouge_l": 0.4488,
+          "answered_from_gold": 0.555,
+          "missed_with_gold": 0.21
         },
         "no_gold": {
           "n": 200,
-          "answered": 0.145,
-          "refused": 0.785,
-          "unverified": 0.07,
+          "answered": 0.18,
+          "refused": 0.765,
+          "unverified": 0.055,
           "answered_ungrounded": 0.0
         }
       },
@@ -300,20 +370,41 @@
         "label": "+ проверка соответствия вопросу",
         "answerable": {
           "n": 200,
-          "answered": 0.61,
-          "refused": 0.235,
-          "unverified": 0.155,
+          "answered": 0.7,
+          "refused": 0.19,
+          "unverified": 0.11,
           "answered_ungrounded": 0.0,
-          "token_f1": 0.4908,
-          "rouge_l": 0.4556,
-          "answered_from_gold": 0.375,
-          "missed_with_gold": 0.315
+          "token_f1": 0.5039,
+          "rouge_l": 0.4581,
+          "answered_from_gold": 0.54,
+          "missed_with_gold": 0.225
         },
         "no_gold": {
           "n": 200,
-          "answered": 0.145,
-          "refused": 0.785,
-          "unverified": 0.07,
+          "answered": 0.175,
+          "refused": 0.765,
+          "unverified": 0.06,
+          "answered_ungrounded": 0.0
+        }
+      },
+      "nli": {
+        "label": "+ следование из фрагмента (NLI)",
+        "answerable": {
+          "n": 200,
+          "answered": 0.7,
+          "refused": 0.19,
+          "unverified": 0.11,
+          "answered_ungrounded": 0.0,
+          "token_f1": 0.5039,
+          "rouge_l": 0.4581,
+          "answered_from_gold": 0.54,
+          "missed_with_gold": 0.225
+        },
+        "no_gold": {
+          "n": 200,
+          "answered": 0.175,
+          "refused": 0.765,
+          "unverified": 0.06,
           "answered_ungrounded": 0.0
         }
       }
@@ -323,77 +414,78 @@
     "n_questions": 737,
     "raw_model": {
       "answerable": {
-        "refused": 0.2103,
-        "with_unsupported_numbers": 0.0312
+        "refused": 0.1533,
+        "with_unsupported_numbers": 0.0326
       },
       "no_gold": {
-        "refused": 0.5645,
-        "with_unsupported_numbers": 0.0271
+        "refused": 0.6079,
+        "with_unsupported_numbers": 0.0176
       }
     },
-    "latency_s_mean": 4.56,
-    "completion_tokens_mean": 50.7,
+    "retried": 0.0977,
+    "latency_s_mean": 4.46,
+    "completion_tokens_mean": 54.2,
     "configs": {
       "llm": {
         "label": "только модель (промпт)",
         "answerable": {
           "n": 737,
-          "answered": 0.7897,
-          "refused": 0.2103,
+          "answered": 0.8467,
+          "refused": 0.1533,
           "unverified": 0.0,
-          "answered_ungrounded": 0.0909,
-          "token_f1": 0.4286,
-          "rouge_l": 0.394,
-          "answered_from_gold": 0.4803,
-          "missed_with_gold": 0.1452
+          "answered_ungrounded": 0.0963,
+          "token_f1": 0.4648,
+          "rouge_l": 0.4282,
+          "answered_from_gold": 0.5699,
+          "missed_with_gold": 0.0963
         },
         "no_gold": {
           "n": 737,
-          "answered": 0.4355,
-          "refused": 0.5645,
+          "answered": 0.3921,
+          "refused": 0.6079,
           "unverified": 0.0,
-          "answered_ungrounded": 0.0556
+          "answered_ungrounded": 0.0733
         }
       },
       "gate": {
         "label": "+ порог реранкера",
         "answerable": {
           "n": 737,
-          "answered": 0.7558,
-          "refused": 0.2442,
+          "answered": 0.8168,
+          "refused": 0.1832,
           "unverified": 0.0,
-          "answered_ungrounded": 0.0801,
-          "token_f1": 0.4352,
-          "rouge_l": 0.4008,
-          "answered_from_gold": 0.464,
-          "missed_with_gold": 0.1696
+          "answered_ungrounded": 0.0896,
+          "token_f1": 0.4688,
+          "rouge_l": 0.4319,
+          "answered_from_gold": 0.5563,
+          "missed_with_gold": 0.1167
         },
         "no_gold": {
           "n": 737,
-          "answered": 0.2673,
-          "refused": 0.7327,
+          "answered": 0.2551,
+          "refused": 0.7449,
           "unverified": 0.0,
-          "answered_ungrounded": 0.0393
+          "answered_ungrounded": 0.0556
         }
       },
       "grounding": {
         "label": "+ проверка по тексту закона",
         "answerable": {
           "n": 737,
-          "answered": 0.5699,
-          "refused": 0.2442,
-          "unverified": 0.1859,
+          "answered": 0.6947,
+          "refused": 0.1832,
+          "unverified": 0.1221,
           "answered_ungrounded": 0.0,
-          "token_f1": 0.5053,
-          "rouge_l": 0.4657,
-          "answered_from_gold": 0.3541,
-          "missed_with_gold": 0.3134
+          "token_f1": 0.5073,
+          "rouge_l": 0.4677,
+          "answered_from_gold": 0.4817,
+          "missed_with_gold": 0.2117
         },
         "no_gold": {
           "n": 737,
-          "answered": 0.1927,
-          "refused": 0.7327,
-          "unverified": 0.0746,
+          "answered": 0.1845,
+          "refused": 0.7449,
+          "unverified": 0.0706,
           "answered_ungrounded": 0.0
         }
       },
@@ -401,20 +493,41 @@
         "label": "+ проверка соответствия вопросу",
         "answerable": {
           "n": 737,
-          "answered": 0.559,
-          "refused": 0.2442,
-          "unverified": 0.1967,
+          "answered": 0.6798,
+          "refused": 0.1832,
+          "unverified": 0.137,
           "answered_ungrounded": 0.0,
-          "token_f1": 0.5109,
-          "rouge_l": 0.4706,
-          "answered_from_gold": 0.3501,
-          "missed_with_gold": 0.3202
+          "token_f1": 0.5124,
+          "rouge_l": 0.4722,
+          "answered_from_gold": 0.4735,
+          "missed_with_gold": 0.2225
         },
         "no_gold": {
           "n": 737,
-          "answered": 0.19,
-          "refused": 0.7327,
-          "unverified": 0.0773,
+          "answered": 0.1669,
+          "refused": 0.7449,
+          "unverified": 0.0882,
+          "answered_ungrounded": 0.0
+        }
+      },
+      "nli": {
+        "label": "+ следование из фрагмента (NLI)",
+        "answerable": {
+          "n": 737,
+          "answered": 0.6798,
+          "refused": 0.1832,
+          "unverified": 0.137,
+          "answered_ungrounded": 0.0,
+          "token_f1": 0.5124,
+          "rouge_l": 0.4722,
+          "answered_from_gold": 0.4735,
+          "missed_with_gold": 0.2225
+        },
+        "no_gold": {
+          "n": 737,
+          "answered": 0.1669,
+          "refused": 0.7449,
+          "unverified": 0.0882,
           "answered_ungrounded": 0.0
         }
       }

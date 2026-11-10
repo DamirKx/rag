@@ -14,7 +14,8 @@
    - каждое число ответа (дата, срок, сумма, номер статьи или пункта) есть во фрагментах;
    - слова каждого предложения ответа в основном встречаются во фрагментах (доля основ
      слов не ниже порога) — модель не добавила сведений «от себя»;
-   - ссылки [n] указывают на существующие фрагменты, а кроме ссылок в ответе есть текст;
+   - кроме ссылок [n] в ответе есть текст; ссылки на несуществующие фрагменты (модель пишет
+     номер пункта статьи вместо номера фрагмента) убираются из ответа, а не отклоняют его;
    - ответ относится к вопросу: тот же реранкер оценивает пару «вопрос — ответ»;
    - ответ следует из цитируемых фрагментов (NLI, src/nli.py; включается, когда порог подобран).
    Не прошедший проверку ответ не показывается: вместо него — цитата лучшего фрагмента закона.
@@ -329,6 +330,20 @@ def strip_citations(answer: str) -> str:
     return re.sub(r"\s+([.,;:])", r"\1", re.sub(r"[ \t]*" + CITATION.pattern, "", answer)).strip()
 
 
+def drop_invalid_citations(answer: str, n_passages: int) -> str:
+    """Убирает из ответа ссылки на несуществующие фрагменты («[6]» при трёх фрагментах).
+
+    Модель иногда пишет в скобках номер пункта статьи вместо номера фрагмента. Такая ссылка
+    ничего не утверждает: проверки опоры и чисел сверяют ответ со всеми фрагментами.
+    """
+    def keep_valid(match: "re.Match") -> str:
+        valid = [n for n in re.split(r"\s*[,;]\s*", match.group(1)) if 1 <= int(n) <= n_passages]
+        return f"[{', '.join(valid)}]" if valid else ""
+
+    cleaned = re.sub(r"[ \t]*" + CITATION.pattern, lambda m: (" " if keep_valid(m) else "") + keep_valid(m), answer)
+    return re.sub(r"\s+([.,;:])", r"\1", cleaned).strip()
+
+
 def _context_numbers(context: str) -> set:
     """Числа контекста и даты, записанные словами («1 июля 2023» → «01.07.2023»)."""
     norm = normalize_for_check(context)
@@ -546,26 +561,27 @@ class GroundedAnswerer:
         if is_refusal(raw, self.lang):
             return Answer(STATUS_REFUSED, REFUSAL[self.lang], passages, raw=raw, checks=checks, usage=usage)
 
-        checks.update(verify_answer(raw, passages, self.lang))
+        # Несуществующие ссылки не отклоняют ответ, а убираются из него (номера остаются в checks)
+        text = drop_invalid_citations(raw, len(passages))
+        checks.update(verify_answer(text, passages, self.lang))
+        checks["invalid_citations"] = verify_answer(raw, passages, self.lang)["invalid_citations"]
         if relevance is None and self.relevance_scorer is not None:
-            relevance = self.relevance_scorer(question, raw)
+            relevance = self.relevance_scorer(question, text)
         checks["answer_relevance"] = None if relevance is None else round(float(relevance), 4)
-        cited = [n for n in extract_citations(raw) if 1 <= n <= len(passages)]
+        cited = [n for n in extract_citations(text) if 1 <= n <= len(passages)]
         problems = []
         # Модель иногда отвечает одной ссылкой «[1]» без текста: проверять в ней нечего, но и ответа нет
-        if not re.search(r"\w", strip_citations(raw)):
+        if not re.search(r"\w", strip_citations(text)):
             problems.append("ответ без текста — только ссылка на фрагмент")
         if checks["unsupported_numbers"]:
             problems.append("числа, которых нет в тексте закона: " + ", ".join(checks["unsupported_numbers"]))
-        if checks["invalid_citations"]:
-            problems.append("ссылки на несуществующие фрагменты")
         if checks["min_sentence_support"] < self.min_sentence_support:
             problems.append("утверждения, не подтверждённые текстом закона")
         if self.min_answer_relevance is not None and relevance is not None and relevance < self.min_answer_relevance:
             problems.append("ответ не относится к заданному вопросу")
         # NLI медленнее остальных проверок: не считается, если ответ уже отклонён
         if entailment is None and self.entailment_scorer is not None and self.min_entailment is not None and not problems:
-            entailment = self.entailment_scorer(question, raw, cited_passages(raw, passages))
+            entailment = self.entailment_scorer(question, text, cited_passages(text, passages))
         checks["entailment"] = None if entailment is None else round(float(entailment), 4)
         if self.min_entailment is not None and entailment is not None and entailment < self.min_entailment:
             problems.append("ответ не следует из цитируемого фрагмента")
@@ -574,4 +590,4 @@ class GroundedAnswerer:
         if self.verify and problems:
             # Сам ответ (и выдуманные в нём числа) не показывается; причины — в checks["problems"]
             return Answer(STATUS_UNVERIFIED, UNVERIFIED[self.lang], passages, raw=raw, cited=[1], checks=checks, usage=usage)
-        return Answer(STATUS_ANSWERED, raw, passages, raw=raw, cited=cited or [1], checks=checks, usage=usage)
+        return Answer(STATUS_ANSWERED, text, passages, raw=raw, cited=cited or [1], checks=checks, usage=usage)

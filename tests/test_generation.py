@@ -17,6 +17,7 @@ from src.generation import (
     answer_sentences,
     build_messages,
     cited_passages,
+    drop_invalid_citations,
     extract_citations,
     is_malformed,
     is_refusal,
@@ -166,10 +167,27 @@ class TestGroundedAnswerer:
         # Без оценки и без scorer проверка пропускается
         assert given.judge("Срок?", raw, PASSAGES).checks["answer_relevance"] is None
 
-    def test_invalid_citation(self):
+    def test_invalid_citation_is_dropped_not_rejected(self):
+        # «[7]» при двух фрагментах — номер пункта, а не фрагмента: ссылка убирается, ответ проверяется как обычно
         answer = GroundedAnswerer(FakeClient("Срок аренды до 49 лет [7].")).answer("Срок?", PASSAGES)
-        assert answer.status == STATUS_UNVERIFIED
+        assert answer.status == STATUS_ANSWERED
+        assert answer.text == "Срок аренды до 49 лет."
         assert answer.checks["invalid_citations"] == [7]
+        assert answer.cited == [1]
+
+    def test_invalid_citation_does_not_hide_unsupported_text(self):
+        judge = GroundedAnswerer(None, min_answer_relevance=None)
+        assert judge.judge("Срок?", "[6] Срок аренды до 99 лет.", PASSAGES).status == STATUS_UNVERIFIED
+        assert judge.judge("Срок?", "[7]", PASSAGES).status == STATUS_UNVERIFIED  # без текста
+
+    @pytest.mark.parametrize("raw,expected", [
+        ("[6] Срок аренды до 49 лет [1].", "Срок аренды до 49 лет [1]."),
+        ("Срок аренды до 49 лет [1, 5].", "Срок аренды до 49 лет [1]."),
+        ("Срок аренды до 49 лет [2; 9] и далее [4].", "Срок аренды до 49 лет [2] и далее."),
+        ("Срок аренды до 49 лет [1].", "Срок аренды до 49 лет [1]."),
+    ])
+    def test_drop_invalid_citations(self, raw, expected):
+        assert drop_invalid_citations(raw, 2) == expected
 
     def test_citation_only_answer_is_not_shown(self):
         # Ответ «[1]» без текста: в нём нет непроверенных предложений, но и ответа нет
