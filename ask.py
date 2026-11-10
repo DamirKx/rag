@@ -33,7 +33,8 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     except Exception:
         pass
 
-from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus, law_titles
+from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus, expand_hits, law_titles
+from src.nli import load_entailment_scorer
 from src.embeddings import EmbeddingModel
 from src.generation import (
     DEFAULT_LLM, DEFAULT_TOP_K, STATUS_ANSWERED, STATUS_NO_CONTEXT, STATUS_REFUSED,
@@ -247,13 +248,15 @@ class RAGAnswerer:
             min_sentence_support=params["min_sentence_support"],
             min_answer_relevance=params["min_answer_relevance"],
             relevance_scorer=reranker_relevance(reranker),
+            min_entailment=params["min_entailment"],
+            entailment_scorer=load_entailment_scorer(params["min_entailment"]),
         )
 
     def ask(self, query: str) -> Answer:
-        """Ищет top_k чанков и отвечает по ним; OllamaError — если модель недоступна."""
+        """Ищет top_k чанков и отвечает по ним (модель читает их с окружающим текстом); OllamaError — если модель недоступна."""
         hits = self.engine.search(query, mode="hybrid", top_k=self.top_k, rerank=True)
-        passages = [Passage.from_hit({**self.chunks_by_id[doc_id], "score": score}) for doc_id, _, score in hits]
-        return self.answerer.answer(query, passages)
+        chunks = [{**self.chunks_by_id[doc_id], "score": score} for doc_id, _, score in hits]
+        return self.answerer.answer(query, [Passage.from_hit(h) for h in expand_hits(chunks)])
 
 
 def format_answer(answer: Answer, answerer: GroundedAnswerer, lang: str) -> str:
@@ -268,10 +271,12 @@ def format_answer(answer: Answer, answerer: GroundedAnswerer, lang: str) -> str:
         lines.append("\nИсточники:")
         lines.extend(source(n) for n in answer.cited)
         relevance = answer.checks.get("answer_relevance")
+        entailment = answer.checks.get("entailment")
         lines.append(
             f"✓ Проверено: все числа есть в тексте закона; слова каждого предложения найдены во фрагментах "
             f"не меньше чем на {answerer.min_sentence_support:.0%} (минимум {answer.checks['min_sentence_support']:.0%})"
             + (f"; соответствие вопросу {relevance:.2f}" if relevance is not None else "")
+            + (f"; следование из фрагмента {entailment:.2f}" if entailment is not None else "")
             + f" · {answer.usage.get('latency_s') or 0:.1f} с"
         )
     elif answer.status == STATUS_NO_CONTEXT:

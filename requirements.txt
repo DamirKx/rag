@@ -18,6 +18,14 @@ fsspec==2026.9.0
 # Веб-демо поиска (app.py)
 streamlit==1.66.1
 
+# Чтение PDF актуальных законов (prepare_laws.py)
+pypdf==7.0.0
+
+# Проверка следования ответа из фрагментов (src/nli.py): токенизатор mDeBERTa
+sentencepiece==0.2.3
+# Трассировка ответов (src/tracing.py), работает только при заданных ключах
+langfuse==5.2.0
+
 # Дообучение эмбеддера (notebooks/finetune_e5.ipynb)
 datasets==5.1.0
 accelerate==1.15.0
