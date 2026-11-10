@@ -48,13 +48,14 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 
 from ask import LegalSearchEngine, default_model, load_bm25_params, load_hybrid_params, load_legal_corpus
 from run_adilet_eval import GoldChunkMatcher, model_cache_name
-from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus, law_titles
+from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, EXPAND_WINDOW, build_chunk_corpus, expand_hits, law_titles
 from src.embeddings import EmbeddingModel
 from src.eval import answer_rouge_l, answer_token_f1, answer_tokens
 from src.generation import (
     DEFAULT_LLM, DEFAULT_TOP_K, STATUS_ANSWERED, STATUS_NO_CONTEXT, STATUS_REFUSED, STATUS_UNVERIFIED,
-    GroundedAnswerer, OllamaClient, Passage, build_messages, strip_citations,
+    GroundedAnswerer, OllamaClient, Passage, cited_passages, strip_citations,
 )
+from src.nli import DEFAULT_NLI, NLI_LANGS, NLIChecker, entailment_scorer
 from src.reranker import CrossEncoderReranker, default_reranker
 from src.text_norm import get_normalizer
 
@@ -69,10 +70,11 @@ SEED = 42
 
 # Защита добавляется по слоям; каждая следующая конфигурация включает предыдущие
 CONFIGS = {
-    "llm": {"gate": False, "grounding": False, "relevance": False, "label": "только модель (промпт)"},
-    "gate": {"gate": True, "grounding": False, "relevance": False, "label": "+ порог реранкера"},
-    "grounding": {"gate": True, "grounding": True, "relevance": False, "label": "+ проверка по тексту закона"},
-    "full": {"gate": True, "grounding": True, "relevance": True, "label": "+ проверка соответствия вопросу"},
+    "llm": {"gate": False, "grounding": False, "relevance": False, "nli": False, "label": "только модель (промпт)"},
+    "gate": {"gate": True, "grounding": False, "relevance": False, "nli": False, "label": "+ порог реранкера"},
+    "grounding": {"gate": True, "grounding": True, "relevance": False, "nli": False, "label": "+ проверка по тексту закона"},
+    "full": {"gate": True, "grounding": True, "relevance": True, "nli": False, "label": "+ проверка соответствия вопросу"},
+    "nli": {"gate": True, "grounding": True, "relevance": True, "nli": True, "label": "+ следование из фрагмента (NLI)"},
 }
 
 
@@ -86,21 +88,24 @@ def rerank_pool(lang: str, reranker: str) -> int:
 
 
 def retrieve(engine: LegalSearchEngine, by_id: Dict[str, Dict], query: str, pool: int, top_k: int,
-             exclude_ctx: Optional[str] = None) -> List[Passage]:
-    """Гибрид → пул кандидатов (без чанков фрагмента exclude_ctx) → реранкер → top_k фрагментов."""
+             exclude_ctx: Optional[str] = None, window: int = EXPAND_WINDOW) -> List[Passage]:
+    """Гибрид → пул кандидатов (без чанков фрагмента exclude_ctx) → реранкер → top_k чанков с окружающим текстом.
+
+    Текст берётся только из того же фрагмента закона, поэтому в no_gold эталонный фрагмент не возвращается.
+    """
     hits = engine.search(query, mode="hybrid", top_k=pool + (NO_GOLD_EXTRA if exclude_ctx else 0))
     if exclude_ctx:
         hits = [h for h in hits if h[0].split("_fix_")[0] != exclude_ctx]
     reranked = engine.rerank(query, hits[:pool], top_k)
-    return [Passage.from_hit({**by_id[doc_id], "score": score}) for doc_id, _, score in reranked]
+    return [Passage.from_hit(h) for h in expand_hits([{**by_id[doc_id], "score": score} for doc_id, _, score in reranked], window)]
 
 
 def passage_dict(p: Passage) -> Dict[str, Any]:
-    return {"id": p.id, "text": p.text, "law": p.law, "articles": p.articles, "score": p.score}
+    return {"id": p.id, "chunk_ids": p.ids, "text": p.text, "law": p.law, "articles": p.articles, "score": p.score}
 
 
 def passages_from(rows: List[Dict[str, Any]]) -> List[Passage]:
-    return [Passage(id=p["id"], text=p["text"], law=p["law"], articles=p["articles"], score=p["score"]) for p in rows]
+    return [Passage(id=p["id"], chunk_ids=p["chunk_ids"], text=p["text"], law=p["law"], articles=p["articles"], score=p["score"]) for p in rows]
 
 
 def threshold_for(good: List[float], max_false_reject: float = MAX_FALSE_REJECT) -> float:
@@ -124,7 +129,8 @@ def make_answerer(cfg: Dict[str, Any], params: Dict[str, float], lang: str) -> G
         min_retrieval_score=params["min_retrieval_score"] if cfg["gate"] else None,
         min_sentence_support=params["min_sentence_support"] if cfg["grounding"] else 0.0,
         min_answer_relevance=params["min_answer_relevance"] if cfg["relevance"] else None,
-        verify=cfg["grounding"] or cfg["relevance"],
+        min_entailment=params["min_entailment"] if cfg["nli"] else None,
+        verify=cfg["grounding"] or cfg["relevance"] or cfg["nli"],
     )
 
 
@@ -133,7 +139,8 @@ def final_status(rec: Dict[str, Any], answerer: GroundedAnswerer) -> str:
     passages = passages_from(rec["passages"])
     if not answerer.retrieval_confident(passages):
         return STATUS_NO_CONTEXT
-    return answerer.judge(rec["query"], rec["raw"], passages, relevance=rec["checks"].get("answer_relevance")).status
+    checks = rec["checks"]
+    return answerer.judge(rec["query"], rec["raw"], passages, relevance=checks.get("answer_relevance"), entailment=checks.get("entailment")).status
 
 
 def ungrounded(rec: Dict[str, Any], params: Dict[str, float]) -> bool:
@@ -172,7 +179,7 @@ def summarize(records: List[Dict[str, Any]], params: Dict[str, float], lang: str
                 m["rouge_l"] = float(np.mean(rl)) if rl else 0.0
                 # Ответ опирается на эталонный чанк: среди цитируемых фрагментов есть эталонный
                 m["answered_from_gold"] = sum(
-                    any(r["passages"][c - 1]["id"] in r["gold"] for c in (r["cited"] or [1]) if 1 <= c <= len(r["passages"]))
+                    any(i in r["gold"] for c in (r["cited"] or [1]) if 1 <= c <= len(r["passages"]) for i in r["passages"][c - 1]["chunk_ids"])
                     for r in answered
                 ) / n
                 # Нужный фрагмент был найден, но система не ответила
@@ -190,6 +197,9 @@ def main():
     parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K, help="Сколько чанков получает модель.")
     parser.add_argument("--val-limit", type=int, default=200, help="Вопросов val для подбора порогов проверки ответа (0 — все).")
     parser.add_argument("--test-limit", type=int, default=0, help="Вопросов test (0 — все).")
+    parser.add_argument("--expand-window", type=int, default=EXPAND_WINDOW,
+                        help="Сколько символов вокруг чанка получает модель (0 — только чанк).")
+    parser.add_argument("--no-nli", action="store_true", help="Без проверки следования из фрагмента (NLI на CPU, самый долгий шаг).")
     args = parser.parse_args()
     lang = args.lang
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -209,7 +219,10 @@ def main():
     pool = rerank_pool(lang, reranker_name)
     matcher = GoldChunkMatcher([c["text"] for c in corpus], [c["id"].split("_fix_")[0] for c in corpus])
     chunk_ids = [c["id"] for c in corpus]
-    print(f"Корпус: {len(corpus)} чанков | эмбеддер {model_name} | реранкер {reranker_name}, пул {pool} | top-k {args.top_k}")
+    print(f"Корпус: {len(corpus)} чанков | эмбеддер {model_name} | реранкер {reranker_name}, пул {pool} | "
+          f"top-k {args.top_k} | окно вокруг чанка {args.expand_window}")
+    # NLI считается на CPU: видеопамять занята реранкером и языковой моделью
+    nli = entailment_scorer(NLIChecker()) if lang in NLI_LANGS and not args.no_nli else None
 
     splits = {}
     for name in ("val", "test"):
@@ -220,7 +233,7 @@ def main():
 
     # --- 1. Поиск в обоих условиях (с кэшем) ---
     key_src = json.dumps([model_cache_name(model_name), model_cache_name(reranker_name), pool, args.top_k,
-                          NO_GOLD_EXTRA, load_hybrid_params(model_name, lang), load_bm25_params(lang),
+                          NO_GOLD_EXTRA, args.expand_window, load_hybrid_params(model_name, lang), load_bm25_params(lang),
                           {n: [q["id"] for q in items] for n, items in splits.items()}], sort_keys=True)
     retrieval_cache = Path(f"{CACHE_DIR}/generation_retrieval_{lang}_{hashlib.sha1(key_src.encode()).hexdigest()[:12]}.json")
     if retrieval_cache.exists():
@@ -234,16 +247,16 @@ def main():
             for q in items:
                 for cond in ("answerable", "no_gold"):
                     passages = retrieve(engine, by_id, q["query"], pool, args.top_k,
-                                        exclude_ctx=q["context_id"] if cond == "no_gold" else None)
+                                        exclude_ctx=q["context_id"] if cond == "no_gold" else None, window=args.expand_window)
                     rows.append({"id": q["id"], "condition": cond, "passages": [passage_dict(p) for p in passages],
-                                 "gold_in_top": any(p.id in q["gold"] for p in passages)})
+                                 "gold_in_top": any(i in q["gold"] for p in passages for i in p.ids)})
             retrieval[name] = rows
             print(f"Поиск {name}: {len(items)} вопросов × 2 условия за {time.time() - t0:.0f} с", flush=True)
         retrieval_cache.write_text(json.dumps(retrieval, ensure_ascii=False), encoding="utf-8")
 
     # --- 2. Ответы модели (без порогов) и их оценки соответствия вопросу ---
     client = OllamaClient(model=args.llm, retries=3, cache_path=f"{CACHE_DIR}/llm_{args.llm.replace(':', '_').replace('/', '_')}.jsonl")
-    plain = GroundedAnswerer(None, lang, min_retrieval_score=None, min_answer_relevance=None, verify=False)
+    plain = GroundedAnswerer(client, lang, min_retrieval_score=None, min_answer_relevance=None, verify=False)
     rng = random.Random(SEED)
     limits = {"val": args.val_limit, "test": args.test_limit}
     records: Dict[str, List[Dict[str, Any]]] = {}
@@ -255,7 +268,7 @@ def main():
             for cond in ("answerable", "no_gold"):
                 row = by_q[(q["id"], cond)]
                 passages = passages_from(row["passages"])
-                response = client.chat(build_messages(q["query"], passages, lang))
+                response = plain.ask_model(q["query"], passages)
                 calls += not response["cached"]
                 judged = plain.judge(q["query"], response["text"], passages)
                 if judged.status != STATUS_REFUSED:
@@ -266,6 +279,7 @@ def main():
                     "reference": q["full_response"], "gold": q["gold"], "gold_in_top": row["gold_in_top"],
                     "passages": row["passages"], "raw": response["text"], "cited": judged.cited,
                     "checks": judged.checks, "refused": judged.status == STATUS_REFUSED,
+                    "retried": response["retried"],
                     "latency_s": response["latency_s"], "prompt_tokens": response["prompt_tokens"],
                     "completion_tokens": response["completion_tokens"],
                 })
@@ -288,12 +302,30 @@ def main():
         "min_sentence_support": threshold_for(support_good),
         "min_answer_relevance": threshold_for(rel_good),
     }
+
+    # NLI идёт на CPU и медленный, поэтому считается только для ответов, прошедших все предыдущие слои:
+    # остальные эта проверка не меняет. Порог подбирается на таких же ответах, какие она получит в работе
+    if nli is not None:
+        reach, t0, scored = make_answerer(CONFIGS["full"], params, lang), time.time(), 0
+        for recs in records.values():
+            for r in recs:
+                if final_status(r, reach) == STATUS_ANSWERED:
+                    r["checks"]["entailment"] = round(nli(r["query"], r["raw"], cited_passages(r["raw"], passages_from(r["passages"]))), 4)
+                    scored += 1
+                    if scored % 50 == 0:
+                        print(f"  NLI: {scored} ответов, {time.time() - t0:.0f} с", flush=True)
+        print(f"NLI: {scored} ответов за {time.time() - t0:.0f} с", flush=True)
+    entail_good = [r["checks"]["entailment"] for r in good if r["checks"].get("entailment") is not None]
+    entail_bad = [r["checks"]["entailment"] for r in bad if r["checks"].get("entailment") is not None]
+    params["min_entailment"] = threshold_for(entail_good) if entail_good else None
+
     grid = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99]
     tuning = {
         "rule": f"наибольший порог, при котором отбраковывается не больше {MAX_FALSE_REJECT:.0%} хороших случаев val",
         "min_retrieval_score": {"n_good": len(gate_good), "n_bad": len(gate_bad), "curve": reject_curve(gate_good, gate_bad, grid)},
         "min_sentence_support": {"n_good": len(good), "n_bad": len(bad), "curve": reject_curve(support_good, support_bad, grid)},
         "min_answer_relevance": {"n_good": len(good), "n_bad": len(bad), "curve": reject_curve(rel_good, rel_bad, grid)},
+        "min_entailment": {"n_good": len(entail_good), "n_bad": len(entail_bad), "curve": reject_curve(entail_good, entail_bad, grid)},
     }
     for key, value in params.items():
         print(f"Порог {key}: {value}")
@@ -301,7 +333,8 @@ def main():
     # --- 4. Сравнение конфигураций ---
     report = {
         "params": {**params, "reranker": Path(reranker_name).as_posix(), "embedder": Path(model_name).as_posix(),
-                   "llm": args.llm, "top_k": args.top_k, "rerank_pool": pool},
+                   "llm": args.llm, "top_k": args.top_k, "rerank_pool": pool, "expand_window": args.expand_window,
+                   "nli": DEFAULT_NLI if nli is not None else None},
         "tuning_val": tuning,
         "retrieval": {
             name: {"gold_in_top_answerable": round(float(np.mean([r["gold_in_top"] for r in rows if r["condition"] == "answerable"])), 4)}
@@ -319,6 +352,7 @@ def main():
                         bool(r["checks"].get("unsupported_numbers")) for r in recs if r["condition"] == cond])), 4),
                 } for cond in ("answerable", "no_gold")
             },
+            "retried": round(float(np.mean([r["retried"] for r in recs])), 4),
             "latency_s_mean": round(float(np.mean([r["latency_s"] for r in recs])), 2),
             "completion_tokens_mean": round(float(np.mean([r["completion_tokens"] or 0 for r in recs])), 1),
             "configs": summarize(recs, params, lang),

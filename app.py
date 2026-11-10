@@ -25,15 +25,18 @@ from ask import (
     LegalSearchEngine, default_model, load_bm25_params, load_hybrid_params, load_legal_corpus, load_rerank_pool,
 )
 from run_adilet_eval import DEFAULT_MODEL, model_cache_name
-from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus, law_titles
+from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus, expand_hits, law_titles
+from src.nli import load_entailment_scorer
 from src.embeddings import EmbeddingModel
 from src.generation import (
     DEFAULT_LLM, DEFAULT_TOP_K, STATUS_ANSWERED, STATUS_NO_CONTEXT, STATUS_REFUSED,
     GroundedAnswerer, OllamaClient, OllamaError, Passage, load_generation_params, reranker_relevance,
 )
+from src.laws import LAWS_PARQUET, load_laws
 from src.reranker import CrossEncoderReranker, default_reranker
 from src.retriever import tokenize_legal_text
 
+CORPUS_LABELS = {"laws": "Законы для граждан (актуальные)", "adilet": "Датасет Adilet Legal QA (14 актов)"}
 CACHE_PARQUET = "data/raw/adilet_legal_qa_kz.parquet"
 CACHE_DIR = "data/adilet/cache"
 MODELS_DIR = Path("models")
@@ -61,6 +64,13 @@ EXAMPLES = {
         "Жер учаскесін жалға беру мерзімі қандай?",
     ],
 }
+LAWS_EXAMPLES = [
+    "Сколько дней ежегодного отпуска положено работнику?",
+    "Можно ли вернуть товар надлежащего качества?",
+    "Как расторгнуть брак?",
+    "Как уволиться по собственному желанию?",
+    "Кто имеет право на пособие по уходу за ребёнком?",
+]
 
 # Служебные слова не подсвечиваются в найденном тексте
 STOPWORDS = {
@@ -72,13 +82,25 @@ STOPWORDS = {
 
 
 @st.cache_data(show_spinner="Загрузка и разбиение корпуса законов...")
-def build_corpus(lang: str) -> List[Dict[str, Any]]:
+def build_corpus(lang: str, corpus_name: str = "adilet") -> List[Dict[str, Any]]:
     """Чанки 500 символов с законом и статьями (src/corpus.py).
 
-    Чанки совпадают с run_adilet_eval.py, поэтому используется уже готовый кэш эмбеддингов.
+    Чанки датасета совпадают с run_adilet_eval.py, поэтому используется уже готовый кэш эмбеддингов.
     """
+    if corpus_name == "laws":
+        return build_chunk_corpus(load_laws(), {})
     titles = law_titles(pd.read_parquet(CACHE_PARQUET, columns=["context", "source_id", "doc_type", "language"]))
     return build_chunk_corpus(load_legal_corpus(CACHE_PARQUET, lang), titles)
+
+
+def available_corpora() -> List[str]:
+    """Актуальные законы первыми, если корпус подготовлен (prepare_laws.py)."""
+    return (["laws"] if Path(LAWS_PARQUET).exists() else []) + ["adilet"]
+
+
+def source_url(lang: str, source_id: str) -> str:
+    """Адрес акта на adilet.zan.kz или пустая строка, если адрес не подтверждён."""
+    return f"https://adilet.zan.kz/{lang}/docs/{source_id}" if source_id else ""
 
 
 @st.cache_resource(show_spinner="Загрузка модели эмбеддингов...")
@@ -88,14 +110,15 @@ def load_embedder(model_name: str) -> EmbeddingModel:
 
 
 @st.cache_resource(show_spinner="Построение поискового индекса (при первом запуске векторизация занимает несколько минут)...")
-def load_engine(lang: str, model_name: str) -> LegalSearchEngine:
-    corpus = build_corpus(lang)
+def load_engine(lang: str, model_name: str, corpus_name: str = "adilet") -> LegalSearchEngine:
+    corpus = build_corpus(lang, corpus_name)
+    suffix = "_laws" if corpus_name == "laws" else ""
     return LegalSearchEngine(
         docs=[c["text"] for c in corpus],
         doc_ids=[c["id"] for c in corpus],
         embedder=load_embedder(model_name),
         cache_dir=CACHE_DIR,
-        cache_key=f"{model_cache_name(model_name)}_{lang}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}",
+        cache_key=f"{model_cache_name(model_name)}_{lang}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}{suffix}",
         hybrid_params=load_hybrid_params(model_name, lang),
         bm25_params=load_bm25_params(lang),
     )
@@ -154,10 +177,11 @@ def highlight(text: str, stems: Set[str]) -> str:
 
 
 def run_search(
-    engine: LegalSearchEngine, lang: str, query: str, mode: str, top_k: int, laws: List[str], rerank: bool = False
+    engine: LegalSearchEngine, lang: str, query: str, mode: str, top_k: int, laws: List[str], rerank: bool = False,
+    corpus_name: str = "adilet",
 ) -> List[Dict[str, Any]]:
     """Поиск с фильтром по законам; при rerank фильтр применяется до переранжирования."""
-    by_id = {c["id"]: c for c in build_corpus(lang)}
+    by_id = {c["id"]: c for c in build_corpus(lang, corpus_name)}
     wanted = max(top_k, engine.rerank_pool) if rerank else top_k
     pool = FILTER_POOL if laws else wanted
     hits = []
@@ -187,13 +211,13 @@ def score_text(mode: str, score: float, rerank: bool = False) -> str:
 def render_hit(
     rank: int, hit: Dict[str, Any], mode: str, lang: str, stems: Set[str], compact: bool = False, rerank: bool = False
 ) -> None:
-    url = f"https://adilet.zan.kz/{lang}/docs/{hit['source_id']}"
+    url = source_url(lang, hit["source_id"])
     with st.container(border=True):
         st.markdown(f"**{rank}. {hit['law']}**" + (f" · {hit['articles']}" if hit["articles"] else ""))
         if hit["article_title"] and not compact:
             st.caption(hit["article_title"])
         st.markdown(f"<div class='hit-text'>{highlight(hit['text'], stems)}</div>", unsafe_allow_html=True)
-        st.caption(f"{score_text(mode, hit['score'], rerank)} · [открыть на adilet.zan.kz]({url})")
+        st.caption(score_text(mode, hit["score"], rerank) + (f" · [открыть на adilet.zan.kz]({url})" if url else ""))
         if not compact:
             with st.expander("Весь фрагмент закона"):
                 st.markdown(f"<div class='hit-text'>{highlight(hit['context'], stems)}</div>", unsafe_allow_html=True)
@@ -208,13 +232,16 @@ def load_answerer(lang: str) -> GroundedAnswerer:
         min_retrieval_score=params["min_retrieval_score"], min_sentence_support=params["min_sentence_support"],
         min_answer_relevance=params["min_answer_relevance"],
         relevance_scorer=reranker_relevance(load_reranker(default_reranker(lang))),
+        min_entailment=params["min_entailment"],
+        entailment_scorer=load_entailment_scorer(params["min_entailment"]),
     )
 
 
 def render_answer(query: str, hits: List[Dict[str, Any]], lang: str) -> None:
     """Ответ модели по найденным фрагментам с итогами проверки и источниками."""
     answerer = load_answerer(lang)
-    passages = [Passage.from_hit(h) for h in hits]
+    # Модель читает чанки с окружающим текстом; пересекающиеся склеиваются, поэтому номера [n] — номера passages
+    passages = [Passage.from_hit(h) for h in expand_hits(hits)]
     with st.container(border=True):
         st.markdown("**Ответ**")
         try:
@@ -229,15 +256,16 @@ def render_answer(query: str, hits: List[Dict[str, Any]], lang: str) -> None:
             st.markdown(answer.text.replace("\n", "  \n"))
             sources = []
             for n in answer.cited:
-                hit = hits[n - 1]
-                url = f"https://adilet.zan.kz/{lang}/docs/{hit['source_id']}"
-                sources.append(f"[{n}] [{passages[n - 1].label}]({url})")
+                url = source_url(lang, passages[n - 1].source_id)
+                sources.append(f"[{n}] [{passages[n - 1].label}]({url})" if url else f"[{n}] {passages[n - 1].label}")
             st.caption("Источники: " + " · ".join(sources))
             relevance = answer.checks.get("answer_relevance")
+            entailment = answer.checks.get("entailment")
             st.caption(
                 f"✓ Проверено: все числа есть в тексте закона; слова каждого предложения найдены во фрагментах "
                 f"не меньше чем на {answerer.min_sentence_support:.0%} (минимум {answer.checks['min_sentence_support']:.0%})"
                 + (f"; соответствие вопросу {relevance:.2f}" if relevance is not None else "")
+                + (f"; следование из фрагмента {entailment:.2f}" if entailment is not None else "")
                 + f" · {answer.usage.get('latency_s', 0):.1f} с"
             )
         elif answer.status == STATUS_NO_CONTEXT:
@@ -251,7 +279,7 @@ def render_answer(query: str, hits: List[Dict[str, Any]], lang: str) -> None:
             st.caption("Модель прочитала найденные фрагменты и не нашла в них ответа.")
         else:
             st.warning(answer.text)
-            st.markdown("> " + hits[0]["text"].strip().replace("\n", "\n> "))
+            st.markdown("> " + passages[0].text.strip().replace("\n", "\n> "))
             st.caption(f"[1] {passages[0].label}")
             with st.expander("Почему ответ модели не показан"):
                 st.write("Проверка нашла: " + "; ".join(answer.checks["problems"]) + ".")
@@ -273,7 +301,11 @@ def main() -> None:
 
     with st.sidebar:
         st.header("Настройки")
-        lang = st.radio("Язык корпуса", list(LANG_LABELS), format_func=LANG_LABELS.get, horizontal=True, key="lang")
+        corpus_name = st.radio("Корпус", available_corpora(), format_func=CORPUS_LABELS.get, key="corpus")
+        if corpus_name == "laws":
+            lang = "rus"
+        else:
+            lang = st.radio("Язык корпуса", list(LANG_LABELS), format_func=LANG_LABELS.get, horizontal=True, key="lang")
         mode = st.radio("Метод поиска", list(MODE_LABELS), format_func=MODE_LABELS.get)
         top_k = st.slider("Количество результатов", 1, 10, 5)
         model_name = st.selectbox("Модель эмбеддингов", available_models(lang))
@@ -300,15 +332,18 @@ def main() -> None:
                 f"опора предложений на текст ≥ {gen_params['min_sentence_support']}, "
                 f"соответствие ответа вопросу ≥ {relevance if relevance is not None else 'не задано'}"
             )
-        corpus = build_corpus(lang)
+        corpus = build_corpus(lang, corpus_name)
         all_laws = sorted({c["law"] for c in corpus})
         laws = st.multiselect("Искать только в законах", all_laws, placeholder="Все законы")
         st.divider()
+        source_note = (
+            "Тексты актов выгружены с adilet.zan.kz." if corpus_name == "laws"
+            else "Данные: Adilet Legal QA (названия законов восстановлены по шапкам страниц adilet.zan.kz)."
+        )
         st.caption(
             f"Корпус: {len(all_laws)} нормативных актов, "
             f"{len({c['id'].split('_fix_')[0] for c in corpus})} фрагментов, {len(corpus)} чанков "
-            f"по {CHUNK_SIZE} символов. Данные: Adilet Legal QA "
-            f"(названия законов восстановлены по шапкам страниц adilet.zan.kz)."
+            f"по {CHUNK_SIZE} символов. {source_note}"
         )
 
     st.title("⚖️ Поиск по законодательству Республики Казахстан")
@@ -317,8 +352,13 @@ def main() -> None:
         "в которых содержится ответ. Каждый результат — текст закона со ссылкой на источник; по желанию языковая "
         "модель сформулирует ответ только по найденным фрагментам."
     )
+    if corpus_name == "laws":
+        st.caption(
+            f"Редакции актов на {load_laws()['as_of'].max()}. Справочная информация, не является юридической "
+            "консультацией: качество поиска по этому набору отдельно не измерялось, сверяйте ответ с текстом закона."
+        )
 
-    examples = EXAMPLES[lang]
+    examples = LAWS_EXAMPLES if corpus_name == "laws" else EXAMPLES[lang]
     st.caption("Примеры вопросов:")
     cols = st.columns(len(examples))
     for col, example in zip(cols, examples):
@@ -329,7 +369,7 @@ def main() -> None:
     if not query.strip():
         return
 
-    engine = load_engine(lang, model_name)
+    engine = load_engine(lang, model_name, corpus_name)
     if rerank:
         engine.reranker = load_reranker(default_reranker(lang))
         engine.rerank_pool = rerank_pool(lang)
@@ -339,7 +379,7 @@ def main() -> None:
     with tab_search:
         t0 = time.time()
         # Модели нужны DEFAULT_TOP_K лучших фрагментов, даже если показать нужно меньше
-        hits = run_search(engine, lang, query, mode, max(top_k, DEFAULT_TOP_K) if generate else top_k, laws, rerank)
+        hits = run_search(engine, lang, query, mode, max(top_k, DEFAULT_TOP_K) if generate else top_k, laws, rerank, corpus_name)
         elapsed_ms = (time.time() - t0) * 1000
         if not hits:
             st.info("Ничего не найдено. Попробуйте переформулировать вопрос или снять фильтр по законам.")
@@ -358,7 +398,7 @@ def main() -> None:
         for col, (m, m_rerank) in zip(st.columns(len(columns)), columns):
             with col:
                 st.subheader(m.upper() + (" + RERANK" if m_rerank else ""))
-                for rank, hit in enumerate(run_search(engine, lang, query, m, 3, laws, m_rerank), 1):
+                for rank, hit in enumerate(run_search(engine, lang, query, m, 3, laws, m_rerank, corpus_name), 1):
                     render_hit(rank, hit, m, lang, stems, compact=True, rerank=m_rerank)
 
 

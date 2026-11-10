@@ -9,12 +9,15 @@
    нужного закона в найденном, скорее всего, нет — система отказывает, не вызывая модель.
 2. Промпт: отвечать только по фрагменту, который отвечает на вопрос, ставить ссылки [n],
    при отсутствии ответа — фиксированная фраза отказа; температура 0 (детерминированный вывод).
+   Ответ без текста или со ссылкой на несуществующий фрагмент запрашивается ещё один раз.
 3. Проверка готового ответа (verify_answer и judge):
    - каждое число ответа (дата, срок, сумма, номер статьи или пункта) есть во фрагментах;
    - слова каждого предложения ответа в основном встречаются во фрагментах (доля основ
      слов не ниже порога) — модель не добавила сведений «от себя»;
-   - ссылки [n] указывают на существующие фрагменты;
-   - ответ относится к вопросу: тот же реранкер оценивает пару «вопрос — ответ».
+   - кроме ссылок [n] в ответе есть текст; ссылки на несуществующие фрагменты (модель пишет
+     номер пункта статьи вместо номера фрагмента) убираются из ответа, а не отклоняют его;
+   - ответ относится к вопросу: тот же реранкер оценивает пару «вопрос — ответ»;
+   - ответ следует из цитируемых фрагментов (NLI, src/nli.py; включается, когда порог подобран).
    Не прошедший проверку ответ не показывается: вместо него — цитата лучшего фрагмента закона.
 
 Пороги подбирает eval_generation.py на validation: каждая проверка отбраковывает не больше 5%
@@ -36,6 +39,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from src.retriever import tokenize_legal_text
 from src.text_norm import get_normalizer
+from src.tracing import trace_answer
 
 DEFAULT_LLM = "qwen2.5:3b"
 OLLAMA_URL = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
@@ -44,8 +48,9 @@ OLLAMA_URL = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 DEFAULT_TOP_K = 3
 
 # Пороги по умолчанию — если eval_generation.py ещё не подбирал их на validation.
-# min_retrieval_score и min_answer_relevance — в шкале оценок реранкера, для которого подобраны
-DEFAULT_PARAMS = {"min_retrieval_score": 0.5, "min_sentence_support": 0.6, "min_answer_relevance": 0.5}
+# min_retrieval_score и min_answer_relevance — в шкале оценок реранкера, для которого подобраны;
+# min_entailment — вероятность NLI; пока порог не подобран (None), модель NLI не загружается
+DEFAULT_PARAMS = {"min_retrieval_score": 0.5, "min_sentence_support": 0.6, "min_answer_relevance": 0.5, "min_entailment": None}
 RERANKER_PARAMS = ("min_retrieval_score", "min_answer_relevance")
 
 STATUS_ANSWERED = "answered"      # ответ прошёл проверку
@@ -70,24 +75,42 @@ SYSTEM_PROMPT = {
         "нормативных правовых актов и вопрос.\n"
         "Правила:\n"
         "1. Отвечай только на основе фрагментов. Не используй собственные знания и ничего не добавляй от себя.\n"
-        "2. Не все фрагменты относятся к вопросу. Найди фрагмент, в котором содержится ответ именно на этот вопрос, "
-        "и отвечай по нему; фрагменты не по теме не используй.\n"
-        "3. После каждого утверждения ставь номер фрагмента, из которого оно взято, в квадратных скобках, например [1].\n"
-        "4. Числа, даты, сроки, суммы и номера статей переписывай точно так, как они записаны во фрагменте.\n"
-        "5. Если ни в одном фрагменте нет ответа на вопрос, ответь ровно одной фразой: «{refusal}»\n"
-        "6. Отвечай кратко, по существу, на русском языке."
+        "2. Найди фрагмент, в котором есть ответ на вопрос, и отвечай по нему. Ответ может быть записан другими "
+        "словами, чем вопрос. Фрагменты не по теме не используй.\n"
+        "3. Сначала напиши ответ полным предложением, а в конце предложения поставь номер фрагмента, из которого "
+        "оно взято, в квадратных скобках. Ответ не может состоять только из ссылки.\n"
+        "4. В квадратных скобках пиши только номер фрагмента — от 1 до {n}. Номера статей, пунктов и подпунктов "
+        "в квадратные скобки не заключай.\n"
+        "5. Числа, даты, сроки, суммы и номера статей переписывай точно так, как они записаны во фрагменте.\n"
+        "6. Только если ни в одном фрагменте нет сведений по вопросу, ответь ровно одной фразой: «{refusal}»\n"
+        "7. Отвечай кратко, по существу, на русском языке."
     ),
     "kaz": (
         "Сен Қазақстан Республикасының заңнамасы бойынша көмекшісің. Саған нормативтік құқықтық актілердің "
         "нөмірленген үзінділері мен сұрақ берілген.\n"
         "Ережелер:\n"
         "1. Тек үзінділер негізінде жауап бер. Өз біліміңді қолданба және өзіңнен ештеңе қоспа.\n"
-        "2. Барлық үзінді сұраққа қатысты емес. Дәл осы сұрақтың жауабы бар үзіндіні тауып, соған сүйеніп жауап бер; "
-        "тақырыпқа қатысы жоқ үзінділерді қолданба.\n"
-        "3. Әр тұжырымнан кейін ол алынған үзіндінің нөмірін төртбұрышты жақшада көрсет, мысалы [1].\n"
-        "4. Сандарды, күндерді, мерзімдерді, сомаларды және бап нөмірлерін үзіндідегідей дәл жаз.\n"
-        "5. Егер бірде-бір үзіндіде сұраққа жауап болмаса, дәл бір сөйлеммен жауап бер: «{refusal}»\n"
-        "6. Қысқа, мәні бойынша, қазақ тілінде жауап бер."
+        "2. Сұрақтың жауабы бар үзіндіні тауып, соған сүйеніп жауап бер. Жауап сұрақтағыдан басқа сөздермен жазылуы "
+        "мүмкін. Тақырыпқа қатысы жоқ үзінділерді қолданба.\n"
+        "3. Алдымен жауапты толық сөйлеммен жаз, содан кейін сөйлемнің соңында ол алынған үзіндінің нөмірін "
+        "төртбұрышты жақшада көрсет. Жауап тек сілтемеден тұрмауы керек.\n"
+        "4. Төртбұрышты жақшада тек үзіндінің нөмірін жаз — 1-ден {n}-ге дейін. Бап, тармақ және тармақша нөмірлерін "
+        "төртбұрышты жақшаға алма.\n"
+        "5. Сандарды, күндерді, мерзімдерді, сомаларды және бап нөмірлерін үзіндідегідей дәл жаз.\n"
+        "6. Бірде-бір үзіндіде сұрақ бойынша мәлімет болмаған жағдайда ғана дәл бір сөйлеммен жауап бер: «{refusal}»\n"
+        "7. Қысқа, мәні бойынша, қазақ тілінде жауап бер."
+    ),
+}
+
+# Повторный запрос, если ответ без текста или со ссылкой на несуществующий фрагмент
+RETRY_PROMPT = {
+    "rus": (
+        "Ответ не принят. Нужен ответ полным предложением по тексту фрагментов, а в квадратных скобках — "
+        "только номер фрагмента от 1 до {n}. Напиши ответ заново."
+    ),
+    "kaz": (
+        "Жауап қабылданбады. Үзінділер мәтіні бойынша толық сөйлеммен жауап беру керек, ал төртбұрышты жақшада "
+        "тек 1-ден {n}-ге дейінгі үзінді нөмірі болуы керек. Жауапты қайта жаз."
     ),
 }
 
@@ -102,18 +125,25 @@ class Passage:
     articles: str = ""
     score: float = 0.0
     source_id: str = ""
+    chunk_ids: List[str] = field(default_factory=list)  # чанки, из которых собран фрагмент (src/corpus.expand_hits)
 
     @property
     def label(self) -> str:
         """Подпись фрагмента: «Земельный кодекс РК, ст. 12»."""
         return ", ".join(part for part in (self.law, self.articles) if part)
 
+    @property
+    def ids(self) -> List[str]:
+        """Идентификаторы всех чанков, вошедших во фрагмент."""
+        return self.chunk_ids or [self.id]
+
     @classmethod
     def from_hit(cls, hit: Dict[str, Any]) -> "Passage":
-        """Из результата поиска веб-демо (словарь чанка src/corpus.py с полем score)."""
+        """Из результата поиска (словарь чанка src/corpus.py с полем score; см. также expand_hits)."""
         return cls(
             id=hit["id"], text=hit["text"], law=hit.get("law", ""), articles=hit.get("articles", ""),
             score=float(hit.get("score", 0.0)), source_id=hit.get("source_id", ""),
+            chunk_ids=list(hit.get("chunk_ids", [])),
         )
 
 
@@ -238,7 +268,7 @@ def build_messages(question: str, passages: Sequence[Passage], lang: str = "rus"
     blocks = [f"[{i}] {p.label}\n{p.text.strip()}" for i, p in enumerate(passages, 1)]
     head, q = ("Фрагменты:", "Вопрос:") if lang == "rus" else ("Үзінділер:", "Сұрақ:")
     return [
-        {"role": "system", "content": SYSTEM_PROMPT[lang].format(refusal=REFUSAL[lang])},
+        {"role": "system", "content": SYSTEM_PROMPT[lang].format(refusal=REFUSAL[lang], n=len(passages))},
         {"role": "user", "content": f"{head}\n\n" + "\n\n".join(blocks) + f"\n\n{q} {question.strip()}"},
     ]
 
@@ -300,6 +330,20 @@ def strip_citations(answer: str) -> str:
     return re.sub(r"\s+([.,;:])", r"\1", re.sub(r"[ \t]*" + CITATION.pattern, "", answer)).strip()
 
 
+def drop_invalid_citations(answer: str, n_passages: int) -> str:
+    """Убирает из ответа ссылки на несуществующие фрагменты («[6]» при трёх фрагментах).
+
+    Модель иногда пишет в скобках номер пункта статьи вместо номера фрагмента. Такая ссылка
+    ничего не утверждает: проверки опоры и чисел сверяют ответ со всеми фрагментами.
+    """
+    def keep_valid(match: "re.Match") -> str:
+        valid = [n for n in re.split(r"\s*[,;]\s*", match.group(1)) if 1 <= int(n) <= n_passages]
+        return f"[{', '.join(valid)}]" if valid else ""
+
+    cleaned = re.sub(r"[ \t]*" + CITATION.pattern, lambda m: (" " if keep_valid(m) else "") + keep_valid(m), answer)
+    return re.sub(r"\s+([.,;:])", r"\1", cleaned).strip()
+
+
 def _context_numbers(context: str) -> set:
     """Числа контекста и даты, записанные словами («1 июля 2023» → «01.07.2023»)."""
     norm = normalize_for_check(context)
@@ -352,6 +396,25 @@ def sentence_support(answer: str, context: str, lang: str = "rus") -> List[Tuple
     return result
 
 
+def answer_sentences(answer: str) -> List[str]:
+    """Предложения ответа без ссылок [n]; строки без букв (нумерация «1)») пропускаются."""
+    parts = SENTENCE_SPLIT.split(strip_citations(answer))
+    return [part.strip() for part in parts if re.search(r"[^\W\d_]", part)]
+
+
+def is_malformed(answer: str, n_passages: int, lang: str = "rus") -> bool:
+    """Ответ, который стоит запросить заново: без текста или со ссылкой на несуществующий фрагмент."""
+    if is_refusal(answer, lang):
+        return False
+    return not re.search(r"\w", strip_citations(answer)) or any(not 1 <= n <= n_passages for n in extract_citations(answer))
+
+
+def cited_passages(answer: str, passages: Sequence[Passage]) -> List[Passage]:
+    """Фрагменты, на которые ссылается ответ; без действительных ссылок — все."""
+    cited = [passages[n - 1] for n in extract_citations(answer) if 1 <= n <= len(passages)]
+    return cited or list(passages)
+
+
 def is_refusal(answer: str, lang: str = "rus") -> bool:
     """Ответ модели — фраза отказа (а не содержательный ответ, где она случайно упомянута)."""
     norm = normalize_for_check(strip_citations(answer))
@@ -395,6 +458,8 @@ def load_generation_params(lang: str, reranker: Optional[str] = None, path: Opti
 
 # Оценка соответствия ответа вопросу: (вопрос, ответ) -> число в шкале реранкера
 RelevanceScorer = Callable[[str, str], float]
+# Следование ответа из фрагментов: (вопрос, ответ, цитируемые фрагменты) -> вероятность (src/nli.py)
+EntailmentScorer = Callable[[str, str, Sequence[Passage]], float]
 
 
 def reranker_relevance(reranker) -> RelevanceScorer:
@@ -414,6 +479,8 @@ class GroundedAnswerer:
         min_answer_relevance: Optional[float] = DEFAULT_PARAMS["min_answer_relevance"],
         relevance_scorer: Optional[RelevanceScorer] = None,
         verify: bool = True,
+        min_entailment: Optional[float] = None,
+        entailment_scorer: Optional[EntailmentScorer] = None,
     ):
         """
         Args:
@@ -425,6 +492,8 @@ class GroundedAnswerer:
             relevance_scorer: оценка соответствия ответа вопросу (reranker_relevance); без неё
                               проверка выполняется, только если оценка передана в judge.
             verify: проверять ответ (False — выдавать ответ модели как есть, для сравнения в оценке).
+            min_entailment: порог вероятности того, что ответ следует из цитируемых фрагментов; None — без проверки.
+            entailment_scorer: оценка следования (src/nli.py); нужна только вместе с min_entailment.
         """
         self.client = client
         self.lang = lang
@@ -433,6 +502,8 @@ class GroundedAnswerer:
         self.min_answer_relevance = min_answer_relevance
         self.relevance_scorer = relevance_scorer
         self.verify = verify
+        self.min_entailment = min_entailment
+        self.entailment_scorer = entailment_scorer
 
     def retrieval_confident(self, passages: Sequence[Passage]) -> bool:
         if not passages:
@@ -441,18 +512,35 @@ class GroundedAnswerer:
             return True
         return max(p.score for p in passages) >= self.min_retrieval_score
 
+    def ask_model(self, question: str, passages: Sequence[Passage]) -> Dict[str, Any]:
+        """Ответ модели; ответ без текста или с несуществующей ссылкой запрашивается ещё раз.
+
+        Возвращает словарь OllamaClient.chat с полем retried; токены и время суммируются по обоим запросам.
+        """
+        messages = build_messages(question, passages, self.lang)
+        first = self.client.chat(messages)
+        if not is_malformed(first["text"], len(passages), self.lang):
+            return {**first, "retried": False}
+        retry = RETRY_PROMPT[self.lang].format(n=len(passages))
+        second = self.client.chat(messages + [{"role": "assistant", "content": first["text"]}, {"role": "user", "content": retry}])
+        merged = {key: (first.get(key) or 0) + (second.get(key) or 0) for key in ("prompt_tokens", "completion_tokens", "latency_s")}
+        return {**second, **merged, "cached": first.get("cached") and second.get("cached"), "retried": True}
+
     def answer(self, question: str, passages: Sequence[Passage]) -> Answer:
         """Полный цикл: порог поиска → модель → проверка ответа."""
         passages = list(passages)
         top_score = max((p.score for p in passages), default=None)
         if not self.retrieval_confident(passages):
-            return Answer(
+            result = Answer(
                 status=STATUS_NO_CONTEXT, text=REFUSAL[self.lang], passages=passages,
                 checks={"top_score": top_score},
             )
-        response = self.client.chat(build_messages(question, passages, self.lang))
-        usage = {k: response.get(k) for k in ("prompt_tokens", "completion_tokens", "latency_s", "cached")}
-        return self.judge(question, response["text"], passages, usage)
+        else:
+            response = self.ask_model(question, passages)
+            usage = {k: response.get(k) for k in ("prompt_tokens", "completion_tokens", "latency_s", "cached", "retried")}
+            result = self.judge(question, response["text"], passages, usage)
+        trace_answer(question, result, build_messages(question, passages, self.lang), getattr(self.client, "model", None), self.lang)
+        return result
 
     def judge(
         self,
@@ -461,10 +549,11 @@ class GroundedAnswerer:
         passages: Sequence[Passage],
         usage: Optional[Dict[str, Any]] = None,
         relevance: Optional[float] = None,
+        entailment: Optional[float] = None,
     ) -> Answer:
         """Проверяет готовый ответ модели и выбирает, что показать пользователю.
 
-        relevance — готовая оценка соответствия ответа вопросу (иначе считается relevance_scorer).
+        relevance и entailment — готовые оценки (иначе считаются relevance_scorer и entailment_scorer).
         """
         passages = list(passages)
         usage = usage or {}
@@ -472,23 +561,33 @@ class GroundedAnswerer:
         if is_refusal(raw, self.lang):
             return Answer(STATUS_REFUSED, REFUSAL[self.lang], passages, raw=raw, checks=checks, usage=usage)
 
-        checks.update(verify_answer(raw, passages, self.lang))
+        # Несуществующие ссылки не отклоняют ответ, а убираются из него (номера остаются в checks)
+        text = drop_invalid_citations(raw, len(passages))
+        checks.update(verify_answer(text, passages, self.lang))
+        checks["invalid_citations"] = verify_answer(raw, passages, self.lang)["invalid_citations"]
         if relevance is None and self.relevance_scorer is not None:
-            relevance = self.relevance_scorer(question, raw)
+            relevance = self.relevance_scorer(question, text)
         checks["answer_relevance"] = None if relevance is None else round(float(relevance), 4)
-        cited = [n for n in extract_citations(raw) if 1 <= n <= len(passages)]
+        cited = [n for n in extract_citations(text) if 1 <= n <= len(passages)]
         problems = []
+        # Модель иногда отвечает одной ссылкой «[1]» без текста: проверять в ней нечего, но и ответа нет
+        if not re.search(r"\w", strip_citations(text)):
+            problems.append("ответ без текста — только ссылка на фрагмент")
         if checks["unsupported_numbers"]:
             problems.append("числа, которых нет в тексте закона: " + ", ".join(checks["unsupported_numbers"]))
-        if checks["invalid_citations"]:
-            problems.append("ссылки на несуществующие фрагменты")
         if checks["min_sentence_support"] < self.min_sentence_support:
             problems.append("утверждения, не подтверждённые текстом закона")
         if self.min_answer_relevance is not None and relevance is not None and relevance < self.min_answer_relevance:
             problems.append("ответ не относится к заданному вопросу")
+        # NLI медленнее остальных проверок: не считается, если ответ уже отклонён
+        if entailment is None and self.entailment_scorer is not None and self.min_entailment is not None and not problems:
+            entailment = self.entailment_scorer(question, text, cited_passages(text, passages))
+        checks["entailment"] = None if entailment is None else round(float(entailment), 4)
+        if self.min_entailment is not None and entailment is not None and entailment < self.min_entailment:
+            problems.append("ответ не следует из цитируемого фрагмента")
         checks["problems"] = problems
 
         if self.verify and problems:
             # Сам ответ (и выдуманные в нём числа) не показывается; причины — в checks["problems"]
             return Answer(STATUS_UNVERIFIED, UNVERIFIED[self.lang], passages, raw=raw, cited=[1], checks=checks, usage=usage)
-        return Answer(STATUS_ANSWERED, raw, passages, raw=raw, cited=cited or [1], checks=checks, usage=usage)
+        return Answer(STATUS_ANSWERED, text, passages, raw=raw, cited=cited or [1], checks=checks, usage=usage)
