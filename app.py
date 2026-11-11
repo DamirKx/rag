@@ -35,6 +35,7 @@ from src.generation import (
 from src.laws import LAWS_PARQUET, load_laws
 from src.reranker import CrossEncoderReranker, default_reranker
 from src.retriever import tokenize_legal_text
+from src.tracing import get_langfuse
 
 CORPUS_LABELS = {"laws": "Законы для граждан (актуальные)", "adilet": "Датасет Adilet Legal QA (14 актов)"}
 CACHE_PARQUET = "data/raw/adilet_legal_qa_kz.parquet"
@@ -331,6 +332,10 @@ def main() -> None:
                 f"{DEFAULT_LLM}: порог реранкера {gate if gate is not None else 'не задан'}, "
                 f"опора предложений на текст ≥ {gen_params['min_sentence_support']}, "
                 f"соответствие ответа вопросу ≥ {relevance if relevance is not None else 'не задано'}"
+            )
+            st.caption(
+                "Langfuse: трассировка включена" if get_langfuse() is not None
+                else "Langfuse: выключен (не заданы LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY)"
             )
         corpus = build_corpus(lang, corpus_name)
         all_laws = sorted({c["law"] for c in corpus})
