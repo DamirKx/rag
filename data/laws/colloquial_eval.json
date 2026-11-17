@@ -1,0 +1,3318 @@
+{
+ "questions": 59,
+ "answerable": 49,
+ "outside": 10,
+ "dictionary_covered": 46,
+ "configs": {
+  "bm25 / без словаря": {
+   "hit@1": 0.1224,
+   "hit@3": 0.2857,
+   "mrr@10": 0.2098
+  },
+  "dense / без словаря": {
+   "hit@1": 0.4898,
+   "hit@3": 0.6531,
+   "mrr@10": 0.5903
+  },
+  "hybrid / без словаря": {
+   "hit@1": 0.3061,
+   "hit@3": 0.5102,
+   "mrr@10": 0.4453
+  },
+  "bm25 / со словарём": {
+   "hit@1": 0.4694,
+   "hit@3": 0.7143,
+   "mrr@10": 0.6137
+  },
+  "dense / со словарём": {
+   "hit@1": 0.6939,
+   "hit@3": 0.9184,
+   "mrr@10": 0.8085
+  },
+  "hybrid / со словарём": {
+   "hit@1": 0.5918,
+   "hit@3": 0.898,
+   "mrr@10": 0.7509
+  },
+  "hybrid + реранкер дообученный / без словаря": {
+   "hit@1": 0.3878,
+   "hit@3": 0.6735,
+   "mrr@10": 0.5362
+  },
+  "hybrid + реранкер дообученный / со словарём": {
+   "hit@1": 0.6122,
+   "hit@3": 0.9184,
+   "mrr@10": 0.7752
+  },
+  "hybrid + реранкер исходный / без словаря": {
+   "hit@1": 0.551,
+   "hit@3": 0.7347,
+   "mrr@10": 0.6582
+  },
+  "hybrid + реранкер исходный / со словарём": {
+   "hit@1": 0.7959,
+   "hit@3": 1.0,
+   "mrr@10": 0.8878
+  }
+ },
+ "per_question": {
+  "bm25 / без словаря": {
+   "lq01": null,
+   "lq02": null,
+   "lq03": null,
+   "lq04": null,
+   "lq05": null,
+   "lq06": 3,
+   "lq07": 7,
+   "lq08": null,
+   "lq09": 1,
+   "lq10": null,
+   "lq11": 2,
+   "lq12": null,
+   "lq13": 2,
+   "lq14": null,
+   "lq15": 2,
+   "lq16": null,
+   "lq17": null,
+   "lq18": null,
+   "lq19": null,
+   "lq20": null,
+   "lq21": 1,
+   "lq22": 1,
+   "lq23": 1,
+   "lq24": 9,
+   "lq25": null,
+   "lq26": null,
+   "lq27": null,
+   "lq28": null,
+   "lq29": 3,
+   "lq30": null,
+   "lq31": null,
+   "lq32": null,
+   "lq33": 2,
+   "lq34": null,
+   "lq35": null,
+   "lq36": null,
+   "lq37": null,
+   "lq38": null,
+   "lq39": null,
+   "lq40": null,
+   "lq41": null,
+   "lq42": 4,
+   "lq43": 2,
+   "lq44": 1,
+   "lq45": null,
+   "lq46": 2,
+   "lq47": null,
+   "lq48": 9,
+   "lq49": 1
+  },
+  "dense / без словаря": {
+   "lq01": null,
+   "lq02": null,
+   "lq03": 6,
+   "lq04": 1,
+   "lq05": 4,
+   "lq06": 1,
+   "lq07": 3,
+   "lq08": 1,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 1,
+   "lq12": 4,
+   "lq13": 1,
+   "lq14": 2,
+   "lq15": null,
+   "lq16": 1,
+   "lq17": null,
+   "lq18": 2,
+   "lq19": 1,
+   "lq20": 2,
+   "lq21": 1,
+   "lq22": 1,
+   "lq23": 1,
+   "lq24": null,
+   "lq25": 1,
+   "lq26": 4,
+   "lq27": 7,
+   "lq28": 1,
+   "lq29": 2,
+   "lq30": null,
+   "lq31": null,
+   "lq32": 1,
+   "lq33": 2,
+   "lq34": null,
+   "lq35": 1,
+   "lq36": 1,
+   "lq37": null,
+   "lq38": null,
+   "lq39": null,
+   "lq40": 1,
+   "lq41": 1,
+   "lq42": 1,
+   "lq43": 1,
+   "lq44": 1,
+   "lq45": 5,
+   "lq46": 1,
+   "lq47": 2,
+   "lq48": 1,
+   "lq49": 3
+  },
+  "hybrid / без словаря": {
+   "lq01": 1,
+   "lq02": null,
+   "lq03": 2,
+   "lq04": 4,
+   "lq05": null,
+   "lq06": 1,
+   "lq07": 4,
+   "lq08": 4,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 1,
+   "lq12": 4,
+   "lq13": 1,
+   "lq14": null,
+   "lq15": 3,
+   "lq16": 3,
+   "lq17": null,
+   "lq18": 3,
+   "lq19": 2,
+   "lq20": 4,
+   "lq21": 1,
+   "lq22": 1,
+   "lq23": 1,
+   "lq24": 6,
+   "lq25": 4,
+   "lq26": 7,
+   "lq27": null,
+   "lq28": 5,
+   "lq29": 2,
+   "lq30": null,
+   "lq31": null,
+   "lq32": 1,
+   "lq33": 2,
+   "lq34": null,
+   "lq35": 3,
+   "lq36": 2,
+   "lq37": null,
+   "lq38": 6,
+   "lq39": null,
+   "lq40": 6,
+   "lq41": 7,
+   "lq42": 1,
+   "lq43": 1,
+   "lq44": 1,
+   "lq45": null,
+   "lq46": 1,
+   "lq47": 6,
+   "lq48": 3,
+   "lq49": 1
+  },
+  "bm25 / со словарём": {
+   "lq01": 6,
+   "lq02": 1,
+   "lq03": 3,
+   "lq04": 6,
+   "lq05": 2,
+   "lq06": 1,
+   "lq07": 2,
+   "lq08": 3,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 9,
+   "lq12": 8,
+   "lq13": 1,
+   "lq14": 5,
+   "lq15": 3,
+   "lq16": 10,
+   "lq17": 1,
+   "lq18": 2,
+   "lq19": 1,
+   "lq20": 1,
+   "lq21": 1,
+   "lq22": 1,
+   "lq23": 1,
+   "lq24": 2,
+   "lq25": null,
+   "lq26": 1,
+   "lq27": 1,
+   "lq28": 2,
+   "lq29": 1,
+   "lq30": 5,
+   "lq31": 1,
+   "lq32": 1,
+   "lq33": 1,
+   "lq34": 6,
+   "lq35": null,
+   "lq36": 1,
+   "lq37": null,
+   "lq38": 1,
+   "lq39": 6,
+   "lq40": 4,
+   "lq41": 1,
+   "lq42": 3,
+   "lq43": 2,
+   "lq44": 1,
+   "lq45": 2,
+   "lq46": 3,
+   "lq47": 4,
+   "lq48": 1,
+   "lq49": 1
+  },
+  "dense / со словарём": {
+   "lq01": 2,
+   "lq02": 2,
+   "lq03": 1,
+   "lq04": 1,
+   "lq05": 1,
+   "lq06": 1,
+   "lq07": 1,
+   "lq08": 1,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 1,
+   "lq12": 9,
+   "lq13": 1,
+   "lq14": 1,
+   "lq15": 2,
+   "lq16": 1,
+   "lq17": 2,
+   "lq18": 3,
+   "lq19": 1,
+   "lq20": 1,
+   "lq21": 1,
+   "lq22": 1,
+   "lq23": 1,
+   "lq24": 2,
+   "lq25": 1,
+   "lq26": 3,
+   "lq27": 1,
+   "lq28": 1,
+   "lq29": 1,
+   "lq30": 2,
+   "lq31": 1,
+   "lq32": 1,
+   "lq33": 1,
+   "lq34": 4,
+   "lq35": 1,
+   "lq36": 1,
+   "lq37": 7,
+   "lq38": 1,
+   "lq39": 9,
+   "lq40": 1,
+   "lq41": 1,
+   "lq42": 1,
+   "lq43": 1,
+   "lq44": 1,
+   "lq45": 2,
+   "lq46": 1,
+   "lq47": 2,
+   "lq48": 1,
+   "lq49": 3
+  },
+  "hybrid / со словарём": {
+   "lq01": 4,
+   "lq02": 1,
+   "lq03": 1,
+   "lq04": 3,
+   "lq05": 2,
+   "lq06": 1,
+   "lq07": 1,
+   "lq08": 2,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 3,
+   "lq12": 4,
+   "lq13": 1,
+   "lq14": 2,
+   "lq15": 2,
+   "lq16": 2,
+   "lq17": 1,
+   "lq18": 2,
+   "lq19": 1,
+   "lq20": 1,
+   "lq21": 1,
+   "lq22": 1,
+   "lq23": 1,
+   "lq24": 2,
+   "lq25": 4,
+   "lq26": 3,
+   "lq27": 1,
+   "lq28": 1,
+   "lq29": 1,
+   "lq30": 2,
+   "lq31": 1,
+   "lq32": 1,
+   "lq33": 1,
+   "lq34": 4,
+   "lq35": 3,
+   "lq36": 1,
+   "lq37": 8,
+   "lq38": 1,
+   "lq39": 1,
+   "lq40": 1,
+   "lq41": 1,
+   "lq42": 1,
+   "lq43": 1,
+   "lq44": 1,
+   "lq45": 2,
+   "lq46": 1,
+   "lq47": 3,
+   "lq48": 1,
+   "lq49": 2
+  },
+  "hybrid + реранкер дообученный / без словаря": {
+   "lq01": 3,
+   "lq02": null,
+   "lq03": 1,
+   "lq04": 3,
+   "lq05": 1,
+   "lq06": 1,
+   "lq07": 1,
+   "lq08": 1,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 1,
+   "lq12": 4,
+   "lq13": 3,
+   "lq14": null,
+   "lq15": null,
+   "lq16": 1,
+   "lq17": null,
+   "lq18": 1,
+   "lq19": 3,
+   "lq20": 2,
+   "lq21": 1,
+   "lq22": 2,
+   "lq23": 1,
+   "lq24": 3,
+   "lq25": 1,
+   "lq26": 8,
+   "lq27": 2,
+   "lq28": 1,
+   "lq29": 1,
+   "lq30": null,
+   "lq31": null,
+   "lq32": 2,
+   "lq33": 5,
+   "lq34": null,
+   "lq35": 1,
+   "lq36": 1,
+   "lq37": null,
+   "lq38": 3,
+   "lq39": null,
+   "lq40": 1,
+   "lq41": 5,
+   "lq42": 1,
+   "lq43": 2,
+   "lq44": 2,
+   "lq45": 4,
+   "lq46": 2,
+   "lq47": null,
+   "lq48": 4,
+   "lq49": 2
+  },
+  "hybrid + реранкер дообученный / со словарём": {
+   "lq01": 1,
+   "lq02": 1,
+   "lq03": 1,
+   "lq04": 1,
+   "lq05": 1,
+   "lq06": 1,
+   "lq07": 1,
+   "lq08": 1,
+   "lq09": 1,
+   "lq10": 2,
+   "lq11": 1,
+   "lq12": 5,
+   "lq13": 1,
+   "lq14": 5,
+   "lq15": 3,
+   "lq16": 1,
+   "lq17": 1,
+   "lq18": 1,
+   "lq19": 2,
+   "lq20": 1,
+   "lq21": 1,
+   "lq22": 2,
+   "lq23": 1,
+   "lq24": 1,
+   "lq25": 1,
+   "lq26": 1,
+   "lq27": 3,
+   "lq28": 2,
+   "lq29": 1,
+   "lq30": 1,
+   "lq31": 1,
+   "lq32": 2,
+   "lq33": 1,
+   "lq34": 6,
+   "lq35": 1,
+   "lq36": 1,
+   "lq37": 2,
+   "lq38": 1,
+   "lq39": 2,
+   "lq40": 1,
+   "lq41": 1,
+   "lq42": 1,
+   "lq43": 2,
+   "lq44": 2,
+   "lq45": 4,
+   "lq46": 2,
+   "lq47": 2,
+   "lq48": 2,
+   "lq49": 2
+  },
+  "hybrid + реранкер исходный / без словаря": {
+   "lq01": 5,
+   "lq02": null,
+   "lq03": 1,
+   "lq04": 1,
+   "lq05": 1,
+   "lq06": 1,
+   "lq07": 1,
+   "lq08": 1,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 1,
+   "lq12": 5,
+   "lq13": 1,
+   "lq14": 5,
+   "lq15": 2,
+   "lq16": 1,
+   "lq17": null,
+   "lq18": 1,
+   "lq19": 1,
+   "lq20": 1,
+   "lq21": 1,
+   "lq22": 2,
+   "lq23": 1,
+   "lq24": 3,
+   "lq25": 1,
+   "lq26": 5,
+   "lq27": 1,
+   "lq28": 1,
+   "lq29": 1,
+   "lq30": null,
+   "lq31": null,
+   "lq32": 2,
+   "lq33": 1,
+   "lq34": null,
+   "lq35": 2,
+   "lq36": 1,
+   "lq37": null,
+   "lq38": 2,
+   "lq39": null,
+   "lq40": 1,
+   "lq41": 1,
+   "lq42": 1,
+   "lq43": 1,
+   "lq44": 2,
+   "lq45": 5,
+   "lq46": 1,
+   "lq47": 4,
+   "lq48": 3,
+   "lq49": 3
+  },
+  "hybrid + реранкер исходный / со словарём": {
+   "lq01": 1,
+   "lq02": 1,
+   "lq03": 1,
+   "lq04": 1,
+   "lq05": 1,
+   "lq06": 1,
+   "lq07": 1,
+   "lq08": 1,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 1,
+   "lq12": 3,
+   "lq13": 1,
+   "lq14": 2,
+   "lq15": 2,
+   "lq16": 1,
+   "lq17": 1,
+   "lq18": 1,
+   "lq19": 1,
+   "lq20": 1,
+   "lq21": 1,
+   "lq22": 2,
+   "lq23": 1,
+   "lq24": 1,
+   "lq25": 1,
+   "lq26": 1,
+   "lq27": 2,
+   "lq28": 1,
+   "lq29": 1,
+   "lq30": 1,
+   "lq31": 1,
+   "lq32": 1,
+   "lq33": 1,
+   "lq34": 2,
+   "lq35": 2,
+   "lq36": 1,
+   "lq37": 1,
+   "lq38": 1,
+   "lq39": 3,
+   "lq40": 1,
+   "lq41": 1,
+   "lq42": 1,
+   "lq43": 1,
+   "lq44": 2,
+   "lq45": 1,
+   "lq46": 1,
+   "lq47": 1,
+   "lq48": 1,
+   "lq49": 3
+  }
+ },
+ "current_gate": 0.928,
+ "gates": {
+  "hybrid + реранкер дообученный / без словаря": {
+   "reranker": "models/reranker-bge-m3-adilet-rus",
+   "answerable_top_scores": [
+    0.069,
+    0.0451,
+    0.777,
+    0.0347,
+    0.6845,
+    0.9894,
+    0.9922,
+    0.4419,
+    0.0214,
+    0.8521,
+    0.9233,
+    0.1322,
+    0.2098,
+    0.9004,
+    0.0789,
+    0.7032,
+    0.9871,
+    0.9969,
+    0.3777,
+    0.9977,
+    0.0302,
+    0.1322,
+    0.1438,
+    0.1768,
+    0.9762,
+    0.8065,
+    0.105,
+    0.4574,
+    0.9979,
+    0.9754,
+    0.9845,
+    0.2909,
+    0.9463
+   ],
+   "outside_top_scores": [
+    0.0544,
+    0.0454,
+    0.367,
+    0.1488,
+    0.1027,
+    0.0993,
+    0.0188,
+    0.9744,
+    0.317,
+    0.5879
+   ],
+   "curve": [
+    {
+     "threshold": 0.0188,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.0
+    },
+    {
+     "threshold": 0.0214,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0302,
+     "answerable_passed": 0.9697,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0347,
+     "answerable_passed": 0.9394,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0451,
+     "answerable_passed": 0.9091,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0454,
+     "answerable_passed": 0.8788,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0544,
+     "answerable_passed": 0.8788,
+     "outside_rejected": 0.2
+    },
+    {
+     "threshold": 0.069,
+     "answerable_passed": 0.8788,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.0789,
+     "answerable_passed": 0.8485,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.0993,
+     "answerable_passed": 0.8182,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.1027,
+     "answerable_passed": 0.8182,
+     "outside_rejected": 0.4
+    },
+    {
+     "threshold": 0.105,
+     "answerable_passed": 0.8182,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1322,
+     "answerable_passed": 0.7879,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1438,
+     "answerable_passed": 0.7273,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1488,
+     "answerable_passed": 0.697,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1768,
+     "answerable_passed": 0.697,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.2098,
+     "answerable_passed": 0.6667,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.2909,
+     "answerable_passed": 0.6364,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.317,
+     "answerable_passed": 0.6061,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.367,
+     "answerable_passed": 0.6061,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.3777,
+     "answerable_passed": 0.6061,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.4419,
+     "answerable_passed": 0.5758,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.4574,
+     "answerable_passed": 0.5455,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.5879,
+     "answerable_passed": 0.5152,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.6845,
+     "answerable_passed": 0.5152,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.7032,
+     "answerable_passed": 0.4848,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.777,
+     "answerable_passed": 0.4545,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8065,
+     "answerable_passed": 0.4242,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8521,
+     "answerable_passed": 0.3939,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9004,
+     "answerable_passed": 0.3636,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9233,
+     "answerable_passed": 0.3333,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9463,
+     "answerable_passed": 0.303,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9744,
+     "answerable_passed": 0.2727,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9754,
+     "answerable_passed": 0.2727,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9762,
+     "answerable_passed": 0.2424,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9845,
+     "answerable_passed": 0.2121,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9871,
+     "answerable_passed": 0.1818,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9894,
+     "answerable_passed": 0.1515,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9922,
+     "answerable_passed": 0.1212,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9969,
+     "answerable_passed": 0.0909,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9977,
+     "answerable_passed": 0.0606,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9979,
+     "answerable_passed": 0.0303,
+     "outside_rejected": 1.0
+    }
+   ]
+  },
+  "hybrid + реранкер дообученный / со словарём": {
+   "reranker": "models/reranker-bge-m3-adilet-rus",
+   "answerable_top_scores": [
+    0.9123,
+    0.8141,
+    0.4838,
+    0.8622,
+    0.0877,
+    0.6905,
+    0.9974,
+    0.9976,
+    0.9694,
+    0.0365,
+    0.9157,
+    0.8782,
+    0.9947,
+    0.5354,
+    0.5505,
+    0.9906,
+    0.6243,
+    0.0591,
+    0.7032,
+    0.991,
+    0.9969,
+    0.8964,
+    0.9977,
+    0.2731,
+    0.1257,
+    0.5496,
+    0.1569,
+    0.8326,
+    0.3707,
+    0.4564,
+    0.2013,
+    0.9592,
+    0.881,
+    0.3224,
+    0.848,
+    0.8814,
+    0.9348,
+    0.1065,
+    0.9984,
+    0.9834,
+    0.9865,
+    0.8507,
+    0.2053,
+    0.22,
+    0.9787
+   ],
+   "outside_top_scores": [
+    0.0544,
+    0.0454,
+    0.367,
+    0.1488,
+    0.1027,
+    0.0993,
+    0.0188,
+    0.9744,
+    0.317,
+    0.5879
+   ],
+   "curve": [
+    {
+     "threshold": 0.0188,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.0
+    },
+    {
+     "threshold": 0.0365,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0454,
+     "answerable_passed": 0.9778,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0544,
+     "answerable_passed": 0.9778,
+     "outside_rejected": 0.2
+    },
+    {
+     "threshold": 0.0591,
+     "answerable_passed": 0.9778,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.0877,
+     "answerable_passed": 0.9556,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.0993,
+     "answerable_passed": 0.9333,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.1027,
+     "answerable_passed": 0.9333,
+     "outside_rejected": 0.4
+    },
+    {
+     "threshold": 0.1065,
+     "answerable_passed": 0.9333,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1257,
+     "answerable_passed": 0.9111,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1488,
+     "answerable_passed": 0.8889,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1569,
+     "answerable_passed": 0.8889,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.2013,
+     "answerable_passed": 0.8667,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.2053,
+     "answerable_passed": 0.8444,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.22,
+     "answerable_passed": 0.8222,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.2731,
+     "answerable_passed": 0.8,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.317,
+     "answerable_passed": 0.7778,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.3224,
+     "answerable_passed": 0.7778,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.367,
+     "answerable_passed": 0.7556,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.3707,
+     "answerable_passed": 0.7556,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.4564,
+     "answerable_passed": 0.7333,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.4838,
+     "answerable_passed": 0.7111,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.5354,
+     "answerable_passed": 0.6889,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.5496,
+     "answerable_passed": 0.6667,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.5505,
+     "answerable_passed": 0.6444,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.5879,
+     "answerable_passed": 0.6222,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.6243,
+     "answerable_passed": 0.6222,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.6905,
+     "answerable_passed": 0.6,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.7032,
+     "answerable_passed": 0.5778,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8141,
+     "answerable_passed": 0.5556,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8326,
+     "answerable_passed": 0.5333,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.848,
+     "answerable_passed": 0.5111,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8507,
+     "answerable_passed": 0.4889,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8622,
+     "answerable_passed": 0.4667,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8782,
+     "answerable_passed": 0.4444,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.881,
+     "answerable_passed": 0.4222,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8814,
+     "answerable_passed": 0.4,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8964,
+     "answerable_passed": 0.3778,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9123,
+     "answerable_passed": 0.3556,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9157,
+     "answerable_passed": 0.3333,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9348,
+     "answerable_passed": 0.3111,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9592,
+     "answerable_passed": 0.2889,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9694,
+     "answerable_passed": 0.2667,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9744,
+     "answerable_passed": 0.2444,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9787,
+     "answerable_passed": 0.2444,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9834,
+     "answerable_passed": 0.2222,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9865,
+     "answerable_passed": 0.2,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9906,
+     "answerable_passed": 0.1778,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.991,
+     "answerable_passed": 0.1556,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9947,
+     "answerable_passed": 0.1333,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9969,
+     "answerable_passed": 0.1111,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9974,
+     "answerable_passed": 0.0889,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9976,
+     "answerable_passed": 0.0667,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9977,
+     "answerable_passed": 0.0444,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9984,
+     "answerable_passed": 0.0222,
+     "outside_rejected": 1.0
+    }
+   ]
+  },
+  "hybrid + реранкер исходный / без словаря": {
+   "reranker": "BAAI/bge-reranker-v2-m3",
+   "answerable_top_scores": [
+    0.1395,
+    0.7633,
+    0.0729,
+    0.8026,
+    0.9431,
+    0.9854,
+    0.5656,
+    0.0333,
+    0.8914,
+    0.8152,
+    0.0563,
+    0.5581,
+    0.6823,
+    0.8252,
+    0.1028,
+    0.8493,
+    0.9623,
+    0.9933,
+    0.1633,
+    0.9972,
+    0.076,
+    0.0663,
+    0.5761,
+    0.7071,
+    0.1071,
+    0.97,
+    0.4372,
+    0.1401,
+    0.778,
+    0.069,
+    0.9973,
+    0.8658,
+    0.9464,
+    0.9172,
+    0.166,
+    0.9516
+   ],
+   "outside_top_scores": [
+    0.0034,
+    0.0249,
+    0.0036,
+    0.0246,
+    0.055,
+    0.0162,
+    0.0016,
+    0.5568,
+    0.244,
+    0.0005
+   ],
+   "curve": [
+    {
+     "threshold": 0.0005,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.0
+    },
+    {
+     "threshold": 0.0016,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0034,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.2
+    },
+    {
+     "threshold": 0.0036,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.0162,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.4
+    },
+    {
+     "threshold": 0.0246,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.0249,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.0333,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.055,
+     "answerable_passed": 0.9722,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.0563,
+     "answerable_passed": 0.9722,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.0663,
+     "answerable_passed": 0.9444,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.069,
+     "answerable_passed": 0.9167,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.0729,
+     "answerable_passed": 0.8889,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.076,
+     "answerable_passed": 0.8611,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.1028,
+     "answerable_passed": 0.8333,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.1071,
+     "answerable_passed": 0.8056,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.1395,
+     "answerable_passed": 0.7778,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.1401,
+     "answerable_passed": 0.75,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.1633,
+     "answerable_passed": 0.7222,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.166,
+     "answerable_passed": 0.6944,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.244,
+     "answerable_passed": 0.6667,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.4372,
+     "answerable_passed": 0.6667,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.5568,
+     "answerable_passed": 0.6389,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.5581,
+     "answerable_passed": 0.6389,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.5656,
+     "answerable_passed": 0.6111,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.5761,
+     "answerable_passed": 0.5833,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.6823,
+     "answerable_passed": 0.5556,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.7071,
+     "answerable_passed": 0.5278,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.7633,
+     "answerable_passed": 0.5,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.778,
+     "answerable_passed": 0.4722,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8026,
+     "answerable_passed": 0.4444,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8152,
+     "answerable_passed": 0.4167,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8252,
+     "answerable_passed": 0.3889,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8493,
+     "answerable_passed": 0.3611,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8658,
+     "answerable_passed": 0.3333,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8914,
+     "answerable_passed": 0.3056,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9172,
+     "answerable_passed": 0.2778,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9431,
+     "answerable_passed": 0.25,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9464,
+     "answerable_passed": 0.2222,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9516,
+     "answerable_passed": 0.1944,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9623,
+     "answerable_passed": 0.1667,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.97,
+     "answerable_passed": 0.1389,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9854,
+     "answerable_passed": 0.1111,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9933,
+     "answerable_passed": 0.0833,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9972,
+     "answerable_passed": 0.0556,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9973,
+     "answerable_passed": 0.0278,
+     "outside_rejected": 1.0
+    }
+   ]
+  },
+  "hybrid + реранкер исходный / со словарём": {
+   "reranker": "BAAI/bge-reranker-v2-m3",
+   "answerable_top_scores": [
+    0.9849,
+    0.9799,
+    0.9706,
+    0.9838,
+    0.8796,
+    0.7542,
+    0.9931,
+    0.9977,
+    0.982,
+    0.343,
+    0.9334,
+    0.6767,
+    0.9804,
+    0.4701,
+    0.9433,
+    0.9706,
+    0.9689,
+    0.9982,
+    0.9665,
+    0.7783,
+    0.8493,
+    0.9916,
+    0.9933,
+    0.9706,
+    0.9972,
+    0.903,
+    0.9291,
+    0.9417,
+    0.8964,
+    0.9202,
+    0.9894,
+    0.9394,
+    0.7633,
+    0.994,
+    0.9497,
+    0.9404,
+    0.6872,
+    0.8253,
+    0.9664,
+    0.9868,
+    0.9329,
+    0.9984,
+    0.9214,
+    0.9717,
+    0.9727,
+    0.9804,
+    0.8052,
+    0.7112,
+    0.9696
+   ],
+   "outside_top_scores": [
+    0.0034,
+    0.0249,
+    0.0036,
+    0.0246,
+    0.055,
+    0.0162,
+    0.0016,
+    0.5568,
+    0.244,
+    0.0005
+   ],
+   "curve": [
+    {
+     "threshold": 0.0005,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.0
+    },
+    {
+     "threshold": 0.0016,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0034,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.2
+    },
+    {
+     "threshold": 0.0036,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.0162,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.4
+    },
+    {
+     "threshold": 0.0246,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.0249,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.055,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.244,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.343,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.4701,
+     "answerable_passed": 0.9796,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.5568,
+     "answerable_passed": 0.9592,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.6767,
+     "answerable_passed": 0.9592,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.6872,
+     "answerable_passed": 0.9388,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.7112,
+     "answerable_passed": 0.9184,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.7542,
+     "answerable_passed": 0.898,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.7633,
+     "answerable_passed": 0.8776,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.7783,
+     "answerable_passed": 0.8571,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8052,
+     "answerable_passed": 0.8367,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8253,
+     "answerable_passed": 0.8163,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8493,
+     "answerable_passed": 0.7959,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8796,
+     "answerable_passed": 0.7755,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8964,
+     "answerable_passed": 0.7551,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.903,
+     "answerable_passed": 0.7347,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9202,
+     "answerable_passed": 0.7143,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9214,
+     "answerable_passed": 0.6939,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9291,
+     "answerable_passed": 0.6735,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9329,
+     "answerable_passed": 0.6531,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9334,
+     "answerable_passed": 0.6327,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9394,
+     "answerable_passed": 0.6122,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9404,
+     "answerable_passed": 0.5918,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9417,
+     "answerable_passed": 0.5714,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9433,
+     "answerable_passed": 0.551,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9497,
+     "answerable_passed": 0.5306,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9664,
+     "answerable_passed": 0.5102,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9665,
+     "answerable_passed": 0.4898,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9689,
+     "answerable_passed": 0.4694,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9696,
+     "answerable_passed": 0.449,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9706,
+     "answerable_passed": 0.4286,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9706,
+     "answerable_passed": 0.4082,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9717,
+     "answerable_passed": 0.3673,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9727,
+     "answerable_passed": 0.3469,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9799,
+     "answerable_passed": 0.3265,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9804,
+     "answerable_passed": 0.3061,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9804,
+     "answerable_passed": 0.2857,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.982,
+     "answerable_passed": 0.2653,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9838,
+     "answerable_passed": 0.2449,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9849,
+     "answerable_passed": 0.2245,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9868,
+     "answerable_passed": 0.2041,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9894,
+     "answerable_passed": 0.1837,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9916,
+     "answerable_passed": 0.1633,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9931,
+     "answerable_passed": 0.1429,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9933,
+     "answerable_passed": 0.1224,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.994,
+     "answerable_passed": 0.102,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9972,
+     "answerable_passed": 0.0816,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9977,
+     "answerable_passed": 0.0612,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9982,
+     "answerable_passed": 0.0408,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9984,
+     "answerable_passed": 0.0204,
+     "outside_rejected": 1.0
+    }
+   ]
+  }
+ },
+ "adilet_regression": {
+  "questions": 737,
+  "changed_by_dictionary": 68,
+  "без словаря": {
+   "hit@1": 0.6879,
+   "mrr@10": 0.7606
+  },
+  "со словарём": {
+   "hit@1": 0.6906,
+   "mrr@10": 0.7617
+  }
+ },
+ "answers": {
+  "как сейчас": {
+   "params": {
+    "reranker": "models/reranker-bge-m3-adilet-rus",
+    "dictionary": false,
+    "min_retrieval_score": 0.928,
+    "min_answer_relevance": 0.022
+   },
+   "summary": {
+    "answered": 0.1224,
+    "answered_from_gold": 0.102,
+    "outside_answered": 0.0,
+    "statuses": {
+     "answered": 6,
+     "no_context": 38,
+     "refused": 3,
+     "unverified": 2
+    }
+   },
+   "records": [
+    {
+     "id": "lq01",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq02",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq03",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq04",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq05",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq06",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq07",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9654,
+     "answer": "40 часов в неделю [1]."
+    },
+    {
+     "id": "lq08",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9984,
+     "answer": "В выходной день работа оплачивается в размере, указанном в статье 109 настоящего Кодекса. [1]"
+    },
+    {
+     "id": "lq09",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq10",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq11",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq12",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq13",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq14",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq15",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq16",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq17",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq18",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq19",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq20",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq21",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq22",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq23",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9976,
+     "answer": "[1] Брачный договор может быть заключен как со дня подачи в регистрирующий орган заявления о государственной регистрации брака (супружества), до государственной регистрации заключения брака (супружества), так и в любое время в период брака (супружества)."
+    },
+    {
+     "id": "lq24",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq25",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9326,
+     "answer": "За то, что родители уклоняются от выполнения обязанностей родителей, в том числе злостно уклоняются от уплаты алиментов, отказываются без уважительных причин взять своего ребенка из родильного дома или из организаций для детей-сирот, злоупотребляют своими родительскими правами, жестоко обращаются с ребенком, в том числе осуществляют физическое или психическое насилие над ним, покушаются на его половую непреодолимость, злоупотребляют азартными играми, пари, спиртными напитками или наркотическими средствами, психотропными веществами и (или) их аналогами, или совершают умышленное уголовное правонарушение против жизни или здоровья своего ребенка, супруга либо других членов семьи. [1]"
+    },
+    {
+     "id": "lq26",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq27",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq28",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq29",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq30",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq31",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq32",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq33",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq34",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0112,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq35",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq36",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq37",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq38",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq39",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq40",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq41",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq42",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0036,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq43",
+     "status": "answered",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.1695,
+     "answer": "[1] Пособие на рождение назначается со дня обращения."
+    },
+    {
+     "id": "lq44",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9724,
+     "answer": "Лица (семьи), имеющие рожденных живыми, усыновленных (удочеренных), а также взятых под опеку детей, имеют право на получение пособия по уходу в случаях, когда лицо, осуществляющее уход за ребенком, не является участником системы обязательного социального страхования. [3]"
+    },
+    {
+     "id": "lq45",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq46",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq47",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq48",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq49",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq50",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq51",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq52",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq53",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq54",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq55",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq56",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq57",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq58",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq59",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    }
+   ]
+  },
+  "новые настройки": {
+   "params": {
+    "reranker": "BAAI/bge-reranker-v2-m3",
+    "dictionary": true,
+    "min_retrieval_score": 0.676,
+    "min_answer_relevance": 0.008
+   },
+   "summary": {
+    "answered": 0.4286,
+    "answered_from_gold": 0.3673,
+    "outside_answered": 0.0,
+    "statuses": {
+     "answered": 21,
+     "no_context": 2,
+     "refused": 16,
+     "unverified": 10
+    }
+   },
+   "records": [
+    {
+     "id": "lq01",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq02",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.1912,
+     "answer": "Работник вправе по своей инициативе расторгнуть трудовой договор, уведомив об этом работодателя не менее чем за один месяц, за исключением случаев, предусмотренных пунктом 3 настоящей статьи [1]."
+    },
+    {
+     "id": "lq03",
+     "status": "answered",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.009,
+     "answer": "7 календарных дней [3]"
+    },
+    {
+     "id": "lq04",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0052,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq05",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.0088,
+     "answer": "[1] Трудовой кодекс РК, ст. 95\n1. Оплачиваемый ежегодный трудовой отпуск может быть прерван работодателем в случае производственной необходимости только с письменного согласия работника."
+    },
+    {
+     "id": "lq06",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.1383,
+     "answer": "[1] Работодатель выплачивает работнику задолженность и пеню за период задержки платежа."
+    },
+    {
+     "id": "lq07",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.7983,
+     "answer": "40 часов в неделю [1]."
+    },
+    {
+     "id": "lq08",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9921,
+     "answer": "В выходной день работа оплачивается в размере, указанном в статье 109 настоящего Кодекса. [1]"
+    },
+    {
+     "id": "lq09",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0002,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq10",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq11",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.2653,
+     "answer": "[1] Руководители организаций и их заместители, главные бухгалтеры и их заместители, руководители филиалов, представительств организаций могут быть признаны исключительными категориями, для которых испытательный срок может быть увеличен до шести месяцев."
+    },
+    {
+     "id": "lq12",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq13",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq14",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq15",
+     "status": "answered",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.1134,
+     "answer": "До достижения возраста трех лет. [1]"
+    },
+    {
+     "id": "lq16",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq17",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq18",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9987,
+     "answer": "[1] В случае, если жена не согласна на развод, суд вправе принять меры к примирению супругов и отложить разбирательство дела, назначив супругам срок для примирения в пределах шести месяцев. Если меры по примирению супругов оказались безрезультатными и супруги настаивают на расторжении брака, расторжение брака производится."
+    },
+    {
+     "id": "lq19",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0937,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq20",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq21",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0001,
+     "answer": "1 [1]"
+    },
+    {
+     "id": "lq22",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq23",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9961,
+     "answer": "[1] Брачный договор может быть заключен как со дня подачи в регистрирующий орган заявления о государственной регистрации брака (супружества), до государственной регистрации заключения брака (супружества), так и в любое время в период брака (супружества)."
+    },
+    {
+     "id": "lq24",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0002,
+     "answer": "1."
+    },
+    {
+     "id": "lq25",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 1.0,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq26",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.9824,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq27",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq28",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.0962,
+     "answer": "Потребитель, которому продан товар ненадлежащего качества, если его недостатки не были оговорены продавцом, вправе по своему выбору потребовать от продавца: соразмерного уменьшения покупной цены, безвозмездного устранения недостатков товара в разумный срок, возмещения своих расходов на устранение недостатков товара, замены товара ненадлежащего качества на товар, соответствующий договору или отказа от исполнения договора и возврата уплаченной за товар денежной суммы [1]."
+    },
+    {
+     "id": "lq29",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0006,
+     "answer": "14 [1]"
+    },
+    {
+     "id": "lq30",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq31",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.056,
+     "answer": "1. Потребитель при обнаружении недостатков в выполненной работе вправе по своему выбору потребовать: безвозмездного устранения недостатков в выполненной работе, соответствующего уменьшения вознаграждения за выполненную работу, безвозмездного изготовления другой вещи из однородного материала такого же качества или повторного выполнения работы, возмещения своих расходов на устранение недостатков, когда право потребителя устранять их предусмотрено в договоре."
+    },
+    {
+     "id": "lq32",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.6234,
+     "answer": "[1] Закон РК «О жилищных отношениях», ст. 13\nСтатья 13. Приобретение нанимателем права собственности на занимаемое жилище из государственного жилищного фонда в порядке приватизации\n1. В случаях, предусмотренных настоящим Законом, наниматель жилища из государственного жилищного фонда с согласия совершеннолетних членов семьи и с учетом прав несовершеннолетних вправе приватизировать жилище по остаточной стоимости на условиях, предусмотренных настоящим Законом, и в порядке, определяемом Правительством Республики Казахстан."
+    },
+    {
+     "id": "lq33",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.117,
+     "answer": "[1] В случае сноса в связи с принудительным отчуждением земельного участка для государственных нужд между местным исполнительным органом и собственниками (нанимателями) жилищ может быть заключен договор о предоставлении в собственность (внаем) других жилищ во вновь построенных на этом же или другом земельном участке бывшим собственникам (нанимателям) взамен снесенных жилищ."
+    },
+    {
+     "id": "lq34",
+     "status": "answered",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.9967,
+     "answer": "1. Собственник вправе сдавать внаем жилище, в котором проживает сам, либо жилище, основным назначением которого является предоставление его нанимателям для постоянного либо временного проживания. [1]"
+    },
+    {
+     "id": "lq35",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq36",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.7842,
+     "answer": "[1] Несовершеннолетние в возрасте от четырнадцати до восемнадцати лет вправе самостоятельно распоряжаться своим заработком, стипендией, иными доходами и созданными ими объектами права интеллектуальной собственности."
+    },
+    {
+     "id": "lq37",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq38",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.9997,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq39",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq40",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0054,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq41",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq42",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9794,
+     "answer": "[1] Доверенность может быть выдана на срок не более трех лет [1]."
+    },
+    {
+     "id": "lq43",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9454,
+     "answer": "Пособие на рождение выплачивается за счет бюджетных средств в следующих размерах: на первого, второго, третьего ребенка – 38,0 месячного расчетного показателя; на четвертого и более ребенка – 63,0 месячного расчетного показателя [1]."
+    },
+    {
+     "id": "lq44",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9891,
+     "answer": "Лица (семьи), имеющие рожденных живыми, усыновленных (удочеренных), а также взятых под опеку детей, имеют право на получение пособия по уходу в случаях, когда лицо, осуществляющее уход за ребенком, не является участником системы обязательного социального страхования [2]."
+    },
+    {
+     "id": "lq45",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.8013,
+     "answer": "Получатель социальной выплаты по случаю потери работы имеет право на получение социальной выплаты по случаю потери работы в порядке, предусмотренном настоящим Кодексом [1]."
+    },
+    {
+     "id": "lq46",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9754,
+     "answer": "Пособие многодетной семье выплачивается ежемесячно за счет бюджетных средств в следующих размерах: на четверых детей – 16,03 месячного расчетного показателя; на пятерых детей – 20,04 месячного расчетного показателя; на шестерых детей – 24,05 месячного расчетного показателя; на семерых детей – 28,06 месячного расчетного показателя; на восьмерых и более детей – 4 месячных расчетных показателя на каждого ребенка [1]."
+    },
+    {
+     "id": "lq47",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq48",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq49",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq50",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq51",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq52",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq53",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq54",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq55",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq56",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq57",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq58",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq59",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    }
+   ]
+  },
+  "новые + термины модели": {
+   "params": {
+    "reranker": "BAAI/bge-reranker-v2-m3",
+    "dictionary": true,
+    "terms_for_model": true,
+    "min_retrieval_score": 0.676,
+    "min_answer_relevance": 0.167
+   },
+   "summary": {
+    "answered": 0.3673,
+    "answered_from_gold": 0.3061,
+    "outside_answered": 0.0,
+    "statuses": {
+     "answered": 18,
+     "no_context": 2,
+     "refused": 15,
+     "unverified": 14
+    }
+   },
+   "records": [
+    {
+     "id": "lq01",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq02",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq03",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0808,
+     "answer": "7 календарных дней [3]"
+    },
+    {
+     "id": "lq04",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0087,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq05",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.3797,
+     "answer": "[1] Трудовой кодекс РК, ст. 95\n1. Оплачиваемый ежегодный трудовой отпуск может быть прерван работодателем в случае производственной необходимости только с письменного согласия работника."
+    },
+    {
+     "id": "lq06",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.3541,
+     "answer": "[1] Работодатель выплачивает работнику задолженность и пеню за период задержки платежа."
+    },
+    {
+     "id": "lq07",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.7101,
+     "answer": "40 часов в неделю [1]"
+    },
+    {
+     "id": "lq08",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9974,
+     "answer": "В выходные и праздничные дни работа оплачивается в соответствии с требованиями статьи 109 Трудового кодекса РК, где указано, что оплата производится в повышенном размере согласно условиям трудового или коллективного договоров и (или) акта работодателя, но не ниже чем в полуторном размере исходя из дневной (часовой) ставки работника. [1]"
+    },
+    {
+     "id": "lq09",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0064,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq10",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq11",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0086,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq12",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq13",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq14",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq15",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.1672,
+     "answer": "До достижения возраста трех лет. [1] [2]"
+    },
+    {
+     "id": "lq16",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9279,
+     "answer": "[1] Брак (супружество) может быть прекращен путем его расторжения по заявлению одного или обоих супругов, а также по заявлению опекуна супруга (супруги), признанного судом недееспособным."
+    },
+    {
+     "id": "lq17",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9462,
+     "answer": "[1] Кодекс РК «О браке (супружестве) и семье», ст. 17\nСтатья 17. Расторжение брака (супружества) в регистрирующих органах\n1. Расторжение брака (супружества) в регистрирующих органах производится при взаимном согласии на расторжение брака (супружества) супругов, не имеющих общих несовершеннолетних детей, и при отсутствии имущественных и иных претензий друг к другу."
+    },
+    {
+     "id": "lq18",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.9997,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq19",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0002,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq20",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq21",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0001,
+     "answer": "1 [1]"
+    },
+    {
+     "id": "lq22",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq23",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9961,
+     "answer": "[1] Брачный договор может быть заключен как со дня подачи в регистрирующий орган заявления о государственной регистрации брака (супружества), до государственной регистрации заключения брака (супружества), так и в любое время в период брака (супружества)."
+    },
+    {
+     "id": "lq24",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0101,
+     "answer": "1."
+    },
+    {
+     "id": "lq25",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 1.0,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq26",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 1.0,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq27",
+     "status": "answered",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.4845,
+     "answer": "[1] Продавец вправе требовать от покупателя возврата товара в течение четырнадцати дней с момента передачи ему непродовольственного товара, если более длительный срок не объявлен продавцом, при условии сохранности товарного вида, потребительских свойств, пломбы, ярлыка и документа, подтверждающего факт приобретения товара."
+    },
+    {
+     "id": "lq28",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9467,
+     "answer": "Потребитель в данном случае вправе по своему выбору потребовать от продавца: соразмерного уменьшения покупной цены, безвозмездного устранения недостатков товара в разумный срок, возмещения своих расходов на устранение недостатков товара, замены товара ненадлежащего качества на товар, соответствующий договору или отказа от исполнения договора и возврата уплаченной за товар денежной суммы [1]."
+    },
+    {
+     "id": "lq29",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0047,
+     "answer": "14 [1]"
+    },
+    {
+     "id": "lq30",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq31",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9759,
+     "answer": "1. Потребитель при обнаружении недостатков в выполненной работе вправе по своему выбору потребовать: безвозмездного устранения недостатков в выполненной работе, соответствующего уменьшения вознаграждения за выполненную работу, безвозмездного изготовления другой вещи из однородного материала такого же качества или повторного выполнения работы, возмещения своих расходов на устранение недостатков, когда право потребителя устранять их предусмотрено в договоре."
+    },
+    {
+     "id": "lq32",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq33",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.826,
+     "answer": "[1] В случае сноса в связи с принудительным отчуждением земельного участка для государственных нужд между местным исполнительным органом и собственниками (нанимателями) жилищ может быть заключен договор о предоставлении в собственность (внаем) других жилищ во вновь построенных на этом же или другом земельном участке бывшим собственникам (нанимателям) взамен снесенных жилищ."
+    },
+    {
+     "id": "lq34",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0012,
+     "answer": "1."
+    },
+    {
+     "id": "lq35",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq36",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9129,
+     "answer": "[1] Несовершеннолетние в возрасте от четырнадцати до восемнадцати лет вправе самостоятельно распоряжаться своим заработком, стипендией, иными доходами и созданными ими объектами права интеллектуальной собственности."
+    },
+    {
+     "id": "lq37",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq38",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9134,
+     "answer": "[1] Договор займа признается заключенным в надлежащей письменной форме также при наличии облигации, расписки заемщика или иного документа, удостоверяющего передачу ему займодателем определенной суммы или определенного количества вещей."
+    },
+    {
+     "id": "lq39",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq40",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.1227,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq41",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq42",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.0111,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент."
+    },
+    {
+     "id": "lq43",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9628,
+     "answer": "Пособие на рождение выплачивается за счет бюджетных средств в следующих размерах: на первого, второго, третьего ребенка – 38,0 месячного расчетного показателя; на четвертого и более ребенка – 63,0 месячного расчетного показателя. [1]"
+    },
+    {
+     "id": "lq44",
+     "status": "answered",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.9995,
+     "answer": "Пособие по уходу за ребенком получают лица, имеющие право на получение пособия по уходу в соответствии со статьями 81 и 84 Социального кодекса Республики Казахстан. Это включает в себя родителей, усыновителей, опекунов, а также сводных детей, если они не учтены в семье другого родителя. Пособие назначается со дня рождения ребенка и по достижении им возраста полутора лет включительно."
+    },
+    {
+     "id": "lq45",
+     "status": "answered",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": 0.9704,
+     "answer": "Получатель социальной выплаты по случаю потери работы имеет право получать социальную выплату по случаю потери работы в порядке, предусмотренном настоящим Кодексом. [3]"
+    },
+    {
+     "id": "lq46",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "relevance": 0.9922,
+     "answer": "Пособие многодетной семье выплачивается ежемесячно за счет бюджетных средств в следующих размерах: на четверых детей – 16,03 месячного расчетного показателя; на пятерых детей – 20,04 месячного расчетного показателя; на шестерых детей – 24,05 месячного расчетного показателя; на семерых детей – 28,06 месячного расчетного показателя; на восьмерых и более детей – 4 месячных расчетных показателя на каждого ребенка [1]."
+    },
+    {
+     "id": "lq47",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq48",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq49",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq50",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq51",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq52",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq53",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq54",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq55",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq56",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq57",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq58",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    },
+    {
+     "id": "lq59",
+     "status": "no_context",
+     "from_gold": false,
+     "has_gold": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет."
+    }
+   ]
+  }
+ },
+ "params": {
+  "reranker": "BAAI/bge-reranker-v2-m3",
+  "dictionary": true,
+  "terms_for_model": false,
+  "min_retrieval_score": 0.676,
+  "min_answer_relevance": 0.008
+ }
+}

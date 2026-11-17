@@ -44,6 +44,7 @@ from src.generation import (
     Answer, GroundedAnswerer, OllamaClient, OllamaError, Passage, load_generation_params, reranker_relevance,
 )
 from src.laws import LAWS_PARQUET, load_laws
+from src.query_expansion import expand_query
 from src.reranker import CrossEncoderReranker, default_reranker
 from src.resources import ResourceMeter, gpu_memory, snapshot as resource_snapshot
 from src.retriever import tokenize_legal_text
@@ -52,6 +53,8 @@ from src.tracing import get_langfuse, score_trace, span, trace
 CORPUS_LABELS = {"laws": "Законы для граждан (актуальные)", "adilet": "Датасет Adilet Legal QA (14 актов)"}
 CACHE_PARQUET = "data/raw/adilet_legal_qa_kz.parquet"
 CACHE_DIR = "data/adilet/cache"
+# Настройки корпуса законов, подобранные eval_laws_colloquial.py на разговорных вопросах
+LAWS_SETTINGS = Path("data/laws/colloquial_eval.json")
 MODELS_DIR = Path("models")
 # Сколько кандидатов достаём перед фильтрацией по законам
 FILTER_POOL = 300
@@ -108,6 +111,15 @@ class ModelStore:
 
     def ready(self, key: Hashable) -> bool:
         return key in self._items
+
+    def evict(self, predicate: Callable[[Hashable], bool]) -> List[Any]:
+        """Убирает объекты, чьи ключи подходят под predicate; возвращает убранные."""
+        with self._guard:
+            keys = [key for key in self._items if predicate(key)]
+            return [self._items.pop(key) for key in keys]
+
+    def values(self) -> List[Any]:
+        return list(self._items.values())
 
     def get(self, key: Hashable, factory: Callable[[], Any]) -> Any:
         if key in self._items:
@@ -246,8 +258,42 @@ def load_engine(lang: str, model_name: str, corpus_name: str = "adilet") -> Lega
     return model_store().get(engine_key(lang, model_name, corpus_name), build)
 
 
+def corpus_settings(lang: str, corpus_name: str) -> Dict[str, Any]:
+    """Реранкер, словарь и пороги в шкале реранкера для корпуса.
+
+    Датасет Adilet — дообученный реранкер и пороги eval_generation.py. Законы для граждан — то, что выбрал
+    eval_laws_colloquial.py на вопросах обычным языком: исходный реранкер (дообученный подстроился под язык закона),
+    словарь «разговорное → юридическое» и свои пороги (пороги датасета пропускали к модели 12% вопросов).
+    """
+    if corpus_name == "laws":
+        def read() -> Dict[str, Any]:
+            if not LAWS_SETTINGS.exists():
+                return {}
+            return json.loads(LAWS_SETTINGS.read_text(encoding="utf-8")).get("params", {})
+
+        params = model_store().get("laws-settings", read)
+        if params:
+            return {"reranker": params["reranker"], "dictionary": bool(params.get("dictionary")),
+                    "min_retrieval_score": params.get("min_retrieval_score"),
+                    "min_answer_relevance": params.get("min_answer_relevance"), "source": LAWS_SETTINGS.as_posix()}
+    return {"reranker": default_reranker(lang), "dictionary": False, "source": f"data/adilet/generation_eval_{lang}.json"}
+
+
 def load_reranker(model_name: str) -> CrossEncoderReranker:
-    return model_store().get(("reranker", model_name), lambda: CrossEncoderReranker(model_name, device=device()))
+    """Реранкер; на видеокарте держится один: второй (~1,1 ГБ) не оставил бы места Qwen."""
+    store = model_store()
+    key = ("reranker", model_name)
+    if not store.ready(key):
+        dropped = store.evict(lambda k: isinstance(k, tuple) and k[0] == "reranker" and k != key)
+        if dropped:
+            # Ответы с проверкой через выгруженный реранкер и ссылки на него в индексах
+            store.evict(lambda k: isinstance(k, tuple) and k[0] == "answerer" and k[-1] != model_name)
+            for item in store.values():
+                if isinstance(item, LegalSearchEngine) and item.reranker in dropped:
+                    item.reranker = None
+            del dropped
+            release_gpu_memory()
+    return store.get(key, lambda: CrossEncoderReranker(model_name, device=device()))
 
 
 def warm_up(lang: str, model_name: str, corpus_name: str) -> None:
@@ -256,7 +302,7 @@ def warm_up(lang: str, model_name: str, corpus_name: str) -> None:
         engine = load_engine(lang, model_name, corpus_name)
         engine.bm25_retriever  # индекс BM25 строится при первом обращении
         engine.embed_query("прогрев модели")
-        load_reranker(default_reranker(lang)).score("прогрев модели", ["прогрев модели"])
+        load_reranker(corpus_settings(lang, corpus_name)["reranker"]).score("прогрев модели", ["прогрев модели"])
         release_gpu_memory()
     except Exception as e:  # запрос пользователя всё равно загрузит модели сам и покажет ошибку
         print(f"Фоновая загрузка моделей не удалась: {e}")
@@ -270,10 +316,10 @@ def start_warm_up(lang: str, model_name: str, corpus_name: str) -> threading.Thr
     return thread
 
 
-def warm_up_answer(lang: str) -> None:
+def warm_up_answer(lang: str, corpus_name: str) -> None:
     """Фоновая подготовка ответа модели: проверки ответа и загрузка Qwen в память Ollama (иначе +5–6 с к ответу)."""
     try:
-        client = load_answerer(lang).client
+        client = load_answerer(lang, corpus_name).client
         # Тот же размер контекста, что у запросов ответа: при другом num_ctx Ollama загрузила бы модель заново
         body = json.dumps({"model": client.model, "options": {"num_ctx": client.options["num_ctx"]}}).encode("utf-8")
         request = urllib.request.Request(f"{OLLAMA_URL.rstrip('/')}/api/generate", data=body, headers={"Content-Type": "application/json"})
@@ -283,13 +329,13 @@ def warm_up_answer(lang: str) -> None:
         print(f"Фоновая подготовка ответа модели не удалась: {e}")
 
 
-def start_answer_warm_up(lang: str) -> None:
+def start_answer_warm_up(lang: str, corpus_name: str) -> None:
     """Не чаще раза в 4 минуты: Ollama по умолчанию держит модель в памяти 5 минут после запроса."""
     store = model_store()
     last = store.get("answer-warm-up", dict)
-    if time.time() - last.get(lang, 0) > 240:
-        last[lang] = time.time()
-        threading.Thread(target=warm_up_answer, args=(lang,), daemon=True, name="warm-up-answer").start()
+    if time.time() - last.get((lang, corpus_name), 0) > 240:
+        last[(lang, corpus_name)] = time.time()
+        threading.Thread(target=warm_up_answer, args=(lang, corpus_name), daemon=True, name="warm-up-answer").start()
 
 
 def rerank_pool(lang: str) -> int:
@@ -342,12 +388,19 @@ def run_search(
     engine: LegalSearchEngine, lang: str, query: str, mode: str, top_k: int, laws: List[str], rerank: bool = False,
     corpus_name: str = "adilet",
 ) -> List[Dict[str, Any]]:
-    """Поиск с фильтром по законам; при rerank фильтр применяется до переранжирования."""
+    """Поиск с фильтром по законам; при rerank фильтр применяется до переранжирования.
+
+    Для корпуса законов к вопросу дописываются термины закона (src/query_expansion.py): «как уволиться» →
+    «расторжение трудового договора по инициативе работника». Поиск и реранкер получают дополненный вопрос.
+    """
     by_id = chunks_by_id(lang, corpus_name)
     wanted = max(top_k, engine.rerank_pool) if rerank else top_k
     pool = FILTER_POOL if laws else wanted
-    with span("search", as_type="retriever", input=query, metadata={"mode": mode, "top_k": top_k, "rerank": rerank, "laws": laws}) as obs:
-        found = engine.search(query, mode=mode, top_k=pool)
+    search_query = expand_query(query) if corpus_settings(lang, corpus_name)["dictionary"] else query
+    metadata = {"mode": mode, "top_k": top_k, "rerank": rerank, "laws": laws,
+                **({"search_query": search_query} if search_query != query else {})}
+    with span("search", as_type="retriever", input=query, metadata=metadata) as obs:
+        found = engine.search(search_query, mode=mode, top_k=pool)
         with span("law-filter", input={"laws": laws, "pool": len(found), "wanted": wanted}) if laws else nullcontext() as filter_obs:
             hits = []
             for doc_id, _, score in found:
@@ -360,7 +413,7 @@ def run_search(
             if filter_obs is not None:
                 filter_obs.update(output={"kept": len(hits)})
         if rerank:
-            reranked = engine.rerank(query, [(h["id"], h["text"], h["score"]) for h in hits], top_k)
+            reranked = engine.rerank(search_query, [(h["id"], h["text"], h["score"]) for h in hits], top_k)
             hits = [{**by_id[doc_id], "score": score} for doc_id, _, score in reranked]
         obs.update(output=[
             {"rank": rank, "id": h["id"], "law": h["law"], "articles": h["articles"], "score": round(float(h["score"]), 4)}
@@ -394,38 +447,51 @@ def render_hit(
                 st.markdown(f"<div class='hit-text'>{highlight(hit['context'], stems)}</div>", unsafe_allow_html=True)
 
 
-def load_answerer(lang: str) -> GroundedAnswerer:
+def answer_params(lang: str, corpus_name: str) -> Dict[str, Any]:
+    """Пороги проверки ответа: общие — из eval_generation.py, в шкале реранкера — для реранкера корпуса."""
+    settings = corpus_settings(lang, corpus_name)
+    params = load_generation_params(lang, settings["reranker"])
+    for name in ("min_retrieval_score", "min_answer_relevance"):
+        if name in settings:
+            params[name] = settings[name]
+    return params
+
+
+def load_answerer(lang: str, corpus_name: str) -> GroundedAnswerer:
     """Ответ модели с проверками; соответствие ответа вопросу оценивает тот же реранкер, что и поиск."""
+    reranker_name = corpus_settings(lang, corpus_name)["reranker"]
+
     def build() -> GroundedAnswerer:
-        params = load_generation_params(lang, default_reranker(lang))
+        params = answer_params(lang, corpus_name)
         return GroundedAnswerer(
             OllamaClient(DEFAULT_LLM), lang,
             min_retrieval_score=params["min_retrieval_score"], min_sentence_support=params["min_sentence_support"],
             min_answer_relevance=params["min_answer_relevance"],
-            relevance_scorer=reranker_relevance(load_reranker(default_reranker(lang))),
+            relevance_scorer=reranker_relevance(load_reranker(reranker_name)),
             min_entailment=params["min_entailment"],
             entailment_scorer=load_entailment_scorer(params["min_entailment"]),
         )
 
-    return model_store().get(("answerer", lang), build)
+    return model_store().get(("answerer", lang, corpus_name, reranker_name), build)
 
 
-def compute_answer(query: str, hits: List[Dict[str, Any]], lang: str) -> Dict[str, Any]:
+def compute_answer(query: str, hits: List[Dict[str, Any]], lang: str, corpus_name: str) -> Dict[str, Any]:
     """Ответ модели по найденным фрагментам: {"answer", "passages", "error"} (error — Ollama недоступна)."""
     # Модель читает чанки с окружающим текстом; пересекающиеся склеиваются, поэтому номера [n] — номера passages
     passages = build_passages(hits)
     try:
         with st.spinner(f"{DEFAULT_LLM} формулирует ответ по найденным фрагментам..."):
-            return {"answer": load_answerer(lang).answer(query, passages), "passages": passages, "error": None}
+            return {"answer": load_answerer(lang, corpus_name).answer(query, passages), "passages": passages, "error": None}
     except OllamaError as e:
         return {"answer": None, "passages": passages, "error": str(e)}
 
 
 def render_answer(
-    answer: Optional[Answer], passages: List[Passage], lang: str, error: Optional[str], trace_id: Optional[str] = None,
+    answer: Optional[Answer], passages: List[Passage], lang: str, corpus_name: str, error: Optional[str],
+    trace_id: Optional[str] = None,
 ) -> None:
     """Ответ модели с итогами проверки и источниками; под ответом — кнопки отзыва (если включён Langfuse)."""
-    answerer = load_answerer(lang)
+    answerer = load_answerer(lang, corpus_name)
     with st.container(border=True):
         st.markdown("**Ответ**")
         if answer is None:
@@ -490,19 +556,20 @@ def load_models(lang: str, model_name: str, corpus_name: str, rerank: bool, gene
     Обычно модели уже загрузил фоновый поток (warm_up); если он ещё работает, запрос ждёт его.
     """
     store = model_store()
+    reranker_name = corpus_settings(lang, corpus_name)["reranker"]
     needed = [engine_key(lang, model_name, corpus_name)]
     if rerank:
-        needed.append(("reranker", default_reranker(lang)))
+        needed.append(("reranker", reranker_name))
     if generate:
-        needed.append(("answerer", lang))
+        needed.append(("answerer", lang, corpus_name, reranker_name))
     cold = [":".join(key) for key in needed if not store.ready(key)]
     spinner = st.spinner("Загрузка моделей поиска — только при первом запросе после запуска...") if cold else nullcontext()
     with span("load-models", input=[":".join(key) for key in needed], metadata={"cold_start": bool(cold)}) as obs, spinner:
         engine = load_engine(lang, model_name, corpus_name)
         if rerank:
-            engine.reranker = load_reranker(default_reranker(lang))
+            engine.reranker = load_reranker(reranker_name)
         if generate:
-            load_answerer(lang)
+            load_answerer(lang, corpus_name)
         obs.update(output={"loaded_now": cold}, metadata={"cold_start": bool(cold), "device": device(), **gpu_memory()})
     return engine
 
@@ -525,7 +592,7 @@ def search_and_answer(
             result = {"hits": hits, "search_ms": (time.time() - t0) * 1000, "answer": None, "passages": [], "error": None,
                       "trace_id": root.trace_id}
             if hits and generate:
-                result.update(compute_answer(query, hits[:DEFAULT_TOP_K], lang))
+                result.update(compute_answer(query, hits[:DEFAULT_TOP_K], lang, corpus_name))
         answer = result["answer"]
         found = [f"{h['law']}, {h['articles']}" if h["articles"] else h["law"] for h in hits[:top_k]]
         # Процессор и память за весь запрос; видеопамять и размещение Qwen — на момент окончания запроса
@@ -585,10 +652,12 @@ def main() -> None:
             "Реранкер (cross-encoder)", value=generate, disabled=generate,
             help="Переранжировать лучших кандидатов выбранного метода нейросетью, читающей вопрос и фрагмент вместе.",
         ) or generate
+        settings = corpus_settings(lang, corpus_name)
         if rerank:
-            st.caption(f"{default_reranker(lang)}, топ-{rerank_pool(lang)} кандидатов")
+            st.caption(f"{settings['reranker']}, топ-{rerank_pool(lang)} кандидатов"
+                       + ("; к вопросу дописываются термины закона" if settings["dictionary"] else ""))
         if generate:
-            gen_params = load_generation_params(lang, default_reranker(lang))
+            gen_params = answer_params(lang, corpus_name)
             gate = gen_params["min_retrieval_score"]
             relevance = gen_params["min_answer_relevance"]
             st.caption(
@@ -623,7 +692,7 @@ def main() -> None:
     if corpus_name == "laws":
         st.caption(
             f"Редакции актов на {laws_as_of()}. Справочная информация, не является юридической "
-            "консультацией: качество поиска по этому набору отдельно не измерялось, сверяйте ответ с текстом закона."
+            "консультацией: поиск проверен на 49 вопросах обычным языком, сверяйте ответ с текстом закона."
         )
 
     examples = LAWS_EXAMPLES if corpus_name == "laws" else EXAMPLES[lang]
@@ -637,7 +706,7 @@ def main() -> None:
     # Страница уже показана: пока пользователь набирает вопрос, модели загружаются в фоне
     start_warm_up(lang, model_name, corpus_name)
     if generate:
-        start_answer_warm_up(lang)
+        start_answer_warm_up(lang, corpus_name)
     if not query.strip():
         return
 
@@ -660,7 +729,7 @@ def main() -> None:
             st.info("Ничего не найдено. Попробуйте переформулировать вопрос или снять фильтр по законам.")
         else:
             if generate:
-                render_answer(result["answer"], result["passages"], lang, result["error"], result.get("trace_id"))
+                render_answer(result["answer"], result["passages"], lang, corpus_name, result["error"], result.get("trace_id"))
             label = MODE_LABELS[mode] + (" + реранкер" if rerank else "")
             st.caption(f"{label} · найдено {len(hits[:top_k])} за {result['search_ms']:.0f} мс")
             for rank, hit in enumerate(hits[:top_k], 1):

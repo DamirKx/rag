@@ -43,6 +43,16 @@ def test_model_store_retries_after_failed_load():
     assert store.get("reranker", factory) == "модель"
 
 
+def test_model_store_evict():
+    store = ModelStore()
+    store.get(("reranker", "a"), lambda: "реранкер a")
+    store.get(("reranker", "b"), lambda: "реранкер b")
+    store.get(("engine", "laws"), lambda: "индекс")
+    dropped = store.evict(lambda k: k[0] == "reranker" and k != ("reranker", "b"))
+    assert dropped == ["реранкер a"]
+    assert not store.ready(("reranker", "a")) and store.ready(("reranker", "b")) and store.ready(("engine", "laws"))
+
+
 def test_result_cache_evicts_least_recently_used():
     cache = ResultCache(max_entries=2)
     cache.put("a", 1)
