@@ -39,7 +39,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from src.retriever import tokenize_legal_text
 from src.text_norm import get_normalizer
-from src.tracing import trace_answer
+from src.tracing import span
 
 DEFAULT_LLM = "qwen2.5:3b"
 OLLAMA_URL = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
@@ -254,6 +254,13 @@ class OllamaClient:
             "prompt_tokens": data.get("prompt_eval_count"),
             "completion_tokens": data.get("eval_count"),
             "latency_s": round(time.time() - t0, 3),
+            # Время по данным Ollama (в наносекундах): загрузка модели в память (холодный старт),
+            # чтение промпта и генерация ответа
+            **{
+                name: round(data[key] / 1e9, 3)
+                for name, key in (("load_s", "load_duration"), ("prompt_eval_s", "prompt_eval_duration"), ("eval_s", "eval_duration"))
+                if isinstance(data.get(key), (int, float))
+            },
         }
         self._cache[key] = result
         if self.cache_path:
@@ -409,6 +416,13 @@ def is_malformed(answer: str, n_passages: int, lang: str = "rus") -> bool:
     return not re.search(r"\w", strip_citations(answer)) or any(not 1 <= n <= n_passages for n in extract_citations(answer))
 
 
+def malformed_reason(answer: str, n_passages: int) -> str:
+    """Почему ответ запрошен заново (для трассы): нет текста или ссылка на несуществующий фрагмент."""
+    if not re.search(r"\w", strip_citations(answer)):
+        return "ответ без текста — только ссылка на фрагмент"
+    return "ссылки на несуществующие фрагменты: " + ", ".join(f"[{n}]" for n in invalid_citations(answer, n_passages))
+
+
 def cited_passages(answer: str, passages: Sequence[Passage]) -> List[Passage]:
     """Фрагменты, на которые ссылается ответ; без действительных ссылок — все."""
     cited = [passages[n - 1] for n in extract_citations(answer) if 1 <= n <= len(passages)]
@@ -422,17 +436,32 @@ def is_refusal(answer: str, lang: str = "rus") -> bool:
     return core in norm and len(norm) <= len(REFUSAL[lang]) + 40
 
 
-def verify_answer(answer: str, passages: Sequence[Passage], lang: str = "rus") -> Dict[str, Any]:
-    """Проверки ответа по контексту — всех переданных модели фрагментов вместе с подписями."""
-    context = "\n".join(f"{p.label}\n{p.text}" for p in passages)
-    cited = extract_citations(answer)
-    support = sentence_support(answer, context, lang)
+def passages_context(passages: Sequence[Passage]) -> str:
+    """Контекст проверок — все переданные модели фрагменты вместе с подписями."""
+    return "\n".join(f"{p.label}\n{p.text}" for p in passages)
+
+
+def invalid_citations(answer: str, n_passages: int) -> List[int]:
+    """Номера ссылок [n], которым не соответствует ни один фрагмент."""
+    return [n for n in extract_citations(answer) if not 1 <= n <= n_passages]
+
+
+def support_summary(support: Sequence[Tuple[str, float]]) -> Dict[str, Any]:
+    """Итог sentence_support: худшее предложение и число проверенных предложений."""
     return {
-        "unsupported_numbers": unsupported_numbers(answer, context),
-        "invalid_citations": [n for n in cited if not 1 <= n <= len(passages)],
         "min_sentence_support": round(min((s for _, s in support), default=1.0), 4),
         "weakest_sentence": min(support, key=lambda x: x[1])[0] if support else "",
         "n_sentences": len(support),
+    }
+
+
+def verify_answer(answer: str, passages: Sequence[Passage], lang: str = "rus") -> Dict[str, Any]:
+    """Проверки ответа по контексту — всех переданных модели фрагментов вместе с подписями."""
+    context = passages_context(passages)
+    return {
+        "unsupported_numbers": unsupported_numbers(answer, context),
+        "invalid_citations": invalid_citations(answer, len(passages)),
+        **support_summary(sentence_support(answer, context, lang)),
     }
 
 
@@ -518,28 +547,60 @@ class GroundedAnswerer:
         Возвращает словарь OllamaClient.chat с полем retried; токены и время суммируются по обоим запросам.
         """
         messages = build_messages(question, passages, self.lang)
-        first = self.client.chat(messages)
+        first = self._chat("llm", messages)
         if not is_malformed(first["text"], len(passages), self.lang):
             return {**first, "retried": False}
         retry = RETRY_PROMPT[self.lang].format(n=len(passages))
-        second = self.client.chat(messages + [{"role": "assistant", "content": first["text"]}, {"role": "user", "content": retry}])
+        second = self._chat(
+            "llm-retry",
+            messages + [{"role": "assistant", "content": first["text"]}, {"role": "user", "content": retry}],
+            reason=malformed_reason(first["text"], len(passages)),
+        )
         merged = {key: (first.get(key) or 0) + (second.get(key) or 0) for key in ("prompt_tokens", "completion_tokens", "latency_s")}
         return {**second, **merged, "cached": first.get("cached") and second.get("cached"), "retried": True}
 
+    def _chat(self, name: str, messages: List[Dict[str, str]], reason: Optional[str] = None) -> Dict[str, Any]:
+        """Один запрос к модели — этап generation трассы (токены, время Ollama, причина повтора)."""
+        with span(
+            name, as_type="generation", input=messages, model=getattr(self.client, "model", None),
+            model_parameters=getattr(self.client, "options", None), metadata={"retry_reason": reason} if reason else None,
+        ) as obs:
+            response = self.client.chat(messages)
+            if obs.enabled:
+                usage = {
+                    name: response[key] for name, key in (("input", "prompt_tokens"), ("output", "completion_tokens"))
+                    if isinstance(response.get(key), int)
+                }
+                timings = {k: response.get(k) for k in ("latency_s", "load_s", "prompt_eval_s", "eval_s", "cached") if response.get(k) is not None}
+                obs.update(output=response["text"], usage_details=usage or None, metadata={**timings, **({"retry_reason": reason} if reason else {})})
+        return response
+
     def answer(self, question: str, passages: Sequence[Passage]) -> Answer:
         """Полный цикл: порог поиска → модель → проверка ответа."""
-        passages = list(passages)
-        top_score = max((p.score for p in passages), default=None)
-        if not self.retrieval_confident(passages):
-            result = Answer(
-                status=STATUS_NO_CONTEXT, text=REFUSAL[self.lang], passages=passages,
-                checks={"top_score": top_score},
+        model = getattr(self.client, "model", None)
+        with span("answer", as_type="chain", input=question, metadata={"model": model, "lang": self.lang}) as obs:
+            passages = list(passages)
+            top_score = max((p.score for p in passages), default=None)
+            with span(
+                "retrieval-gate", as_type="guardrail",
+                input={"top_score": top_score, "threshold": self.min_retrieval_score, "passages": len(passages)},
+            ) as gate:
+                confident = self.retrieval_confident(passages)
+                gate.update(output={"passed": confident}, **({} if confident else {"level": "WARNING"}))
+            if not confident:
+                result = Answer(
+                    status=STATUS_NO_CONTEXT, text=REFUSAL[self.lang], passages=passages,
+                    checks={"top_score": top_score},
+                )
+            else:
+                response = self.ask_model(question, passages)
+                usage = {k: response.get(k) for k in ("prompt_tokens", "completion_tokens", "latency_s", "cached", "retried")}
+                result = self.judge(question, response["text"], passages, usage)
+            obs.update(
+                output=result.text,
+                metadata={"model": model, "lang": self.lang, "status": result.status, "cited": result.cited},
+                **({"level": "WARNING"} if result.status == STATUS_UNVERIFIED else {}),
             )
-        else:
-            response = self.ask_model(question, passages)
-            usage = {k: response.get(k) for k in ("prompt_tokens", "completion_tokens", "latency_s", "cached", "retried")}
-            result = self.judge(question, response["text"], passages, usage)
-        trace_answer(question, result, build_messages(question, passages, self.lang), getattr(self.client, "model", None), self.lang)
         return result
 
     def judge(
@@ -555,18 +616,51 @@ class GroundedAnswerer:
 
         relevance и entailment — готовые оценки (иначе считаются relevance_scorer и entailment_scorer).
         """
-        passages = list(passages)
-        usage = usage or {}
+        with span("verification", as_type="guardrail", input=raw) as obs:
+            result = self._judge(question, raw, list(passages), usage or {}, relevance, entailment)
+            obs.update(
+                output={"status": result.status, "problems": result.checks.get("problems", [])},
+                metadata={k: v for k, v in result.checks.items() if k != "problems"},
+                **({"level": "WARNING"} if result.status == STATUS_UNVERIFIED else {}),
+            )
+        return result
+
+    def _judge(
+        self,
+        question: str,
+        raw: str,
+        passages: List[Passage],
+        usage: Dict[str, Any],
+        relevance: Optional[float],
+        entailment: Optional[float],
+    ) -> Answer:
+        """judge без трассы самой проверки; каждая отдельная проверка — свой этап трассы."""
         checks: Dict[str, Any] = {"top_score": max((p.score for p in passages), default=None)}
         if is_refusal(raw, self.lang):
             return Answer(STATUS_REFUSED, REFUSAL[self.lang], passages, raw=raw, checks=checks, usage=usage)
 
+        context = passages_context(passages)
         # Несуществующие ссылки не отклоняют ответ, а убираются из него (номера остаются в checks)
-        text = drop_invalid_citations(raw, len(passages))
-        checks.update(verify_answer(text, passages, self.lang))
-        checks["invalid_citations"] = verify_answer(raw, passages, self.lang)["invalid_citations"]
+        with span("citations", as_type="guardrail", input={"passages": len(passages)}) as obs:
+            invalid = invalid_citations(raw, len(passages))
+            text = drop_invalid_citations(raw, len(passages))
+            obs.update(output={"invalid": invalid, "cited": extract_citations(text)})
+        with span("numbers", as_type="guardrail") as obs:
+            numbers = unsupported_numbers(text, context)
+            obs.update(output={"unsupported": numbers}, **({"level": "WARNING"} if numbers else {}))
+        with span("sentence-support", as_type="guardrail", metadata={"threshold": self.min_sentence_support}) as obs:
+            support = sentence_support(text, context, self.lang)
+            low = any(s < self.min_sentence_support for _, s in support)
+            obs.update(
+                output=[{"sentence": sentence, "support": round(s, 3)} for sentence, s in support],
+                **({"level": "WARNING"} if low else {}),
+            )
+        # Порядок ключей тот же, что у verify_answer
+        checks.update({"unsupported_numbers": numbers, "invalid_citations": invalid, **support_summary(support)})
         if relevance is None and self.relevance_scorer is not None:
-            relevance = self.relevance_scorer(question, text)
+            with span("relevance", as_type="evaluator", input={"question": question, "answer": text}) as obs:
+                relevance = self.relevance_scorer(question, text)
+                obs.update(output={"score": round(float(relevance), 4), "threshold": self.min_answer_relevance})
         checks["answer_relevance"] = None if relevance is None else round(float(relevance), 4)
         cited = [n for n in extract_citations(text) if 1 <= n <= len(passages)]
         problems = []
@@ -581,7 +675,9 @@ class GroundedAnswerer:
             problems.append("ответ не относится к заданному вопросу")
         # NLI медленнее остальных проверок: не считается, если ответ уже отклонён
         if entailment is None and self.entailment_scorer is not None and self.min_entailment is not None and not problems:
-            entailment = self.entailment_scorer(question, text, cited_passages(text, passages))
+            with span("entailment", as_type="evaluator", input={"answer": text}) as obs:
+                entailment = self.entailment_scorer(question, text, cited_passages(text, passages))
+                obs.update(output={"probability": round(float(entailment), 4), "threshold": self.min_entailment})
         checks["entailment"] = None if entailment is None else round(float(entailment), 4)
         if self.min_entailment is not None and entailment is not None and entailment < self.min_entailment:
             problems.append("ответ не следует из цитируемого фрагмента")

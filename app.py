@@ -14,28 +14,30 @@ import html
 import json
 import re
 import time
+from contextlib import nullcontext
 from pathlib import Path
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Optional, Set
 
 import pandas as pd
 import streamlit as st
 import torch
 
 from ask import (
-    LegalSearchEngine, default_model, load_bm25_params, load_hybrid_params, load_legal_corpus, load_rerank_pool,
+    LegalSearchEngine, build_passages, default_model, load_bm25_params, load_hybrid_params, load_legal_corpus,
+    load_rerank_pool,
 )
 from run_adilet_eval import DEFAULT_MODEL, model_cache_name
-from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus, expand_hits, law_titles
+from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus, law_titles
 from src.nli import load_entailment_scorer
 from src.embeddings import EmbeddingModel
 from src.generation import (
     DEFAULT_LLM, DEFAULT_TOP_K, STATUS_ANSWERED, STATUS_NO_CONTEXT, STATUS_REFUSED,
-    GroundedAnswerer, OllamaClient, OllamaError, Passage, load_generation_params, reranker_relevance,
+    Answer, GroundedAnswerer, OllamaClient, OllamaError, load_generation_params, reranker_relevance,
 )
 from src.laws import LAWS_PARQUET, load_laws
 from src.reranker import CrossEncoderReranker, default_reranker
 from src.retriever import tokenize_legal_text
-from src.tracing import get_langfuse
+from src.tracing import get_langfuse, span, trace
 
 CORPUS_LABELS = {"laws": "Законы для граждан (актуальные)", "adilet": "Датасет Adilet Legal QA (14 актов)"}
 CACHE_PARQUET = "data/raw/adilet_legal_qa_kz.parquet"
@@ -185,17 +187,26 @@ def run_search(
     by_id = {c["id"]: c for c in build_corpus(lang, corpus_name)}
     wanted = max(top_k, engine.rerank_pool) if rerank else top_k
     pool = FILTER_POOL if laws else wanted
-    hits = []
-    for doc_id, _, score in engine.search(query, mode=mode, top_k=pool):
-        chunk = by_id[doc_id]
-        if laws and chunk["law"] not in laws:
-            continue
-        hits.append({**chunk, "score": score})
-        if len(hits) == wanted:
-            break
-    if rerank:
-        reranked = engine.rerank(query, [(h["id"], h["text"], h["score"]) for h in hits], top_k)
-        hits = [{**by_id[doc_id], "score": score} for doc_id, _, score in reranked]
+    with span("search", as_type="retriever", input=query, metadata={"mode": mode, "top_k": top_k, "rerank": rerank, "laws": laws}) as obs:
+        found = engine.search(query, mode=mode, top_k=pool)
+        with span("law-filter", input={"laws": laws, "pool": len(found), "wanted": wanted}) if laws else nullcontext() as filter_obs:
+            hits = []
+            for doc_id, _, score in found:
+                chunk = by_id[doc_id]
+                if laws and chunk["law"] not in laws:
+                    continue
+                hits.append({**chunk, "score": score})
+                if len(hits) == wanted:
+                    break
+            if filter_obs is not None:
+                filter_obs.update(output={"kept": len(hits)})
+        if rerank:
+            reranked = engine.rerank(query, [(h["id"], h["text"], h["score"]) for h in hits], top_k)
+            hits = [{**by_id[doc_id], "score": score} for doc_id, _, score in reranked]
+        obs.update(output=[
+            {"rank": rank, "id": h["id"], "law": h["law"], "articles": h["articles"], "score": round(float(h["score"]), 4)}
+            for rank, h in enumerate(hits, 1)
+        ])
     return hits
 
 
@@ -238,11 +249,11 @@ def load_answerer(lang: str) -> GroundedAnswerer:
     )
 
 
-def render_answer(query: str, hits: List[Dict[str, Any]], lang: str) -> None:
-    """Ответ модели по найденным фрагментам с итогами проверки и источниками."""
+def render_answer(query: str, hits: List[Dict[str, Any]], lang: str) -> Optional[Answer]:
+    """Ответ модели по найденным фрагментам с итогами проверки и источниками (None — Ollama недоступна)."""
     answerer = load_answerer(lang)
     # Модель читает чанки с окружающим текстом; пересекающиеся склеиваются, поэтому номера [n] — номера passages
-    passages = [Passage.from_hit(h) for h in expand_hits(hits)]
+    passages = build_passages(hits)
     with st.container(border=True):
         st.markdown("**Ответ**")
         try:
@@ -250,7 +261,7 @@ def render_answer(query: str, hits: List[Dict[str, Any]], lang: str) -> None:
                 answer = answerer.answer(query, passages)
         except OllamaError as e:
             st.error(str(e))
-            return
+            return None
 
         top = answer.checks.get("top_score")
         if answer.status == STATUS_ANSWERED:
@@ -286,6 +297,45 @@ def render_answer(query: str, hits: List[Dict[str, Any]], lang: str) -> None:
                 st.write("Проверка нашла: " + "; ".join(answer.checks["problems"]) + ".")
                 st.caption("Отклонённый ответ модели (не является ответом системы):")
                 st.text(answer.raw)
+    return answer
+
+
+@st.cache_resource
+def loaded_models() -> Set[str]:
+    """Что уже загружено в этом процессе Streamlit (общий набор для всех вкладок браузера)."""
+    return set()
+
+
+def load_models(lang: str, model_name: str, corpus_name: str, rerank: bool, generate: bool) -> LegalSearchEngine:
+    """Загрузка индекса и моделей — отдельный этап трассы; при первой загрузке он помечен как холодный старт."""
+    needed = [f"engine:{corpus_name}:{lang}:{model_name}"]
+    if rerank:
+        needed.append(f"reranker:{default_reranker(lang)}")
+    if generate:
+        needed.append(f"answerer:{lang}")
+    warm = loaded_models()
+    cold = [name for name in needed if name not in warm]
+    with span("load-models", input=needed, metadata={"cold_start": bool(cold)}) as obs:
+        engine = load_engine(lang, model_name, corpus_name)
+        if rerank:
+            engine.reranker = load_reranker(default_reranker(lang))
+            engine.rerank_pool = rerank_pool(lang)
+        if generate:
+            load_answerer(lang)
+        warm.update(needed)
+        obs.update(output={"loaded_now": cold}, metadata={"cold_start": bool(cold), "device": "cuda" if torch.cuda.is_available() else "cpu"})
+    return engine
+
+
+def streamlit_session_id() -> Optional[str]:
+    """Id сеанса Streamlit (вкладки браузера) — объединяет её запросы в одну сессию Langfuse."""
+    try:
+        from streamlit.runtime.scriptrunner import get_script_run_ctx
+
+        ctx = get_script_run_ctx()
+        return ctx.session_id if ctx else None
+    except Exception:
+        return None
 
 
 def main() -> None:
@@ -333,10 +383,10 @@ def main() -> None:
                 f"опора предложений на текст ≥ {gen_params['min_sentence_support']}, "
                 f"соответствие ответа вопросу ≥ {relevance if relevance is not None else 'не задано'}"
             )
-            st.caption(
-                "Langfuse: трассировка включена" if get_langfuse() is not None
-                else "Langfuse: выключен (не заданы LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY)"
-            )
+        st.caption(
+            "Langfuse: трассировка включена" if get_langfuse() is not None
+            else "Langfuse: выключен (не заданы LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY)"
+        )
         corpus = build_corpus(lang, corpus_name)
         all_laws = sorted({c["law"] for c in corpus})
         laws = st.multiselect("Искать только в законах", all_laws, placeholder="Все законы")
@@ -374,27 +424,36 @@ def main() -> None:
     if not query.strip():
         return
 
-    engine = load_engine(lang, model_name, corpus_name)
-    if rerank:
-        engine.reranker = load_reranker(default_reranker(lang))
-        engine.rerank_pool = rerank_pool(lang)
     stems = query_stems(query)
     tab_search, tab_compare = st.tabs(["Результаты", "Сравнение методов"])
 
-    with tab_search:
-        t0 = time.time()
-        # Модели нужны DEFAULT_TOP_K лучших фрагментов, даже если показать нужно меньше
-        hits = run_search(engine, lang, query, mode, max(top_k, DEFAULT_TOP_K) if generate else top_k, laws, rerank, corpus_name)
-        elapsed_ms = (time.time() - t0) * 1000
-        if not hits:
-            st.info("Ничего не найдено. Попробуйте переформулировать вопрос или снять фильтр по законам.")
-        else:
-            if generate:
-                render_answer(query, hits[:DEFAULT_TOP_K], lang)
-            label = MODE_LABELS[mode] + (" + реранкер" if rerank else "")
-            st.caption(f"{label} · найдено {len(hits[:top_k])} за {elapsed_ms:.0f} мс")
-            for rank, hit in enumerate(hits[:top_k], 1):
-                render_hit(rank, hit, mode, lang, stems, rerank=rerank)
+    # Трасса Langfuse — поиск и ответ во вкладке «Результаты»; вкладка сравнения методов не трассируется
+    request = {
+        "corpus": corpus_name, "lang": lang, "mode": mode, "top_k": top_k, "embedder": model_name,
+        "rerank": rerank, "generate": generate, "laws": laws,
+    }
+    with trace("web-demo", input=query, metadata=request, session_id=streamlit_session_id(), tags=["app.py", mode]) as root:
+        engine = load_models(lang, model_name, corpus_name, rerank, generate)
+        with tab_search:
+            t0 = time.time()
+            # Модели нужны DEFAULT_TOP_K лучших фрагментов, даже если показать нужно меньше
+            hits = run_search(engine, lang, query, mode, max(top_k, DEFAULT_TOP_K) if generate else top_k, laws, rerank, corpus_name)
+            elapsed_ms = (time.time() - t0) * 1000
+            answer = None
+            if not hits:
+                st.info("Ничего не найдено. Попробуйте переформулировать вопрос или снять фильтр по законам.")
+            else:
+                if generate:
+                    answer = render_answer(query, hits[:DEFAULT_TOP_K], lang)
+                label = MODE_LABELS[mode] + (" + реранкер" if rerank else "")
+                st.caption(f"{label} · найдено {len(hits[:top_k])} за {elapsed_ms:.0f} мс")
+                for rank, hit in enumerate(hits[:top_k], 1):
+                    render_hit(rank, hit, mode, lang, stems, rerank=rerank)
+        found = [f"{h['law']}, {h['articles']}" if h["articles"] else h["law"] for h in hits[:top_k]]
+        root.update(
+            output=answer.text if answer is not None else found,
+            metadata={**request, "search_ms": round(elapsed_ms), "status": answer.status if answer is not None else None},
+        )
 
     with tab_compare:
         st.caption("Топ-3 каждого метода по одному и тому же вопросу.")

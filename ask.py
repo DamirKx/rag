@@ -21,6 +21,7 @@ import sys
 import re
 import json
 import time
+import uuid
 import argparse
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -42,6 +43,7 @@ from src.generation import (
 )
 from src.retriever import VectorRetriever, BM25Retriever, HybridRetriever
 from src.reranker import CrossEncoderReranker, DEFAULT_RERANKER, FINETUNED_RERANKER, default_reranker
+from src.tracing import brief_hits, span, trace
 from prepare_adilet_data import clean_adilet_context
 from run_adilet_eval import get_or_compute_embeddings, model_cache_name, DEFAULT_MODEL
 
@@ -159,9 +161,22 @@ class LegalSearchEngine:
     @property
     def bm25_retriever(self) -> BM25Retriever:
         if self._bm25_retriever is None:
-            self._bm25_retriever = BM25Retriever(**self.bm25_params)
-            self._bm25_retriever.add_documents(self._docs, self._doc_ids)
+            # Индекс строится при первом запросе BM25 / Hybrid — в трассе это холодный старт
+            with span("bm25-index-build", input={"n_docs": len(self._docs)}, metadata={"cold_start": True}) as obs:
+                self._bm25_retriever = BM25Retriever(**self.bm25_params)
+                self._bm25_retriever.add_documents(self._docs, self._doc_ids)
+                obs.update(output={"vocab": len(self._bm25_retriever.vocab)}, metadata={"cold_start": True, **self._bm25_retriever.params})
         return self._bm25_retriever
+
+    def embed_query(self, query: str):
+        """Вектор запроса (1, dim) — отдельный этап трассы: на GPU это миллисекунды, на CPU заметно дольше."""
+        with span("embed-query", as_type="embedding", input=query) as obs:
+            q_emb = self.embedder.encode_queries([query])
+            obs.update(
+                model=getattr(self.embedder, "model_name", None),
+                metadata={"device": getattr(self.embedder, "device", None), "dim": int(q_emb.shape[1])},
+            )
+        return q_emb
 
     @property
     def hybrid_retriever(self) -> HybridRetriever:
@@ -181,28 +196,57 @@ class LegalSearchEngine:
             candidates = self.search(query, mode, max(top_k, self.rerank_pool))
             return self.rerank(query, candidates, top_k)
 
-        if mode == "hybrid":
-            q_emb = self.embedder.encode_queries([query])[0]
-            pairs = self.hybrid_retriever.search_with_scores(query, q_emb, k=top_k)
-        elif mode == "bm25":
-            pairs = self.bm25_retriever.search(query, k=top_k)
-        elif mode == "dense":
-            q_emb = self.embedder.encode_queries([query])
-            scores, indices = self.dense_retriever.search(q_emb, k=top_k)
-            pairs = [
-                (self.dense_retriever.get_doc_id(idx), float(score))
-                for score, idx in zip(scores[0], indices[0])
-                if idx >= 0
-            ]
-        else:
+        if mode not in SEARCH_MODES:
             raise ValueError(f"Неизвестный режим поиска: {mode}")
+        with span(mode, as_type="retriever", input={"query": query, "top_k": top_k}) as obs:
+            if mode == "hybrid":
+                q_emb = self.embed_query(query)[0]
+                pairs = self.hybrid_retriever.search_with_scores(query, q_emb, k=top_k)
+            elif mode == "bm25":
+                pairs = self.bm25_retriever.search(query, k=top_k)
+                obs.update(metadata=self.bm25_retriever.params)
+            else:
+                q_emb = self.embed_query(query)
+                with span("faiss", as_type="retriever", input={"top_k": top_k}) as faiss_obs:
+                    scores, indices = self.dense_retriever.search(q_emb, k=top_k)
+                    pairs = [
+                        (self.dense_retriever.get_doc_id(idx), float(score))
+                        for score, idx in zip(scores[0], indices[0])
+                        if idx >= 0
+                    ]
+                    faiss_obs.update(metadata={"index": "FAISS IndexFlatIP", "n_docs": self.dense_retriever.index.ntotal})
+            obs.update(output=brief_hits(pairs))
 
         return [(doc_id, self.docs_by_id[doc_id], score) for doc_id, score in pairs]
 
     def rerank(self, query: str, candidates: List[Tuple[str, str, float]], top_k: int) -> List[Tuple[str, str, float]]:
         """Переранжирует готовый список троек (doc_id, текст, оценка) cross-encoder."""
-        pairs = self.reranker.rerank(query, [(doc_id, text) for doc_id, text, _ in candidates], top_k=top_k)
+        with span("reranker", as_type="retriever", input={"query": query, "candidates": len(candidates), "top_k": top_k}) as obs:
+            pairs = self.reranker.rerank(query, [(doc_id, text) for doc_id, text, _ in candidates], top_k=top_k)
+            if obs.enabled:
+                # Место результата до переранжирования: насколько реранкер поднял нужный фрагмент
+                before = {doc_id: rank for rank, (doc_id, _, _) in enumerate(candidates, 1)}
+                obs.update(
+                    output=[
+                        {"rank": rank, "rank_before": before.get(doc_id), "id": doc_id, "score": round(float(score), 4)}
+                        for rank, (doc_id, score) in enumerate(pairs, 1)
+                    ],
+                    metadata={
+                        "model": getattr(self.reranker, "model_name", None),
+                        "pool": len(candidates),
+                        "fp16": getattr(self.reranker, "fp16", None),
+                    },
+                )
         return [(doc_id, self.docs_by_id[doc_id], score) for doc_id, score in pairs]
+
+
+def build_passages(hits: List[Dict[str, Any]]) -> List[Passage]:
+    """Фрагменты для модели: чанки с окружающим текстом, пересекающиеся склеены (этап «context» трассы)."""
+    with span("context", input={"chunks": [h["id"] for h in hits]}) as obs:
+        passages = [Passage.from_hit(h) for h in expand_hits(hits)]
+        obs.update(output=[{"n": i, "label": p.label, "chars": len(p.text), "score": round(float(p.score), 4)}
+                           for i, p in enumerate(passages, 1)])
+    return passages
 
 
 class RAGAnswerer:
@@ -254,9 +298,10 @@ class RAGAnswerer:
 
     def ask(self, query: str) -> Answer:
         """Ищет top_k чанков и отвечает по ним (модель читает их с окружающим текстом); OllamaError — если модель недоступна."""
-        hits = self.engine.search(query, mode="hybrid", top_k=self.top_k, rerank=True)
+        with span("search", as_type="retriever", input=query, metadata={"mode": "hybrid", "rerank": True, "chunks": CHUNK_SIZE}):
+            hits = self.engine.search(query, mode="hybrid", top_k=self.top_k, rerank=True)
         chunks = [{**self.chunks_by_id[doc_id], "score": score} for doc_id, _, score in hits]
-        return self.answerer.answer(query, [Passage.from_hit(h) for h in expand_hits(chunks)])
+        return self.answerer.answer(query, build_passages(chunks))
 
 
 def format_answer(answer: Answer, answerer: GroundedAnswerer, lang: str) -> str:
@@ -381,6 +426,9 @@ def interactive_cli(
     print(f" Ответ языковой модели ({llm}): ':answer on' / ':answer off'")
     print(" Для выхода из программы введите 'exit' или 'q'")
     print("=" * 80)
+    # Вопросы одного запуска — одна сессия Langfuse; первый вопрос строит индекс BM25 и загружает модель в Ollama
+    session_id = f"ask-{uuid.uuid4().hex[:12]}"
+    first_question = True
 
     while True:
         try:
@@ -430,20 +478,30 @@ def interactive_cli(
                 print("Используйте ':answer on' или ':answer off'")
             continue
 
-        if generate:
-            print(f"\n{llm} формулирует ответ по найденным фрагментам...")
-            try:
-                answer = get_rag().ask(query)
-                print("-" * 80)
-                print(format_answer(answer, rag.answerer, lang))
-                print("-" * 80)
-            except OllamaError as e:
-                print(f"\n⚠ {e}")
+        request = {"lang": lang, "mode": search_mode, "top_k": top_k, "embedder": model_name, "rerank": rerank,
+                   "generate": generate, "cold_start": first_question}
+        with trace("ask-cli", input=query, metadata=request, session_id=session_id, tags=["ask.py", search_mode]) as root:
+            answer = None
+            if generate:
+                print(f"\n{llm} формулирует ответ по найденным фрагментам...")
+                try:
+                    answer = get_rag().ask(query)
+                    print("-" * 80)
+                    print(format_answer(answer, rag.answerer, lang))
+                    print("-" * 80)
+                except OllamaError as e:
+                    print(f"\n⚠ {e}")
 
-        # Выполнение поиска
-        t0 = time.time()
-        results = engine.search(query, mode=search_mode, top_k=top_k, rerank=rerank)
-        elapsed_ms = (time.time() - t0) * 1000.0
+            # Выполнение поиска (целые фрагменты законов, а не чанки, по которым отвечает модель)
+            t0 = time.time()
+            with span("search", as_type="retriever", input=query, metadata={"mode": search_mode, "rerank": rerank, "chunks": "structural"}):
+                results = engine.search(query, mode=search_mode, top_k=top_k, rerank=rerank)
+            elapsed_ms = (time.time() - t0) * 1000.0
+            root.update(
+                output=answer.text if answer is not None else [doc_id for doc_id, _, _ in results],
+                metadata={**request, "search_ms": round(elapsed_ms), "status": answer.status if answer is not None else None},
+            )
+        first_question = False
 
         if not results:
             print("\nНичего не найдено. Попробуйте переформулировать вопрос или сменить режим поиска.")
