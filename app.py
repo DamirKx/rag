@@ -274,6 +274,8 @@ def corpus_settings(lang: str, corpus_name: str) -> Dict[str, Any]:
         params = model_store().get("laws-settings", read)
         if params:
             return {"reranker": params["reranker"], "dictionary": bool(params.get("dictionary")),
+                    "retry_short": bool(params.get("retry_short")), "retry_refusals": bool(params.get("retry_refusals")),
+                    "number_words": bool(params.get("number_words")),
                     "min_retrieval_score": params.get("min_retrieval_score"),
                     "min_answer_relevance": params.get("min_answer_relevance"), "source": LAWS_SETTINGS.as_posix()}
     return {"reranker": default_reranker(lang), "dictionary": False, "source": f"data/adilet/generation_eval_{lang}.json"}
@@ -459,7 +461,8 @@ def answer_params(lang: str, corpus_name: str) -> Dict[str, Any]:
 
 def load_answerer(lang: str, corpus_name: str) -> GroundedAnswerer:
     """Ответ модели с проверками; соответствие ответа вопросу оценивает тот же реранкер, что и поиск."""
-    reranker_name = corpus_settings(lang, corpus_name)["reranker"]
+    settings = corpus_settings(lang, corpus_name)
+    reranker_name = settings["reranker"]
 
     def build() -> GroundedAnswerer:
         params = answer_params(lang, corpus_name)
@@ -470,6 +473,10 @@ def load_answerer(lang: str, corpus_name: str) -> GroundedAnswerer:
             relevance_scorer=reranker_relevance(load_reranker(reranker_name)),
             min_entailment=params["min_entailment"],
             entailment_scorer=load_entailment_scorer(params["min_entailment"]),
+            # Для законов: ответ числом («24 [1]») запрашивается заново полным предложением, числа закона словами
+            # («двадцать четыре») сверяются с цифрами ответа
+            retry_short=settings.get("retry_short", False), retry_refusals=settings.get("retry_refusals", False),
+            number_words=settings.get("number_words", False),
         )
 
     return model_store().get(("answerer", lang, corpus_name, reranker_name), build)

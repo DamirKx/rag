@@ -21,6 +21,7 @@ from src.generation import (
     extract_citations,
     is_malformed,
     is_refusal,
+    is_too_short,
     load_generation_params,
     sentence_support,
     strip_citations,
@@ -226,6 +227,27 @@ class TestGroundedAnswerer:
         client = SequenceClient("[1]", "[9]")
         answer = GroundedAnswerer(client).answer("Каков срок аренды?", PASSAGES)
         assert answer.status == STATUS_UNVERIFIED
+        assert len(client.calls) == 2
+
+    def test_short_answer_is_repeated_only_when_enabled(self):
+        full = "Срок аренды земельного участка — до 49 лет [1]."
+        assert is_too_short("49 [1]") and is_too_short("49 лет [1]") and not is_too_short(full)
+        assert not is_too_short(REFUSAL["rus"])
+        client = SequenceClient("49 [1]", full)
+        answer = GroundedAnswerer(client, retry_short=True).answer("Каков срок аренды?", PASSAGES)
+        assert answer.text == full and answer.usage["retried"] is True
+        assert "слишком короткий" in client.calls[1][-1]["content"]
+        client = SequenceClient("49 [1]")
+        GroundedAnswerer(client).answer("Каков срок аренды?", PASSAGES)
+        assert len(client.calls) == 1  # пороги Adilet подобраны без повтора
+
+    def test_refusal_is_repeated_only_when_enabled(self):
+        client = SequenceClient(REFUSAL["rus"], "Срок аренды земельного участка — до 49 лет [1].")
+        answer = GroundedAnswerer(client, retry_refusals=True).answer("Сколько можно арендовать землю?", PASSAGES)
+        assert answer.status == STATUS_ANSWERED
+        assert REFUSAL["rus"] in client.calls[1][-1]["content"]  # повторить отказ, если ответа правда нет
+        client = SequenceClient(REFUSAL["rus"], REFUSAL["rus"])
+        assert GroundedAnswerer(client, retry_refusals=True).answer("Сколько?", PASSAGES).status == STATUS_REFUSED
         assert len(client.calls) == 2
 
     def test_entailment_check(self):
