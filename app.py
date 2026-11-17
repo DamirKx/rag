@@ -47,7 +47,7 @@ from src.laws import LAWS_PARQUET, load_laws
 from src.reranker import CrossEncoderReranker, default_reranker
 from src.resources import ResourceMeter, gpu_memory, snapshot as resource_snapshot
 from src.retriever import tokenize_legal_text
-from src.tracing import get_langfuse, span, trace
+from src.tracing import get_langfuse, score_trace, span, trace
 
 CORPUS_LABELS = {"laws": "Законы для граждан (актуальные)", "adilet": "Датасет Adilet Legal QA (14 актов)"}
 CACHE_PARQUET = "data/raw/adilet_legal_qa_kz.parquet"
@@ -421,8 +421,10 @@ def compute_answer(query: str, hits: List[Dict[str, Any]], lang: str) -> Dict[st
         return {"answer": None, "passages": passages, "error": str(e)}
 
 
-def render_answer(answer: Optional[Answer], passages: List[Passage], lang: str, error: Optional[str]) -> None:
-    """Ответ модели с итогами проверки и источниками."""
+def render_answer(
+    answer: Optional[Answer], passages: List[Passage], lang: str, error: Optional[str], trace_id: Optional[str] = None,
+) -> None:
+    """Ответ модели с итогами проверки и источниками; под ответом — кнопки отзыва (если включён Langfuse)."""
     answerer = load_answerer(lang)
     with st.container(border=True):
         st.markdown("**Ответ**")
@@ -464,6 +466,22 @@ def render_answer(answer: Optional[Answer], passages: List[Passage], lang: str, 
                 st.write("Проверка нашла: " + "; ".join(answer.checks["problems"]) + ".")
                 st.caption("Отклонённый ответ модели (не является ответом системы):")
                 st.text(answer.raw)
+        render_feedback(trace_id)
+
+
+def render_feedback(trace_id: Optional[str]) -> None:
+    """Кнопки 👍/👎: оценка user_feedback (1/0) ставится на трассу ответа в Langfuse.
+
+    У оценки постоянный id, поэтому смена 👍 на 👎 перезаписывает её, а не добавляет вторую.
+    """
+    if not trace_id or get_langfuse() is None:
+        return
+    choice = st.feedback("thumbs", key=f"feedback-{trace_id}")
+    sent_key = f"feedback-sent-{trace_id}"
+    if choice is not None and st.session_state.get(sent_key) != choice:
+        if score_trace(trace_id, "user_feedback", float(choice), data_type="BOOLEAN", score_id=f"{trace_id}-user-feedback"):
+            st.session_state[sent_key] = choice
+            st.toast("Спасибо! Оценка сохранена в Langfuse.")
 
 
 def load_models(lang: str, model_name: str, corpus_name: str, rerank: bool, generate: bool) -> LegalSearchEngine:
@@ -504,7 +522,8 @@ def search_and_answer(
             t0 = time.time()
             # Модели нужны DEFAULT_TOP_K лучших фрагментов, даже если показать нужно меньше
             hits = run_search(engine, lang, query, mode, max(top_k, DEFAULT_TOP_K) if generate else top_k, laws, rerank, corpus_name)
-            result = {"hits": hits, "search_ms": (time.time() - t0) * 1000, "answer": None, "passages": [], "error": None}
+            result = {"hits": hits, "search_ms": (time.time() - t0) * 1000, "answer": None, "passages": [], "error": None,
+                      "trace_id": root.trace_id}
             if hits and generate:
                 result.update(compute_answer(query, hits[:DEFAULT_TOP_K], lang))
         answer = result["answer"]
@@ -641,7 +660,7 @@ def main() -> None:
             st.info("Ничего не найдено. Попробуйте переформулировать вопрос или снять фильтр по законам.")
         else:
             if generate:
-                render_answer(result["answer"], result["passages"], lang, result["error"])
+                render_answer(result["answer"], result["passages"], lang, result["error"], result.get("trace_id"))
             label = MODE_LABELS[mode] + (" + реранкер" if rerank else "")
             st.caption(f"{label} · найдено {len(hits[:top_k])} за {result['search_ms']:.0f} мс")
             for rank, hit in enumerate(hits[:top_k], 1):

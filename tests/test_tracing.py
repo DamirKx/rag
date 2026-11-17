@@ -67,6 +67,16 @@ def exporter(monkeypatch):
     monkeypatch.setattr(tracing, "_client", client)
     monkeypatch.setattr(tracing, "_initialized", True)
     memory.flush = client.flush
+    # Оценки уходят в Langfuse по HTTP, а не спанами: в тестах они перехватываются, иначе клиент
+    # пытался бы отправить их на несуществующий сервер
+    from langfuse._client.span import LangfuseObservationWrapper
+
+    memory.scores = {}
+
+    def fake_score_trace(self, *, name, value, data_type=None, comment=None, **kwargs):
+        memory.scores[name] = (value, data_type, comment)
+
+    monkeypatch.setattr(LangfuseObservationWrapper, "score_trace", fake_score_trace)
     return memory
 
 
@@ -166,6 +176,51 @@ def test_llm_stage_has_speed_cost_and_placement(exporter, monkeypatch):
     assert attr(llm, "metadata.ollama_on_gpu") == 0.26
     # Часть модели на процессоре — ответ медленнее, этап помечен предупреждением
     assert attr(llm, "level") == "WARNING"
+
+
+@pytest.fixture
+def recorded_scores(exporter):
+    return exporter.scores
+
+
+def test_answer_scores(exporter, recorded_scores):
+    answerer = GroundedAnswerer(FakeClient("Налог уплачивается ежегодно до 1 апреля [1]."), min_retrieval_score=0.5,
+                                min_answer_relevance=0.1, relevance_scorer=lambda q, a: 0.8)
+    with tracing.trace("request"):
+        answerer.answer("Когда уплачивается налог?", passages())
+    assert recorded_scores["retrieval_top_score"][:2] == (0.9, "NUMERIC")
+    assert recorded_scores["sentence_support"][0] == 1.0
+    assert recorded_scores["answer_relevance"][0] == 0.8
+    assert recorded_scores["answer_status"][:2] == (STATUS_ANSWERED, "CATEGORICAL")
+    assert recorded_scores["answer_shown"] == (1, "BOOLEAN", None)
+    assert "entailment" not in recorded_scores  # проверка не включена — оценки нет
+
+
+def test_rejected_answer_scores_explain_why(exporter, recorded_scores):
+    answerer = GroundedAnswerer(FakeClient("Налог уплачивается до 15 мая [1]."), min_retrieval_score=None,
+                                min_answer_relevance=None)
+    with tracing.trace("request"):
+        answerer.answer("Когда уплачивается налог?", passages())
+    value, data_type, comment = recorded_scores["answer_shown"]
+    assert (value, data_type) == (0, "BOOLEAN") and "15" in comment
+
+
+def test_no_scores_without_trace(exporter, recorded_scores):
+    GroundedAnswerer(FakeClient("Налог уплачивается ежегодно [1]."), min_retrieval_score=None,
+                     min_answer_relevance=None).answer("Когда уплачивается налог?", passages())
+    assert recorded_scores == {}
+
+
+def test_user_feedback_score(exporter, monkeypatch):
+    calls = []
+    monkeypatch.setattr(tracing._client, "create_score", lambda **kwargs: calls.append(kwargs))
+    with tracing.trace("request") as root:
+        trace_id = root.trace_id
+    assert trace_id
+    assert tracing.score_trace(trace_id, "user_feedback", 1.0, data_type="BOOLEAN", score_id=f"{trace_id}-user-feedback")
+    assert calls == [{"trace_id": trace_id, "name": "user_feedback", "value": 1.0, "data_type": "BOOLEAN",
+                      "comment": None, "score_id": f"{trace_id}-user-feedback"}]
+    assert not tracing.score_trace("", "user_feedback", 1.0)
 
 
 def test_retry_stage_has_reason(exporter):

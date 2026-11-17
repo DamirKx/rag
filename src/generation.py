@@ -486,6 +486,24 @@ def load_generation_params(lang: str, reranker: Optional[str] = None, path: Opti
     return params
 
 
+def record_scores(obs, answer: "Answer") -> None:
+    """Оценки трассы в Langfuse: по ним в списке трасс можно фильтровать и строить графики.
+
+    Числа — итоги тех же проверок, что решают, показывать ли ответ (без отдельной модели-судьи:
+    облачные LLM-оценщики Langfuse правилами курсовой не разрешены).
+    """
+    checks = answer.checks
+    obs.score_trace("retrieval_top_score", checks.get("top_score"),
+                    comment="оценка реранкера лучшего фрагмента: уверенность поиска")
+    obs.score_trace("sentence_support", checks.get("min_sentence_support"),
+                    comment="доля слов худшего предложения ответа, найденных в тексте закона")
+    obs.score_trace("answer_relevance", checks.get("answer_relevance"), comment="соответствие ответа вопросу (реранкер)")
+    obs.score_trace("entailment", checks.get("entailment"), comment="ответ следует из цитируемого фрагмента (NLI)")
+    obs.score_trace("answer_status", answer.status, data_type="CATEGORICAL")
+    obs.score_trace("answer_shown", 1 if answer.answered else 0, data_type="BOOLEAN",
+                    comment="; ".join(checks.get("problems", [])) or None)
+
+
 # Оценка соответствия ответа вопросу: (вопрос, ответ) -> число в шкале реранкера
 RelevanceScorer = Callable[[str, str], float]
 # Следование ответа из фрагментов: (вопрос, ответ, цитируемые фрагменты) -> вероятность (src/nli.py)
@@ -616,6 +634,8 @@ class GroundedAnswerer:
                 metadata={"model": model, "lang": self.lang, "status": result.status, "cited": result.cited},
                 **({"level": "WARNING"} if result.status == STATUS_UNVERIFIED else {}),
             )
+            if obs.enabled:
+                record_scores(obs, result)
         return result
 
     def judge(

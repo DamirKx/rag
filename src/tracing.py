@@ -57,12 +57,26 @@ class Observation:
     def enabled(self) -> bool:
         return self._obs is not None
 
+    @property
+    def trace_id(self) -> Optional[str]:
+        """Id трассы — чтобы позже поставить ей оценку (кнопки 👍/👎 в веб-демо)."""
+        return getattr(self._obs, "trace_id", None)
+
     def update(self, **kwargs: Any) -> None:
         """Дописывает output, metadata, level, usage_details и т. п. (как LangfuseSpan.update)."""
         if self._obs is None:
             return
         try:
             self._obs.update(**kwargs)
+        except Exception as e:
+            _warn(e)
+
+    def score_trace(self, name: str, value: Any, data_type: str = "NUMERIC", comment: Optional[str] = None) -> None:
+        """Оценка всей трассы (NUMERIC, BOOLEAN — 1/0, CATEGORICAL — строка); None не записывается."""
+        if self._obs is None or value is None:
+            return
+        try:
+            self._obs.score_trace(name=name, value=value, data_type=data_type, comment=comment)
         except Exception as e:
             _warn(e)
 
@@ -145,6 +159,23 @@ def span(name: str, as_type: str = "span", **kwargs: Any) -> Iterator[Observatio
         return
     with _guarded(lambda: client.start_as_current_observation(name=name, as_type=as_type, **kwargs)) as obs:
         yield Observation(obs)
+
+
+def score_trace(trace_id: str, name: str, value: Any, data_type: str = "NUMERIC", comment: Optional[str] = None,
+                score_id: Optional[str] = None) -> bool:
+    """Оценка уже закрытой трассы по её id (отзыв пользователя). С тем же score_id оценка перезаписывается.
+
+    Возвращает True, если оценка отправлена.
+    """
+    client = get_langfuse()
+    if client is None or not trace_id:
+        return False
+    try:
+        client.create_score(trace_id=trace_id, name=name, value=value, data_type=data_type, comment=comment, score_id=score_id)
+        return True
+    except Exception as e:
+        _warn(e)
+        return False
 
 
 def tracing_active() -> bool:
