@@ -1,0 +1,35 @@
+[
+  {
+    "run_name": "qwen2.5:3b, F1 по словам",
+    "dataset": "adilet-test-rus-50",
+    "questions": 50,
+    "seconds": 315,
+    "metrics": {
+      "gold_in_context": {
+        "mean": 0.68,
+        "n": 50
+      },
+      "answer_shown": {
+        "mean": 0.74,
+        "n": 50
+      },
+      "token_f1": {
+        "mean": 0.5068,
+        "n": 37
+      },
+      "rouge_l": {
+        "mean": 0.4813,
+        "n": 37
+      },
+      "answered_from_gold": {
+        "mean": 0.5676,
+        "n": 37
+      }
+    },
+    "llm": "qwen2.5:3b",
+    "embedder": "models/e5-small-adilet-rus",
+    "reranker": "models/reranker-bge-m3-adilet-rus",
+    "lang": "rus",
+    "date": "2026-11-17 18:51"
+  }
+]
