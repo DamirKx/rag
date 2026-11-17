@@ -19,6 +19,7 @@ BM25 и Hybrid (RRF). В отличие от ask.py, поиск идёт по ч
 import html
 import json
 import re
+import sys
 import threading
 import time
 import urllib.request
@@ -34,7 +35,7 @@ from ask import (
     LegalSearchEngine, build_passages, default_model, load_bm25_params, load_hybrid_params, load_legal_corpus,
     load_rerank_pool,
 )
-from run_adilet_eval import DEFAULT_MODEL, model_cache_name
+from run_adilet_eval import DEFAULT_MODEL, model_cache_name, texts_fingerprint
 from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus, law_titles
 from src.nli import load_entailment_scorer
 from src.embeddings import EmbeddingModel
@@ -193,23 +194,51 @@ def engine_key(lang: str, model_name: str, corpus_name: str) -> tuple:
     return ("engine", corpus_name, lang, model_name)
 
 
+def release_gpu_memory() -> None:
+    """Возвращает видеокарте память, которую PyTorch держит про запас после реранкера: она нужна Qwen в Ollama."""
+    torch = sys.modules.get("torch")  # torch уже загружен, если модели работали на видеокарте
+    if torch is not None and torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
 def load_embedder(model_name: str) -> EmbeddingModel:
-    return model_store().get(("embedder", model_name), lambda: EmbeddingModel(model_name=model_name, device=device()))
+    """Модель эмбеддингов вопросов — на процессоре.
+
+    На видеокарте 4 ГБ не помещаются вместе e5, реранкер и Qwen: Ollama выносит часть слоёв в обычную память,
+    и ответ модели замедляется в 1,5–2 раза. Вопрос из десятка слов e5-small векторизует на CPU за десятки
+    миллисекунд — поиск от этого не замедляется (замер — в README).
+    """
+    return model_store().get(("embedder", model_name), lambda: EmbeddingModel(model_name=model_name, device="cpu"))
 
 
 def load_engine(lang: str, model_name: str, corpus_name: str = "adilet") -> LegalSearchEngine:
     def build() -> LegalSearchEngine:
         corpus = build_corpus(lang, corpus_name)
+        texts = [c["text"] for c in corpus]
         suffix = "_laws" if corpus_name == "laws" else ""
-        engine = LegalSearchEngine(
-            docs=[c["text"] for c in corpus],
-            doc_ids=[c["id"] for c in corpus],
-            embedder=load_embedder(model_name),
-            cache_dir=CACHE_DIR,
-            cache_key=f"{model_cache_name(model_name)}_{lang}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}{suffix}",
-            hybrid_params=load_hybrid_params(model_name, lang),
-            bm25_params=load_bm25_params(lang),
-        )
+        cache_key = f"{model_cache_name(model_name)}_{lang}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}{suffix}"
+        embedder = load_embedder(model_name)
+        # Если кэша эмбеддингов корпуса нет, корпус векторизуется на видеокарте (на CPU это минуты), затем e5
+        # возвращается на CPU. Блокировка — чтобы два корпуса не переносили общую модель одновременно
+        cached = Path(CACHE_DIR, f"{cache_key}_{texts_fingerprint(texts)}.npy").exists()
+        with model_store().get("embedder-device-lock", threading.Lock):
+            gpu = not cached and device() == "cuda"
+            if gpu:
+                embedder.to("cuda")
+            try:
+                engine = LegalSearchEngine(
+                    docs=texts,
+                    doc_ids=[c["id"] for c in corpus],
+                    embedder=embedder,
+                    cache_dir=CACHE_DIR,
+                    cache_key=cache_key,
+                    hybrid_params=load_hybrid_params(model_name, lang),
+                    bm25_params=load_bm25_params(lang),
+                )
+            finally:
+                if gpu:
+                    embedder.to("cpu")
+                    release_gpu_memory()
         engine.rerank_pool = rerank_pool(lang)
         return engine
 
@@ -227,6 +256,7 @@ def warm_up(lang: str, model_name: str, corpus_name: str) -> None:
         engine.bm25_retriever  # индекс BM25 строится при первом обращении
         engine.embed_query("прогрев модели")
         load_reranker(default_reranker(lang)).score("прогрев модели", ["прогрев модели"])
+        release_gpu_memory()
     except Exception as e:  # запрос пользователя всё равно загрузит модели сам и покажет ошибку
         print(f"Фоновая загрузка моделей не удалась: {e}")
 
@@ -597,6 +627,7 @@ def main() -> None:
         result = cache.get(key)
         if result is None:
             result = search_and_answer(query, corpus_name, lang, model_name, mode, top_k, laws, rerank, generate)
+            release_gpu_memory()
             if result["error"] is None:  # при недоступной Ollama следующий клик попробует снова
                 cache.put(key, result)
         hits = result["hits"]
@@ -623,6 +654,7 @@ def main() -> None:
                 if hits is None:
                     hits = run_search(engine, lang, query, m, 3, laws, m_rerank, corpus_name)
                     cache.put(key, hits)
+                    release_gpu_memory()
                 for rank, hit in enumerate(hits, 1):
                     render_hit(rank, hit, m, lang, stems, compact=True, rerank=m_rerank)
 

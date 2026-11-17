@@ -47,6 +47,12 @@ class EmbeddingModel:
         # запросы должны предваряться 'query: ', а индексируемые документы — 'passage: '.
         self.is_e5 = "e5" in model_name.lower()
 
+    def to(self, device: str) -> "EmbeddingModel":
+        """Переносит модель на другое устройство (веб-демо векторизует корпус на GPU, а вопросы — на CPU)."""
+        self.model.to(device)
+        self.device = device
+        return self
+
     def encode_queries(self, queries: List[str]) -> np.ndarray:
         """Векторизует список входящих пользовательских запросов.
 

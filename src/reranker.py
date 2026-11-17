@@ -71,14 +71,21 @@ class CrossEncoderReranker:
         self.batch_size = batch_size
         self.window_chars = window_chars
         self.window_overlap = window_overlap
-        self.model = _cross_encoder_class()(model_name, device=device, max_length=max_length)
-        if fp16 is None:
+        if fp16 is None or device is None:
             import torch
 
-            fp16 = device == "cuda" if device is not None else torch.cuda.is_available()
+            device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+            fp16 = device == "cuda" if fp16 is None else fp16
         self.fp16 = fp16
         if fp16:
+            # Веса читаются в полной точности на процессоре и переносятся на видеокарту уже в половинной.
+            # Если перевести модель в fp16 прямо на видеокарте, освободившиеся 2,2 ГБ остаются раздробленными
+            # и PyTorch держит ~1 ГБ видеопамяти впустую — её не хватает языковой модели в Ollama
+            self.model = _cross_encoder_class()(model_name, device="cpu", max_length=max_length)
             self.model.half()
+            self.model.to(device)
+        else:
+            self.model = _cross_encoder_class()(model_name, device=device, max_length=max_length)
 
     def score(self, query: str, documents: Sequence[str]) -> List[float]:
         """Возвращает оценки релевантности каждого документа запросу (чем выше, тем релевантнее)."""

@@ -38,6 +38,9 @@ class FakeCrossEncoder:
     def half(self):
         return self
 
+    def to(self, device):
+        return self
+
     def predict(self, pairs, **kwargs):
         return [len(set(tokenize_legal_text(q)) & set(tokenize_legal_text(d))) for q, d in pairs]
 
