@@ -25,6 +25,8 @@ pypdf==7.0.0
 sentencepiece==0.2.3
 # Трассировка ответов (src/tracing.py), работает только при заданных ключах
 langfuse==5.2.0
+# Процессор и память в трассах (src/resources.py)
+psutil==7.2.2
 
 # Дообучение эмбеддера (notebooks/finetune_e5.ipynb)
 datasets==5.1.0

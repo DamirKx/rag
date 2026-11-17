@@ -13,10 +13,20 @@
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
 
-import torch
-from sentence_transformers import CrossEncoder
-
 from src.chunking import get_fixed_size_chunks
+
+# sentence_transformers.CrossEncoder: импорт занимает ~10 с, поэтому он откладывается до создания
+# первого реранкера (веб-демо успевает показать страницу). Тесты подменяют этот атрибут.
+CrossEncoder = None
+
+
+def _cross_encoder_class():
+    global CrossEncoder
+    if CrossEncoder is None:
+        from sentence_transformers import CrossEncoder as cross_encoder
+
+        CrossEncoder = cross_encoder
+    return CrossEncoder
 
 # Мультиязычный реранкер на базе bge-m3: поддерживает русский и казахский языки
 DEFAULT_RERANKER = "BAAI/bge-reranker-v2-m3"
@@ -61,12 +71,21 @@ class CrossEncoderReranker:
         self.batch_size = batch_size
         self.window_chars = window_chars
         self.window_overlap = window_overlap
-        self.model = CrossEncoder(model_name, device=device, max_length=max_length)
-        if fp16 is None:
-            fp16 = device == "cuda" if device is not None else torch.cuda.is_available()
+        if fp16 is None or device is None:
+            import torch
+
+            device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+            fp16 = device == "cuda" if fp16 is None else fp16
         self.fp16 = fp16
         if fp16:
+            # Веса читаются в полной точности на процессоре и переносятся на видеокарту уже в половинной.
+            # Если перевести модель в fp16 прямо на видеокарте, освободившиеся 2,2 ГБ остаются раздробленными
+            # и PyTorch держит ~1 ГБ видеопамяти впустую — её не хватает языковой модели в Ollama
+            self.model = _cross_encoder_class()(model_name, device="cpu", max_length=max_length)
             self.model.half()
+            self.model.to(device)
+        else:
+            self.model = _cross_encoder_class()(model_name, device=device, max_length=max_length)
 
     def score(self, query: str, documents: Sequence[str]) -> List[float]:
         """Возвращает оценки релевантности каждого документа запросу (чем выше, тем релевантнее)."""

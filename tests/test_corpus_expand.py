@@ -1,10 +1,9 @@
-"""Тесты контекста для языковой модели: расширение чанка до границ предложений, склейка, трассировка."""
+"""Тесты контекста для языковой модели: расширение чанка до границ предложений, склейка (трассировка — test_tracing.py)."""
 
 import pandas as pd
 
-from src import tracing
 from src.corpus import build_chunk_corpus, expand_hits, expand_span
-from src.generation import Answer, GroundedAnswerer, Passage
+from src.generation import Passage
 
 
 def hit(context, start, end, chunk_id="ctx_0001_fix_000", score=0.9, **extra):
@@ -93,33 +92,3 @@ def test_corpus_chunks_know_their_position():
     for chunk in corpus:
         assert chunk["context"][chunk["start"]:chunk["end"]] == chunk["text"]
 
-
-class TestTracing:
-    def reset(self, monkeypatch, client=None):
-        monkeypatch.setattr(tracing, "_client", client)
-        monkeypatch.setattr(tracing, "_initialized", True)
-
-    def test_no_keys_means_no_client(self, monkeypatch):
-        monkeypatch.delenv("LANGFUSE_PUBLIC_KEY", raising=False)
-        monkeypatch.delenv("LANGFUSE_SECRET_KEY", raising=False)
-        monkeypatch.setattr(tracing, "_client", None)
-        monkeypatch.setattr(tracing, "_initialized", False)
-        assert tracing.get_langfuse() is None
-
-    def test_tracing_failure_does_not_break_answer(self, monkeypatch, capsys):
-        class Broken:
-            def start_as_current_observation(self, **kwargs):
-                raise RuntimeError("сервер недоступен")
-
-        self.reset(monkeypatch, Broken())
-
-        class Client:
-            model = "m"
-
-            def chat(self, messages):
-                return {"text": "Норма закона [1].", "prompt_tokens": 1, "completion_tokens": 1, "latency_s": 0.1, "cached": False}
-
-        passages = [Passage(id="a", text="Норма закона.", score=1.0)]
-        answer = GroundedAnswerer(Client(), min_retrieval_score=None, min_answer_relevance=None).answer("Какая норма?", passages)
-        assert isinstance(answer, Answer) and answer.answered
-        assert "сервер недоступен" in capsys.readouterr().out

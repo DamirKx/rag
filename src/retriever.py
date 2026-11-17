@@ -12,6 +12,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from src.text_norm import get_normalizer
+from src.tracing import MAX_LOGGED_HITS, brief_hits, span
 
 
 class VectorRetriever:
@@ -375,26 +376,50 @@ class HybridRetriever:
         pool_size = max(k * candidate_multiplier, 20)
 
         # 1. Поиск в плотном индексе (FAISS)
-        q_emb = np.ascontiguousarray(query_embedding).reshape(1, -1)
-        _, dense_indices = self.vector_retriever.search(q_emb, k=pool_size)
-        dense_doc_ids = [self.vector_retriever.get_doc_id(idx) for idx in dense_indices[0] if idx >= 0]
+        with span("dense-faiss", as_type="retriever", input={"pool": pool_size}) as obs:
+            q_emb = np.ascontiguousarray(query_embedding).reshape(1, -1)
+            dense_scores, dense_indices = self.vector_retriever.search(q_emb, k=pool_size)
+            dense_doc_ids = [self.vector_retriever.get_doc_id(idx) for idx in dense_indices[0] if idx >= 0]
+            if obs.enabled:
+                obs.update(
+                    output=brief_hits([(d, s) for d, s, i in zip(dense_doc_ids, dense_scores[0], dense_indices[0]) if i >= 0]),
+                    metadata={"index": "FAISS IndexFlatIP", "n_docs": self.vector_retriever.index.ntotal},
+                )
 
         # 2. Поиск в лексическом индексе (BM25)
-        bm25_results = self.bm25_retriever.search(query, k=pool_size)
-        sparse_doc_ids = [doc_id for doc_id, _ in bm25_results]
+        with span("bm25", as_type="retriever", input={"query": query, "pool": pool_size}) as obs:
+            bm25_results = self.bm25_retriever.search(query, k=pool_size)
+            sparse_doc_ids = [doc_id for doc_id, _ in bm25_results]
+            obs.update(output=brief_hits(bm25_results), metadata=self.bm25_retriever.params)
 
         # 3. Слияние ранжированных списков по алгоритму Reciprocal Rank Fusion (RRF)
-        rrf_scores: Dict[str, float] = {}
+        with span("rrf", input={"dense": len(dense_doc_ids), "bm25": len(sparse_doc_ids)}) as obs:
+            rrf_scores: Dict[str, float] = {}
 
-        for rank, doc_id in enumerate(dense_doc_ids, start=1):
-            rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + self.dense_weight / (self.rrf_k + rank)
+            for rank, doc_id in enumerate(dense_doc_ids, start=1):
+                rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + self.dense_weight / (self.rrf_k + rank)
 
-        for rank, doc_id in enumerate(sparse_doc_ids, start=1):
-            rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + self.sparse_weight / (self.rrf_k + rank)
+            for rank, doc_id in enumerate(sparse_doc_ids, start=1):
+                rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + self.sparse_weight / (self.rrf_k + rank)
 
-        # Сортируем документы по убыванию итогового RRF балла
-        ranked_docs = sorted(rrf_scores.keys(), key=lambda d: rrf_scores[d], reverse=True)
-        return [(doc_id, rrf_scores[doc_id]) for doc_id in ranked_docs[:k]]
+            # Сортируем документы по убыванию итогового RRF балла
+            ranked_docs = sorted(rrf_scores.keys(), key=lambda d: rrf_scores[d], reverse=True)
+            result = [(doc_id, rrf_scores[doc_id]) for doc_id in ranked_docs[:k]]
+            if obs.enabled:
+                # Место каждого результата в списках Dense и BM25 (None — не попал в пул этого метода)
+                dense_rank = {d: r for r, d in enumerate(dense_doc_ids, 1)}
+                sparse_rank = {d: r for r, d in enumerate(sparse_doc_ids, 1)}
+                obs.update(
+                    output={
+                        "total": len(result),
+                        "top": [
+                            {"rank": r, "id": d, "rrf": round(s, 5), "dense_rank": dense_rank.get(d), "bm25_rank": sparse_rank.get(d)}
+                            for r, (d, s) in enumerate(result[:MAX_LOGGED_HITS], 1)
+                        ],
+                    },
+                    metadata={"dense_weight": self.dense_weight, "sparse_weight": self.sparse_weight, "rrf_k": self.rrf_k},
+                )
+            return result
 
     def search(
         self,

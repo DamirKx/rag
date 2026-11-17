@@ -7,7 +7,6 @@
 
 from typing import List
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 
 class EmbeddingModel:
@@ -37,13 +36,22 @@ class EmbeddingModel:
         self.model_name = model_name
         self.device = device
 
-        # Загрузка предобученной модели через SentenceTransformer
+        # Загрузка предобученной модели через SentenceTransformer. Библиотека импортируется здесь,
+        # а не в начале модуля: её импорт занимает ~10 с, а веб-демо должно сразу показать страницу
+        from sentence_transformers import SentenceTransformer
+
         self.model = SentenceTransformer(model_name, device=device)
 
         # Проверка: является ли модель представителем семейства E5.
         # Модели E5 обучались контрастным обучением с жестким требованием к префиксам:
         # запросы должны предваряться 'query: ', а индексируемые документы — 'passage: '.
         self.is_e5 = "e5" in model_name.lower()
+
+    def to(self, device: str) -> "EmbeddingModel":
+        """Переносит модель на другое устройство (веб-демо векторизует корпус на GPU, а вопросы — на CPU)."""
+        self.model.to(device)
+        self.device = device
+        return self
 
     def encode_queries(self, queries: List[str]) -> np.ndarray:
         """Векторизует список входящих пользовательских запросов.
