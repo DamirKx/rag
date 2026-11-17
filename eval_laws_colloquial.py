@@ -117,6 +117,16 @@ def adilet_regression() -> Dict[str, Any]:
     return out
 
 
+# Настройки корпуса законов для веб-демо. Повтор после отказа добавил один правильный ответ из 49 (после просьбы
+# перепроверить модель чаще отвечает одной ссылкой «[1]»), а каждый отказ делает дольше на запрос к модели — не включён
+CHOSEN = "+ числа словами, повтор коротких"
+
+
+def gold_in(passages, gold, by_id: Dict[str, Dict[str, Any]]) -> bool:
+    """Есть ли эталонная статья среди фрагментов, переданных модели."""
+    return any((by_id[i]["law"], a) in gold for p in passages for i in p.ids for a in article_numbers(by_id[i]))
+
+
 def answers_stage(results: Dict[str, Any]) -> Dict[str, Any]:
     """Ответы Qwen на все вопросы: как сейчас в веб-демо и с новыми настройками для корпуса законов.
 
@@ -154,6 +164,16 @@ def answers_stage(results: Dict[str, Any]) -> Dict[str, Any]:
         # То же, но и модель получает вопрос с терминами закона: связь «развестись» → «расторжение брака» ей подсказана
         "новые + термины модели": {"reranker": DEFAULT_RERANKER, "dictionary": True, "terms_for_model": True,
                                    "min_retrieval_score": new_gate, "min_answer_relevance": None},
+        # Проверка чисел понимает числа словами в законе («двадцать четыре календарных дня» = «24 дня»)
+        "+ числа словами": {"reranker": DEFAULT_RERANKER, "dictionary": True, "number_words": True,
+                            "min_retrieval_score": new_gate, "min_answer_relevance": None},
+        # Повторный запрос, если ответ — одно число («24 [1]»), и после отказа при найденных фрагментах
+        "+ числа словами, повтор коротких": {"reranker": DEFAULT_RERANKER, "dictionary": True, "number_words": True,
+                                             "retry_short": True, "min_retrieval_score": new_gate,
+                                             "min_answer_relevance": None},
+        "+ числа словами, повтор коротких и отказов": {"reranker": DEFAULT_RERANKER, "dictionary": True,
+                                                       "number_words": True, "retry_short": True, "retry_refusals": True,
+                                                       "min_retrieval_score": new_gate, "min_answer_relevance": None},
     }
     out: Dict[str, Any] = {}
     for label, cfg in configs.items():
@@ -163,6 +183,8 @@ def answers_stage(results: Dict[str, Any]) -> Dict[str, Any]:
             client, LANG, min_retrieval_score=cfg["min_retrieval_score"], min_sentence_support=adilet["min_sentence_support"],
             min_answer_relevance=cfg["min_answer_relevance"], relevance_scorer=reranker_relevance(reranker),
             min_entailment=adilet["min_entailment"], entailment_scorer=entailment,
+            retry_short=bool(cfg.get("retry_short")), retry_refusals=bool(cfg.get("retry_refusals")),
+            number_words=bool(cfg.get("number_words")),
         )
         records = []
         for q in data:
@@ -173,8 +195,11 @@ def answers_stage(results: Dict[str, Any]) -> Dict[str, Any]:
             gold = {(g["law"], g["article"]) for g in q["gold"]}
             cited = [passages[n - 1] for n in answer.cited if 1 <= n <= len(passages)] if answer.answered else []
             from_gold = any((by_id[i]["law"], a) in gold for p in cited for i in p.ids for a in article_numbers(by_id[i]))
+            # raw — ответ модели до проверки (в answer при отклонении стоит запасной текст), problems — почему отклонён
             records.append({"id": q["id"], "status": answer.status, "from_gold": from_gold, "has_gold": bool(gold),
-                            "relevance": answer.checks.get("answer_relevance"), "answer": answer.text})
+                            "gold_in_context": gold_in(passages, gold, by_id),
+                            "relevance": answer.checks.get("answer_relevance"), "answer": answer.text, "raw": answer.raw,
+                            "problems": list(answer.checks.get("problems", []))})
             print(f"  [{label}] {q['id']} {answer.status:10s} {'по эталону' if from_gold else '':10s} {q['question']}", flush=True)
         if cfg["min_answer_relevance"] is None:
             # Порог соответствия ответа вопросу в шкале исходного реранкера: хорошие — показанные ответы по эталонной статье,
@@ -185,6 +210,7 @@ def answers_stage(results: Dict[str, Any]) -> Dict[str, Any]:
             for r in records:
                 if r["status"] == STATUS_ANSWERED and r["relevance"] is not None and r["relevance"] < cfg["min_answer_relevance"]:
                     r["status"], r["from_gold"] = STATUS_UNVERIFIED, False
+                    r["problems"].append("ответ не относится к заданному вопросу")
         inside = [r for r in records if r["has_gold"]]
         outside = [r for r in records if not r["has_gold"]]
         summary = {
@@ -199,12 +225,12 @@ def answers_stage(results: Dict[str, Any]) -> Dict[str, Any]:
         gc.collect()
         if device == "cuda":
             torch.cuda.empty_cache()
-    print(f"\n{'вариант':18s} {'ответ показан':>14s} {'по эталону':>11s} {'ответ вне корпуса':>18s}  статусы (вопросы с ответом в корпусе)")
+    print(f"\n{'вариант':44s} {'ответ показан':>14s} {'по эталону':>11s} {'ответ вне корпуса':>18s}  статусы (вопросы с ответом в корпусе)")
     for label, o in out.items():
         s = o["summary"]
-        print(f"{label:18s} {s['answered']:14.1%} {s['answered_from_gold']:11.1%} {s['outside_answered']:18.1%}  {s['statuses']}")
-    p = out[max(out, key=lambda k: out[k]["summary"]["answered_from_gold"])]["params"]
-    print(f"\nПороги для корпуса законов: уверенность поиска {p['min_retrieval_score']}, соответствие вопросу {p['min_answer_relevance']}")
+        print(f"{label:44s} {s['answered']:14.1%} {s['answered_from_gold']:11.1%} {s['outside_answered']:18.1%}  {s['statuses']}")
+    p = out[CHOSEN]["params"]
+    print(f"\nВыбран вариант «{CHOSEN}». Пороги для корпуса законов: уверенность поиска {p['min_retrieval_score']}, соответствие вопросу {p['min_answer_relevance']}")
     return out
 
 
@@ -212,10 +238,11 @@ def main() -> None:
     if "--answers" in sys.argv:
         results = json.loads(RESULT.read_text(encoding="utf-8"))
         results["answers"] = answers_stage(results)
-        best = max(results["answers"], key=lambda k: results["answers"][k]["summary"]["answered_from_gold"])
-        new = results["answers"][best]["params"]
+        new = results["answers"][CHOSEN]["params"]
         # Настройки корпуса законов для веб-демо (app.py)
         results["params"] = {"reranker": new["reranker"], "dictionary": True, "terms_for_model": bool(new.get("terms_for_model")),
+                             "retry_short": bool(new.get("retry_short")), "retry_refusals": bool(new.get("retry_refusals")),
+                             "number_words": bool(new.get("number_words")),
                              "min_retrieval_score": new["min_retrieval_score"], "min_answer_relevance": new["min_answer_relevance"]}
         RESULT.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
         return

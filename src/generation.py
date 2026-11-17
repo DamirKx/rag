@@ -37,6 +37,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
+from src.number_words import numbers_in_words
 from src.retriever import tokenize_legal_text
 from src.text_norm import get_normalizer
 from src.resources import ollama_placement
@@ -112,6 +113,36 @@ RETRY_PROMPT = {
     "kaz": (
         "Жауап қабылданбады. Үзінділер мәтіні бойынша толық сөйлеммен жауап беру керек, ал төртбұрышты жақшада "
         "тек 1-ден {n}-ге дейінгі үзінді нөмірі болуы керек. Жауапты қайта жаз."
+    ),
+}
+
+# Повторный запрос, если ответ — одно число или пара слов («24 [1]»): такой ответ нельзя проверить
+# на соответствие вопросу (GroundedAnswerer(retry_short=True))
+SHORT_RETRY_PROMPT = {
+    "rus": (
+        "Ответ слишком короткий. Перепиши из фрагмента одно-два предложения, в которых есть ответ на вопрос, "
+        "и поставь в конце номер фрагмента в квадратных скобках — от 1 до {n}."
+    ),
+    "kaz": (
+        "Жауап тым қысқа. Үзіндіден сұрақтың жауабы бар бір-екі сөйлемді көшіріп жаз да, соңында төртбұрышты "
+        "жақшада үзінді нөмірін көрсет — 1-ден {n}-ге дейін."
+    ),
+}
+
+# Повторный запрос после отказа: вопрос задан обычными словами, а закон говорит о том же юридическими
+# терминами — модель не видит связи (GroundedAnswerer(retry_refusals=True))
+REFUSAL_RETRY_PROMPT = {
+    "rus": (
+        "Проверь фрагменты ещё раз. Вопрос задан обычными словами, а в законе то же самое может называться "
+        "юридическим термином. Если какой-либо фрагмент относится к теме вопроса, ответь по нему полным предложением "
+        "и поставь номер фрагмента в квадратных скобках — от 1 до {n}. Если ни один фрагмент не относится к вопросу, "
+        "ответь ровно одной фразой: «{refusal}»"
+    ),
+    "kaz": (
+        "Үзінділерді қайта тексер. Сұрақ қарапайым сөздермен қойылған, ал заңда дәл сол нәрсе заң терминімен аталуы "
+        "мүмкін. Егер қандай да бір үзінді сұрақтың тақырыбына қатысты болса, соған сүйеніп толық сөйлеммен жауап бер "
+        "және төртбұрышты жақшада үзінді нөмірін көрсет — 1-ден {n}-ге дейін. Егер бірде-бір үзінді сұраққа қатысы "
+        "болмаса, дәл бір сөйлеммен жауап бер: «{refusal}»"
     ),
 }
 
@@ -352,25 +383,29 @@ def drop_invalid_citations(answer: str, n_passages: int) -> str:
     return re.sub(r"\s+([.,;:])", r"\1", cleaned).strip()
 
 
-def _context_numbers(context: str) -> set:
-    """Числа контекста и даты, записанные словами («1 июля 2023» → «01.07.2023»)."""
+def _context_numbers(context: str, words: bool = False) -> set:
+    """Числа контекста, даты с месяцем словом («1 июля 2023» → «01.07.2023»); с words — и числа словами
+    («двадцать четыре» → «24», src/number_words.py)."""
     norm = normalize_for_check(context)
     numbers = set(NUMBER.findall(norm))
+    if words:
+        numbers |= numbers_in_words(norm)
     for day, month, year in DATE_IN_WORDS.findall(norm):
         numbers.add(f"{int(day):02d}.{MONTHS[month]:02d}.{year}")
     return numbers
 
 
-def unsupported_numbers(answer: str, context: str) -> List[str]:
+def unsupported_numbers(answer: str, context: str, words: bool = False) -> List[str]:
     """Числа ответа (кроме ссылок [n]), которых нет в контексте.
 
     Даты сравниваются без ведущих нулей («1.07.2023» = «01.07.2023»); дата во фрагменте
-    может быть записана словами.
+    может быть записана словами. words=True — число может быть записано словами и в тексте закона
+    («24» = «двадцать четыре»; для корпуса законов, см. src/number_words.py).
     """
     def canon(number: str) -> str:
         return re.sub(r"\b0+(\d)", r"\1", number)
 
-    known = {canon(n) for n in _context_numbers(context)}
+    known = {canon(n) for n in _context_numbers(context, words)}
     # Нумерация списка в начале строки («1) ...», «2. ...») — оформление ответа, а не сведения из закона
     text = LIST_MARKER.sub("", normalize_for_check(strip_citations(answer)))
     missing = []
@@ -415,6 +450,13 @@ def is_malformed(answer: str, n_passages: int, lang: str = "rus") -> bool:
     if is_refusal(answer, lang):
         return False
     return not re.search(r"\w", strip_citations(answer)) or any(not 1 <= n <= n_passages for n in extract_citations(answer))
+
+
+def is_too_short(answer: str, lang: str = "rus") -> bool:
+    """Ответ из числа и не больше одного слова («24 [1]», «18 лет»): его не с чем сверить по смыслу."""
+    if is_refusal(answer, lang):
+        return False
+    return len(re.findall(r"[^\W\d_]{3,}", strip_citations(answer))) < 2
 
 
 def malformed_reason(answer: str, n_passages: int) -> str:
@@ -529,6 +571,9 @@ class GroundedAnswerer:
         verify: bool = True,
         min_entailment: Optional[float] = None,
         entailment_scorer: Optional[EntailmentScorer] = None,
+        retry_short: bool = False,
+        retry_refusals: bool = False,
+        number_words: bool = False,
     ):
         """
         Args:
@@ -542,6 +587,11 @@ class GroundedAnswerer:
             verify: проверять ответ (False — выдавать ответ модели как есть, для сравнения в оценке).
             min_entailment: порог вероятности того, что ответ следует из цитируемых фрагментов; None — без проверки.
             entailment_scorer: оценка следования (src/nli.py); нужна только вместе с min_entailment.
+            retry_short: запросить ответ ещё раз, если он из одного числа или пары слов («24 [1]»).
+            retry_refusals: после отказа модели ещё раз попросить проверить фрагменты: вопрос мог быть задан
+                            обычными словами, а не языком закона. Включаются для корпуса законов
+                            (eval_laws_colloquial.py); пороги датасета Adilet подобраны без них.
+            number_words: проверка чисел понимает числа, записанные в законе словами («двадцать четыре» = 24).
         """
         self.client = client
         self.lang = lang
@@ -552,6 +602,20 @@ class GroundedAnswerer:
         self.verify = verify
         self.min_entailment = min_entailment
         self.entailment_scorer = entailment_scorer
+        self.retry_short = retry_short
+        self.retry_refusals = retry_refusals
+        self.number_words = number_words
+
+    def retry_prompt(self, answer: str, n_passages: int) -> Optional[Tuple[str, str]]:
+        """Повторный запрос к модели и его причина (для трассы); None — ответ принимается как есть."""
+        lang = self.lang
+        if is_malformed(answer, n_passages, lang):
+            return RETRY_PROMPT[lang].format(n=n_passages), malformed_reason(answer, n_passages)
+        if self.retry_short and is_too_short(answer, lang):
+            return SHORT_RETRY_PROMPT[lang].format(n=n_passages), "ответ слишком короткий — число или пара слов"
+        if self.retry_refusals and is_refusal(answer, lang):
+            return REFUSAL_RETRY_PROMPT[lang].format(n=n_passages, refusal=REFUSAL[lang]), "отказ при уверенном поиске"
+        return None
 
     def retrieval_confident(self, passages: Sequence[Passage]) -> bool:
         if not passages:
@@ -561,19 +625,21 @@ class GroundedAnswerer:
         return max(p.score for p in passages) >= self.min_retrieval_score
 
     def ask_model(self, question: str, passages: Sequence[Passage]) -> Dict[str, Any]:
-        """Ответ модели; ответ без текста или с несуществующей ссылкой запрашивается ещё раз.
+        """Ответ модели; ответ без текста или с несуществующей ссылкой (а с retry_short и retry_refusals — слишком
+        короткий ответ и отказ) запрашивается ещё один раз.
 
         Возвращает словарь OllamaClient.chat с полем retried; токены и время суммируются по обоим запросам.
         """
         messages = build_messages(question, passages, self.lang)
         first = self._chat("llm", messages)
-        if not is_malformed(first["text"], len(passages), self.lang):
+        retry = self.retry_prompt(first["text"], len(passages))
+        if retry is None:
             return {**first, "retried": False}
-        retry = RETRY_PROMPT[self.lang].format(n=len(passages))
+        prompt, reason = retry
         second = self._chat(
             "llm-retry",
-            messages + [{"role": "assistant", "content": first["text"]}, {"role": "user", "content": retry}],
-            reason=malformed_reason(first["text"], len(passages)),
+            messages + [{"role": "assistant", "content": first["text"]}, {"role": "user", "content": prompt}],
+            reason=reason,
         )
         merged = {key: (first.get(key) or 0) + (second.get(key) or 0) for key in ("prompt_tokens", "completion_tokens", "latency_s")}
         return {**second, **merged, "cached": first.get("cached") and second.get("cached"), "retried": True}
@@ -681,7 +747,7 @@ class GroundedAnswerer:
             text = drop_invalid_citations(raw, len(passages))
             obs.update(output={"invalid": invalid, "cited": extract_citations(text)})
         with span("numbers", as_type="guardrail") as obs:
-            numbers = unsupported_numbers(text, context)
+            numbers = unsupported_numbers(text, context, words=self.number_words)
             obs.update(output={"unsupported": numbers}, **({"level": "WARNING"} if numbers else {}))
         with span("sentence-support", as_type="guardrail", metadata={"threshold": self.min_sentence_support}) as obs:
             support = sentence_support(text, context, self.lang)
