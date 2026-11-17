@@ -398,7 +398,7 @@ def run_search(
     by_id = chunks_by_id(lang, corpus_name)
     wanted = max(top_k, engine.rerank_pool) if rerank else top_k
     pool = FILTER_POOL if laws else wanted
-    search_query = expand_query(query) if corpus_settings(lang, corpus_name)["dictionary"] else query
+    search_query = search_query_for(query, lang, corpus_name)
     metadata = {"mode": mode, "top_k": top_k, "rerank": rerank, "laws": laws,
                 **({"search_query": search_query} if search_query != query else {})}
     with span("search", as_type="retriever", input=query, metadata=metadata) as obs:
@@ -466,11 +466,14 @@ def load_answerer(lang: str, corpus_name: str) -> GroundedAnswerer:
 
     def build() -> GroundedAnswerer:
         params = answer_params(lang, corpus_name)
+        reranker = load_reranker(reranker_name)
         return GroundedAnswerer(
             OllamaClient(DEFAULT_LLM), lang,
             min_retrieval_score=params["min_retrieval_score"], min_sentence_support=params["min_sentence_support"],
             min_answer_relevance=params["min_answer_relevance"],
-            relevance_scorer=reranker_relevance(load_reranker(reranker_name)),
+            relevance_scorer=reranker_relevance(reranker),
+            # При отказе модели или отклонённом ответе — пункты закона, ближайшие к вопросу, дословно
+            quote_scorer=lambda query, units: reranker.score(query, units),
             min_entailment=params["min_entailment"],
             entailment_scorer=load_entailment_scorer(params["min_entailment"]),
             # Для законов: ответ числом («24 [1]») запрашивается заново полным предложением, числа закона словами
@@ -482,15 +485,34 @@ def load_answerer(lang: str, corpus_name: str) -> GroundedAnswerer:
     return model_store().get(("answerer", lang, corpus_name, reranker_name), build)
 
 
+def search_query_for(query: str, lang: str, corpus_name: str) -> str:
+    """Запрос поиска: для корпуса законов к вопросу дописываются термины закона (src/query_expansion.py)."""
+    return expand_query(query) if corpus_settings(lang, corpus_name)["dictionary"] else query
+
+
 def compute_answer(query: str, hits: List[Dict[str, Any]], lang: str, corpus_name: str) -> Dict[str, Any]:
     """Ответ модели по найденным фрагментам: {"answer", "passages", "error"} (error — Ollama недоступна)."""
     # Модель читает чанки с окружающим текстом; пересекающиеся склеиваются, поэтому номера [n] — номера passages
     passages = build_passages(hits)
     try:
         with st.spinner(f"{DEFAULT_LLM} формулирует ответ по найденным фрагментам..."):
-            return {"answer": load_answerer(lang, corpus_name).answer(query, passages), "passages": passages, "error": None}
+            answer = load_answerer(lang, corpus_name).answer(
+                query, passages, search_query=search_query_for(query, lang, corpus_name))
+            return {"answer": answer, "passages": passages, "error": None}
     except OllamaError as e:
         return {"answer": None, "passages": passages, "error": str(e)}
+
+
+def render_quotes(quotes: List[Dict[str, Any]], passages: List[Passage], lang: str) -> None:
+    """Пункты закона, ближайшие к вопросу по оценке реранкера, — дословно, без пересказа модели."""
+    st.markdown("**Вероятно, ответ в этих нормах закона** (дословная цитата, а не ответ модели):")
+    for quote in quotes:
+        passage = passages[quote["passage"] - 1]
+        url = source_url(lang, passage.source_id)
+        st.markdown("> " + quote["text"].strip().replace("\n", "  \n> "))
+        st.caption(f"[{passage.label}]({url})" if url else passage.label)
+    st.caption("Пункты выбраны реранкером по близости к вопросу. Модель не смогла сформулировать по ним ответ, "
+               "поэтому проверьте, относится ли норма к вашему случаю.")
 
 
 def render_answer(
@@ -530,11 +552,17 @@ def render_answer(
             )
         elif answer.status == STATUS_REFUSED:
             st.info(answer.text)
-            st.caption("Модель прочитала найденные фрагменты и не нашла в них ответа.")
+            if answer.quotes:
+                render_quotes(answer.quotes, passages, lang)
+            else:
+                st.caption("Модель прочитала найденные фрагменты и не нашла в них ответа.")
         else:
             st.warning(answer.text)
-            st.markdown("> " + passages[0].text.strip().replace("\n", "\n> "))
-            st.caption(f"[1] {passages[0].label}")
+            if answer.quotes:
+                render_quotes(answer.quotes, passages, lang)
+            else:
+                st.markdown("> " + passages[0].text.strip().replace("\n", "\n> "))
+                st.caption(f"[1] {passages[0].label}")
             with st.expander("Почему ответ модели не показан"):
                 st.write("Проверка нашла: " + "; ".join(answer.checks["problems"]) + ".")
                 st.caption("Отклонённый ответ модели (не является ответом системы):")

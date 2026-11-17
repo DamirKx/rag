@@ -131,6 +131,14 @@ def gold_in(passages, gold, by_id: Dict[str, Dict[str, Any]]) -> bool:
     return any((by_id[i]["law"], a) in gold for p in passages for i in p.ids for a in article_numbers(by_id[i]))
 
 
+def quote_from_gold(quote: Dict[str, Any], passages, gold, by_id: Dict[str, Dict[str, Any]]) -> bool:
+    """Взят ли пункт цитаты из эталонной статьи: статья чанка, в котором есть начало пункта."""
+    head = quote["text"][:60]
+    chunks = [by_id[i] for i in passages[quote["passage"] - 1].ids]
+    owners = [c for c in chunks if head in c["text"]] or chunks
+    return any((c["law"], a) in gold for c in owners for a in article_numbers(c))
+
+
 def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Optional[Sequence[str]] = None) -> Dict[str, Any]:
     """Ответы Qwen на все вопросы: как сейчас в веб-демо и с новыми настройками для корпуса законов.
 
@@ -143,7 +151,9 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
     import torch
     from ask import build_passages
     from eval_generation import threshold_for
-    from src.generation import DEFAULT_LLM, STATUS_ANSWERED, STATUS_UNVERIFIED, GroundedAnswerer, OllamaClient, reranker_relevance
+    from src.generation import (
+        DEFAULT_LLM, STATUS_ANSWERED, STATUS_UNVERIFIED, GroundedAnswerer, OllamaClient, best_quotes, reranker_relevance,
+    )
     from src.nli import load_entailment_scorer
 
     data = json.loads(QUESTIONS.read_text(encoding="utf-8"))["questions"]
@@ -195,13 +205,15 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
             min_entailment=adilet["min_entailment"], entailment_scorer=entailment,
             retry_short=bool(cfg.get("retry_short")), retry_refusals=bool(cfg.get("retry_refusals")),
             number_words=bool(cfg.get("number_words")),
+            # Цитата закона при отказе или отклонённом ответе (не меняет статусы и метрики ответа)
+            quote_scorer=lambda query, units, r=reranker: r.score(query, units),
         )
         records = []
         for q in data:
             query = expand_query(q["question"]) if cfg["dictionary"] else q["question"]
             hits = engine.search(query, mode="hybrid", top_k=3, rerank=True)
             passages = build_passages([{**by_id[doc_id], "score": score} for doc_id, _, score in hits])
-            answer = answerer.answer(query if cfg.get("terms_for_model") else q["question"], passages)
+            answer = answerer.answer(query if cfg.get("terms_for_model") else q["question"], passages, search_query=query)
             gold = {(g["law"], g["article"]) for g in q["gold"]}
             cited = [passages[n - 1] for n in answer.cited if 1 <= n <= len(passages)] if answer.answered else []
             from_gold = any((by_id[i]["law"], a) in gold for p in cited for i in p.ids for a in article_numbers(by_id[i]))
@@ -209,7 +221,12 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
             records.append({"id": q["id"], "status": answer.status, "from_gold": from_gold, "has_gold": bool(gold),
                             "gold_in_context": gold_in(passages, gold, by_id),
                             "relevance": answer.checks.get("answer_relevance"), "answer": answer.text, "raw": answer.raw,
-                            "problems": list(answer.checks.get("problems", []))})
+                            "problems": list(answer.checks.get("problems", [])),
+                            "quotes": [{**x, "from_gold": quote_from_gold(x, passages, gold, by_id)} for x in answer.quotes]})
+            if answer.status == STATUS_ANSWERED:
+                # Цитата на случай, если ответ отклонит порог соответствия вопросу, подобранный ниже (в веб-демо он известен заранее)
+                quotes = best_quotes(query, passages, answerer.quote_scorer, answerer.max_quotes)
+                records[-1]["_quotes"] = [{**x, "from_gold": quote_from_gold(x, passages, gold, by_id)} for x in quotes]
             print(f"  [{label}] {q['id']} {answer.status:10s} {'по эталону' if from_gold else '':10s} {q['question']}", flush=True)
         if cfg["min_answer_relevance"] is None:
             # Порог соответствия ответа вопросу в шкале исходного реранкера: хорошие — показанные ответы по эталонной статье,
@@ -221,6 +238,9 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
                 if r["status"] == STATUS_ANSWERED and r["relevance"] is not None and r["relevance"] < cfg["min_answer_relevance"]:
                     r["status"], r["from_gold"] = STATUS_UNVERIFIED, False
                     r["problems"].append("ответ не относится к заданному вопросу")
+                    r["quotes"] = r.get("_quotes", [])
+        for r in records:
+            r.pop("_quotes", None)
         inside = [r for r in records if r["has_gold"]]
         outside = [r for r in records if not r["has_gold"]]
         summary = {
@@ -228,6 +248,11 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
             "answered_from_gold": round(np.mean([r["from_gold"] for r in inside]), 4),
             "outside_answered": round(np.mean([r["status"] == STATUS_ANSWERED for r in outside]), 4),
             "statuses": {s: sum(r["status"] == s for r in inside) for s in sorted({r["status"] for r in records})},
+            # Цитаты закона вместо отказа или отклонённого ответа: из эталонной статьи первая / хотя бы одна
+            "quotes": {"shown": sum(bool(r.get("quotes")) for r in inside),
+                       "first_from_gold": sum(bool(r.get("quotes")) and r["quotes"][0]["from_gold"] for r in inside),
+                       "any_from_gold": sum(any(x["from_gold"] for x in r.get("quotes", [])) for r in inside),
+                       "outside": sum(bool(r.get("quotes")) for r in outside)},
         }
         out[label] = {"params": {k: v for k, v in cfg.items()}, "summary": summary, "records": records}
         del reranker
