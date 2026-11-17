@@ -18,12 +18,19 @@ def scores(**output):
 def test_shown_answer_from_gold():
     s = scores(answer="Дееспособность возникает с наступлением совершеннолетия [1].", status=STATUS_ANSWERED, cited=[1])
     assert s["gold_in_context"] == 1.0 and s["answer_shown"] == 1.0
-    assert s["token_f1"] > 0.95 and s["answered_from_gold"] == 1.0
+    # Сравнение по словам (основам), а не по буквам: тот же ответ с другой пунктуацией — F1 = 1
+    assert s["token_f1"] == 1.0 and s["rouge_l"] == 1.0 and s["answered_from_gold"] == 1.0
 
 
 def test_answer_from_other_passage():
     s = scores(answer="Дееспособность возникает с совершеннолетия [2].", status=STATUS_ANSWERED, cited=[2])
     assert s["answered_from_gold"] == 0.0 and 0 < s["token_f1"] < 1
+
+
+def test_similarity_is_counted_by_words_not_letters():
+    """Ответ из тех же букв, но других слов не должен получать высокий F1."""
+    s = scores(answer="Совершеннолетие наступает с возникновением дееспособности [1].", status=STATUS_ANSWERED, cited=[1])
+    assert s["token_f1"] < 0.8
 
 
 def test_rejected_answer_gets_no_similarity_scores():

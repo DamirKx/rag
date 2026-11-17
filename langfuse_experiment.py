@@ -37,9 +37,10 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 from ask import RAGAnswerer, default_model
 from run_adilet_eval import GoldChunkMatcher
 from src.embeddings import EmbeddingModel
-from src.eval import answer_rouge_l, answer_token_f1
-from src.generation import DEFAULT_LLM, STATUS_ANSWERED, strip_citations
+from src.eval import answer_rouge_l, answer_token_f1, answer_tokens
+from src.generation import DEFAULT_LLM, STATUS_ANSWERED
 from src.reranker import CrossEncoderReranker, default_reranker
+from src.text_norm import get_normalizer
 import src.tracing as tracing
 
 CACHE_PARQUET = "data/raw/adilet_legal_qa_kz.parquet"
@@ -57,7 +58,7 @@ def load_items(lang: str, limit: int, rag: RAGAnswerer) -> List[Dict[str, Any]]:
             "id": q["id"],
             "input": {"question": q["query"]},
             "expected_output": q["full_response"],
-            "metadata": {"question_id": q["id"], "law": q.get("source_title"),
+            "metadata": {"question_id": q["id"], "law": q.get("source_title"), "lang": lang,
                          "gold": [chunks[i]["id"] for i in matcher.find(q)[0]]},
         }
         for q in questions
@@ -100,11 +101,13 @@ def evaluate(*, input: Any, output: Dict[str, Any], expected_output: Any, metada
         Evaluation(name="answer_shown", value=float(shown), comment="; ".join(output["problems"]) or output["status"]),
     ]
     if shown and expected_output:
-        prediction = strip_citations(output["answer"])
+        # Слова, приведённые к основам, — как в eval_generation.py (Snowball для русского, 5 букв для казахского)
+        normalize = get_normalizer("snowball" if (metadata or {}).get("lang", "rus") == "rus" else "prefix5")
+        prediction, reference = answer_tokens(output["answer"], normalize), answer_tokens(expected_output, normalize)
         cited = [passages[n - 1] for n in output["cited"] if 1 <= n <= len(passages)]
         result += [
-            Evaluation(name="token_f1", value=round(answer_token_f1(prediction, expected_output), 4)),
-            Evaluation(name="rouge_l", value=round(answer_rouge_l(prediction, expected_output), 4)),
+            Evaluation(name="token_f1", value=round(answer_token_f1(prediction, reference), 4)),
+            Evaluation(name="rouge_l", value=round(answer_rouge_l(prediction, reference), 4)),
             Evaluation(name="answered_from_gold", value=float(any(i in gold for p in cited for i in p["chunk_ids"])),
                        comment="ответ ссылается на фрагмент с эталонным чанком"),
         ]
