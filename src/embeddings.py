@@ -7,7 +7,6 @@
 
 from typing import List
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 
 class EmbeddingModel:
@@ -37,7 +36,10 @@ class EmbeddingModel:
         self.model_name = model_name
         self.device = device
 
-        # Загрузка предобученной модели через SentenceTransformer
+        # Загрузка предобученной модели через SentenceTransformer. Библиотека импортируется здесь,
+        # а не в начале модуля: её импорт занимает ~10 с, а веб-демо должно сразу показать страницу
+        from sentence_transformers import SentenceTransformer
+
         self.model = SentenceTransformer(model_name, device=device)
 
         # Проверка: является ли модель представителем семейства E5.
