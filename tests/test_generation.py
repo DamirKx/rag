@@ -15,6 +15,7 @@ from src.generation import (
     OllamaError,
     Passage,
     answer_sentences,
+    best_quotes,
     build_messages,
     cited_passages,
     drop_invalid_citations,
@@ -22,6 +23,7 @@ from src.generation import (
     is_malformed,
     is_refusal,
     is_too_short,
+    law_units,
     load_generation_params,
     sentence_support,
     strip_citations,
@@ -250,6 +252,30 @@ class TestGroundedAnswerer:
         assert GroundedAnswerer(client, retry_refusals=True).answer("Сколько?", PASSAGES).status == STATUS_REFUSED
         assert len(client.calls) == 2
 
+    def test_quote_instead_of_refusal(self):
+        """При отказе модели — пункты закона, ближайшие к вопросу (по запросу поиска), дословно."""
+        seen = []
+
+        def scorer(query, units):
+            seen.append(query)
+            return [1.0 if "аренды" in u else 0.1 for u in units]
+
+        answerer = GroundedAnswerer(SequenceClient(REFUSAL["rus"]), quote_scorer=scorer, max_quotes=1)
+        answer = answerer.answer("Сколько можно арендовать землю?", PASSAGES, search_query="аренда (срок аренды)")
+        assert answer.status == STATUS_REFUSED and answer.text == REFUSAL["rus"]
+        assert answer.quotes == [{"passage": 1, "text": PASSAGES[0].text, "score": 1.0}]
+        assert seen == ["аренда (срок аренды)"]
+        assert answer.to_dict()["quotes"] == answer.quotes
+
+    def test_no_quote_for_shown_answer_or_low_retrieval(self):
+        def scorer(query, units):
+            raise AssertionError("цитата не нужна")
+
+        shown = GroundedAnswerer(SequenceClient("Срок аренды земельного участка — до 49 лет [1]."), quote_scorer=scorer)
+        assert shown.answer("Каков срок аренды?", PASSAGES).quotes == []
+        gated = GroundedAnswerer(SequenceClient(), min_retrieval_score=0.99, quote_scorer=scorer)
+        assert gated.answer("Каков срок аренды?", PASSAGES).status == STATUS_NO_CONTEXT
+
     def test_entailment_check(self):
         raw = "Срок аренды земельного участка — до 49 лет [1]."
         seen = []
@@ -303,6 +329,33 @@ class FakeNLI:
 
     def entailment(self, pairs):
         return [self.table[(premise, hypothesis)] for premise, hypothesis in pairs]
+
+
+def test_law_units_join_subpoints_and_skip_headers():
+    text = (
+        "Статья 17. Расторжение брака в регистрирующих органах\n"
+        "1. Расторжение брака производится при взаимном согласии супругов, не имеющих общих несовершеннолетних детей.\n"
+        "2. Брак расторгается по заявлению одного из супругов, если другой супруг:\n"
+        "1) признан судом безвестно отсутствующим;\n"
+        "2) признан судом недееспособным;\n"
+        "Статья 18. Порядок\n"
+        "общих"
+    )
+    units = law_units(text)
+    assert units[0].startswith("1. Расторжение брака")
+    assert units[1].endswith("2) признан судом недееспособным;") and units[1].count("\n") == 2
+    assert len(units) == 2  # заголовки статей и обрывок «общих» не цитируются
+
+
+def test_best_quotes_takes_top_units_across_passages():
+    passages = [Passage(id="a", text="1. Первая норма о сроке аренды земли участка.\n2. Вторая норма о хранении вещей хранителем."),
+                Passage(id="b", text="Третья норма о сроке аренды жилых помещений граждан.")]
+    quotes = best_quotes("срок аренды", passages, lambda q, units: [len(u) / 100 for u in units], k=2)
+    assert [q["text"] for q in quotes] == ["Третья норма о сроке аренды жилых помещений граждан.",
+                                          "1. Первая норма о сроке аренды земли участка."]
+    assert [q["passage"] for q in quotes] == [2, 1]
+    assert all(set(q) == {"passage", "text", "score"} for q in quotes)
+    assert best_quotes("срок", [Passage(id="c", text="Статья 5. Заголовок")], lambda q, u: [1.0] * len(u)) == []
 
 
 def test_entailment_score_is_min_over_sentences_of_max_over_passages():

@@ -190,6 +190,8 @@ class Answer:
     cited: List[int] = field(default_factory=list)  # номера фрагментов (с 1), на которые ссылается ответ
     checks: Dict[str, Any] = field(default_factory=dict)
     usage: Dict[str, Any] = field(default_factory=dict)
+    # При отказе или отклонённом ответе — пункты закона, ближайшие к вопросу: [{"passage": n, "text", "score"}]
+    quotes: List[Dict[str, Any]] = field(default_factory=list)
 
     @property
     def answered(self) -> bool:
@@ -198,7 +200,7 @@ class Answer:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "status": self.status, "text": self.text, "raw": self.raw, "cited": self.cited,
-            "passages": [p.id for p in self.passages], "checks": self.checks, "usage": self.usage,
+            "passages": [p.id for p in self.passages], "checks": self.checks, "usage": self.usage, "quotes": self.quotes,
         }
 
 
@@ -548,6 +550,44 @@ def record_scores(obs, answer: "Answer") -> None:
 
 # Оценка соответствия ответа вопросу: (вопрос, ответ) -> число в шкале реранкера
 RelevanceScorer = Callable[[str, str], float]
+# Оценка пунктов закона для цитаты: (вопрос, [пункты]) -> оценки реранкера
+QuoteScorer = Callable[[str, List[str]], List[float]]
+
+_ARTICLE_HEADER = re.compile(r"^\s*(?:Статья\s+\d|\d+(?:-\d+)?-бап)", re.IGNORECASE)
+_SUBPOINT = re.compile(r"^\s*\d+(?:-\d+)?\)")
+MAX_QUOTE_CHARS = 600
+
+
+def law_units(text: str) -> List[str]:
+    """Пункты закона для цитаты: строки фрагмента; подпункты «1) …» присоединяются к вводной фразе с двоеточием,
+    заголовки статей пропускаются, слишком короткие строки (обрывки на границе фрагмента) — тоже."""
+    units: List[str] = []
+    open_list = False  # предыдущий пункт кончается двоеточием или уже собирает подпункты
+    for line in (line.strip() for line in text.split("\n")):
+        if not line or _ARTICLE_HEADER.match(line):
+            open_list = False
+            continue
+        if open_list and _SUBPOINT.match(line):
+            units[-1] = f"{units[-1]}\n{line}"
+            continue
+        units.append(line)
+        open_list = line.endswith(":")
+    result = []
+    for unit in units:
+        if len(re.findall(r"[^\W\d_]{3,}", unit)) < 4:
+            continue
+        result.append(unit if len(unit) <= MAX_QUOTE_CHARS else unit[:MAX_QUOTE_CHARS].rsplit(" ", 1)[0] + " …")
+    return result
+
+
+def best_quotes(query: str, passages: Sequence[Passage], scorer: QuoteScorer, k: int = 2) -> List[Dict[str, Any]]:
+    """k пунктов найденных фрагментов, которые реранкер считает ближайшими к вопросу (дословно, без модели)."""
+    units = [(n, unit) for n, p in enumerate(passages, 1) for unit in law_units(p.text)]
+    if not units:
+        return []
+    scores = scorer(query, [unit for _, unit in units])
+    order = sorted(range(len(units)), key=lambda j: -scores[j])[:k]
+    return [{"passage": units[j][0], "text": units[j][1], "score": round(float(scores[j]), 4)} for j in order]
 # Следование ответа из фрагментов: (вопрос, ответ, цитируемые фрагменты) -> вероятность (src/nli.py)
 EntailmentScorer = Callable[[str, str, Sequence[Passage]], float]
 
@@ -574,6 +614,8 @@ class GroundedAnswerer:
         retry_short: bool = False,
         retry_refusals: bool = False,
         number_words: bool = False,
+        quote_scorer: Optional[QuoteScorer] = None,
+        max_quotes: int = 2,
     ):
         """
         Args:
@@ -592,6 +634,8 @@ class GroundedAnswerer:
                             обычными словами, а не языком закона. Включаются для корпуса законов
                             (eval_laws_colloquial.py); пороги датасета Adilet подобраны без них.
             number_words: проверка чисел понимает числа, записанные в законе словами («двадцать четыре» = 24).
+            quote_scorer: оценка пунктов закона реранкером; если задана, при отказе модели или отклонённом ответе
+                          (поиск уверен) в Answer.quotes — max_quotes пунктов, ближайших к вопросу, дословно.
         """
         self.client = client
         self.lang = lang
@@ -605,6 +649,8 @@ class GroundedAnswerer:
         self.retry_short = retry_short
         self.retry_refusals = retry_refusals
         self.number_words = number_words
+        self.quote_scorer = quote_scorer
+        self.max_quotes = max_quotes
 
     def retry_prompt(self, answer: str, n_passages: int) -> Optional[Tuple[str, str]]:
         """Повторный запрос к модели и его причина (для трассы); None — ответ принимается как есть."""
@@ -674,8 +720,12 @@ class GroundedAnswerer:
                 )
         return response
 
-    def answer(self, question: str, passages: Sequence[Passage]) -> Answer:
-        """Полный цикл: порог поиска → модель → проверка ответа."""
+    def answer(self, question: str, passages: Sequence[Passage], search_query: Optional[str] = None) -> Answer:
+        """Полный цикл: порог поиска → модель → проверка ответа; при отказе или отклонённом ответе — цитата закона.
+
+        search_query — запрос, по которому искали (для законов — вопрос с терминами словаря): по нему выбираются
+        пункты цитаты; по умолчанию — сам вопрос.
+        """
         model = getattr(self.client, "model", None)
         with span("answer", as_type="chain", input=question, metadata={"model": model, "lang": self.lang}) as obs:
             passages = list(passages)
@@ -695,6 +745,11 @@ class GroundedAnswerer:
                 response = self.ask_model(question, passages)
                 usage = {k: response.get(k) for k in ("prompt_tokens", "completion_tokens", "latency_s", "cached", "retried")}
                 result = self.judge(question, response["text"], passages, usage)
+                if self.quote_scorer is not None and result.status in (STATUS_REFUSED, STATUS_UNVERIFIED):
+                    # Поиск уверен, но ответа модели нет: дословные пункты закона вместо пересказа
+                    with span("quote", input={"query": search_query or question}) as quote:
+                        result.quotes = best_quotes(search_query or question, passages, self.quote_scorer, self.max_quotes)
+                        quote.update(output=result.quotes)
             obs.update(
                 output=result.text,
                 metadata={"model": model, "lang": self.lang, "status": result.status, "cited": result.cited},
