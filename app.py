@@ -45,6 +45,7 @@ from src.generation import (
 )
 from src.laws import LAWS_PARQUET, load_laws
 from src.reranker import CrossEncoderReranker, default_reranker
+from src.resources import ResourceMeter, gpu_memory, snapshot as resource_snapshot
 from src.retriever import tokenize_legal_text
 from src.tracing import get_langfuse, span, trace
 
@@ -484,7 +485,7 @@ def load_models(lang: str, model_name: str, corpus_name: str, rerank: bool, gene
             engine.reranker = load_reranker(default_reranker(lang))
         if generate:
             load_answerer(lang)
-        obs.update(output={"loaded_now": cold}, metadata={"cold_start": bool(cold), "device": device()})
+        obs.update(output={"loaded_now": cold}, metadata={"cold_start": bool(cold), "device": device(), **gpu_memory()})
     return engine
 
 
@@ -498,19 +499,24 @@ def search_and_answer(
         "rerank": rerank, "generate": generate, "laws": laws,
     }
     with trace("web-demo", input=query, metadata=request, session_id=streamlit_session_id(), tags=["app.py", mode]) as root:
-        engine = load_models(lang, model_name, corpus_name, rerank, generate)
-        t0 = time.time()
-        # Модели нужны DEFAULT_TOP_K лучших фрагментов, даже если показать нужно меньше
-        hits = run_search(engine, lang, query, mode, max(top_k, DEFAULT_TOP_K) if generate else top_k, laws, rerank, corpus_name)
-        result = {"hits": hits, "search_ms": (time.time() - t0) * 1000, "answer": None, "passages": [], "error": None}
-        if hits and generate:
-            result.update(compute_answer(query, hits[:DEFAULT_TOP_K], lang))
+        with ResourceMeter() as meter:
+            engine = load_models(lang, model_name, corpus_name, rerank, generate)
+            t0 = time.time()
+            # Модели нужны DEFAULT_TOP_K лучших фрагментов, даже если показать нужно меньше
+            hits = run_search(engine, lang, query, mode, max(top_k, DEFAULT_TOP_K) if generate else top_k, laws, rerank, corpus_name)
+            result = {"hits": hits, "search_ms": (time.time() - t0) * 1000, "answer": None, "passages": [], "error": None}
+            if hits and generate:
+                result.update(compute_answer(query, hits[:DEFAULT_TOP_K], lang))
         answer = result["answer"]
         found = [f"{h['law']}, {h['articles']}" if h["articles"] else h["law"] for h in hits[:top_k]]
+        # Процессор и память за весь запрос; видеопамять и размещение Qwen — на момент окончания запроса
         root.update(
             output=answer.text if answer is not None else found,
-            metadata={**request, "search_ms": round(result["search_ms"]), "status": answer.status if answer is not None else None,
-                      **({"error": result["error"]} if result["error"] else {})},
+            metadata={
+                **request, "search_ms": round(result["search_ms"]), "status": answer.status if answer is not None else None,
+                **({"error": result["error"]} if result["error"] else {}),
+                "resources": {**meter.result, **resource_snapshot(OLLAMA_URL, DEFAULT_LLM if generate else None)},
+            },
         )
     return result
 

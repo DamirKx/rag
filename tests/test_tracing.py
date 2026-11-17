@@ -152,6 +152,22 @@ def test_search_and_answer_stages(exporter, engine):
     assert attr(found["verification"], "output") == {"status": STATUS_ANSWERED, "problems": []}
 
 
+def test_llm_stage_has_speed_cost_and_placement(exporter, monkeypatch):
+    import src.generation as generation
+
+    client = FakeClient("Налог уплачивается ежегодно [1].")
+    client.url = "http://ollama"
+    monkeypatch.setattr(generation, "ollama_placement", lambda url, model: {"ollama_on_gpu": 0.26, "ollama_vram_mb": 630})
+    with tracing.trace("request"):
+        GroundedAnswerer(client, min_retrieval_score=None, min_answer_relevance=None).answer("Когда?", passages())
+    llm = spans(exporter)["llm"]
+    assert attr(llm, "metadata.output_tokens_per_s") == 50.0  # 5 токенов за 0,1 с
+    assert attr(llm, "cost_details") == {"input": 0.0, "output": 0.0, "total": 0.0}
+    assert attr(llm, "metadata.ollama_on_gpu") == 0.26
+    # Часть модели на процессоре — ответ медленнее, этап помечен предупреждением
+    assert attr(llm, "level") == "WARNING"
+
+
 def test_retry_stage_has_reason(exporter):
     answerer = GroundedAnswerer(FakeClient("[1]", "Налог уплачивается ежегодно [1]."), min_retrieval_score=None,
                                 min_answer_relevance=None)

@@ -39,6 +39,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from src.retriever import tokenize_legal_text
 from src.text_norm import get_normalizer
+from src.resources import ollama_placement
 from src.tracing import span
 
 DEFAULT_LLM = "qwen2.5:3b"
@@ -572,7 +573,21 @@ class GroundedAnswerer:
                     if isinstance(response.get(key), int)
                 }
                 timings = {k: response.get(k) for k in ("latency_s", "load_s", "prompt_eval_s", "eval_s", "cached") if response.get(k) is not None}
-                obs.update(output=response["text"], usage_details=usage or None, metadata={**timings, **({"retry_reason": reason} if reason else {})})
+                # Скорость по времени Ollama: чтение промпта и генерация ответа отдельно
+                for name, tokens, seconds in (("prompt_tokens_per_s", "prompt_tokens", "prompt_eval_s"),
+                                              ("output_tokens_per_s", "completion_tokens", "eval_s")):
+                    if response.get(tokens) and response.get(seconds):
+                        timings[name] = round(response[tokens] / response[seconds], 1)
+                url = getattr(self.client, "url", None)
+                placement = ollama_placement(url, self.client.model) if url and not response.get("cached") else {}
+                obs.update(
+                    output=response["text"], usage_details=usage or None,
+                    # Модель локальная: запрос ничего не стоит (Langfuse покажет $0 вместо пустой стоимости)
+                    cost_details={"input": 0.0, "output": 0.0, "total": 0.0},
+                    metadata={**timings, **placement, **({"retry_reason": reason} if reason else {})},
+                    **({"level": "WARNING", "status_message": "часть модели считается на процессоре"}
+                       if placement.get("ollama_on_gpu", 1) < 1 else {}),
+                )
         return response
 
     def answer(self, question: str, passages: Sequence[Passage]) -> Answer:

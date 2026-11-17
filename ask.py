@@ -38,11 +38,12 @@ from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus, expand_hit
 from src.nli import load_entailment_scorer
 from src.embeddings import EmbeddingModel
 from src.generation import (
-    DEFAULT_LLM, DEFAULT_TOP_K, STATUS_ANSWERED, STATUS_NO_CONTEXT, STATUS_REFUSED,
+    DEFAULT_LLM, DEFAULT_TOP_K, OLLAMA_URL, STATUS_ANSWERED, STATUS_NO_CONTEXT, STATUS_REFUSED,
     Answer, GroundedAnswerer, OllamaClient, OllamaError, Passage, load_generation_params, reranker_relevance,
 )
 from src.retriever import VectorRetriever, BM25Retriever, HybridRetriever
 from src.reranker import CrossEncoderReranker, DEFAULT_RERANKER, FINETUNED_RERANKER, default_reranker
+from src.resources import ResourceMeter, snapshot as resource_snapshot
 from src.tracing import brief_hits, span, trace
 from prepare_adilet_data import clean_adilet_context
 from run_adilet_eval import get_or_compute_embeddings, model_cache_name, DEFAULT_MODEL
@@ -235,6 +236,7 @@ class LegalSearchEngine:
                         "model": getattr(self.reranker, "model_name", None),
                         "pool": len(candidates),
                         "fp16": getattr(self.reranker, "fp16", None),
+                        "device": str(getattr(getattr(self.reranker, "model", None), "device", "")) or None,
                     },
                 )
         return [(doc_id, self.docs_by_id[doc_id], score) for doc_id, score in pairs]
@@ -481,25 +483,30 @@ def interactive_cli(
         request = {"lang": lang, "mode": search_mode, "top_k": top_k, "embedder": model_name, "rerank": rerank,
                    "generate": generate, "cold_start": first_question}
         with trace("ask-cli", input=query, metadata=request, session_id=session_id, tags=["ask.py", search_mode]) as root:
-            answer = None
-            if generate:
-                print(f"\n{llm} формулирует ответ по найденным фрагментам...")
-                try:
-                    answer = get_rag().ask(query)
-                    print("-" * 80)
-                    print(format_answer(answer, rag.answerer, lang))
-                    print("-" * 80)
-                except OllamaError as e:
-                    print(f"\n⚠ {e}")
+            with ResourceMeter() as meter:
+                answer = None
+                if generate:
+                    print(f"\n{llm} формулирует ответ по найденным фрагментам...")
+                    try:
+                        answer = get_rag().ask(query)
+                        print("-" * 80)
+                        print(format_answer(answer, rag.answerer, lang))
+                        print("-" * 80)
+                    except OllamaError as e:
+                        print(f"\n⚠ {e}")
 
-            # Выполнение поиска (целые фрагменты законов, а не чанки, по которым отвечает модель)
-            t0 = time.time()
-            with span("search", as_type="retriever", input=query, metadata={"mode": search_mode, "rerank": rerank, "chunks": "structural"}):
-                results = engine.search(query, mode=search_mode, top_k=top_k, rerank=rerank)
-            elapsed_ms = (time.time() - t0) * 1000.0
+                # Выполнение поиска (целые фрагменты законов, а не чанки, по которым отвечает модель)
+                t0 = time.time()
+                with span("search", as_type="retriever", input=query, metadata={"mode": search_mode, "rerank": rerank, "chunks": "structural"}):
+                    results = engine.search(query, mode=search_mode, top_k=top_k, rerank=rerank)
+                elapsed_ms = (time.time() - t0) * 1000.0
+            # Процессор и память за весь вопрос; видеопамять и размещение Qwen — на момент его окончания
             root.update(
                 output=answer.text if answer is not None else [doc_id for doc_id, _, _ in results],
-                metadata={**request, "search_ms": round(elapsed_ms), "status": answer.status if answer is not None else None},
+                metadata={
+                    **request, "search_ms": round(elapsed_ms), "status": answer.status if answer is not None else None,
+                    "resources": {**meter.result, **resource_snapshot(OLLAMA_URL, llm if generate else None)},
+                },
             )
         first_question = False
 

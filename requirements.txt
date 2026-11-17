@@ -32,3 +32,4 @@ accelerate==1.15.0
 
 # Тесты
 pytest==9.1.1
+psutil>=5.9   # замер процессора и памяти для трассировки (src/resources.py)
