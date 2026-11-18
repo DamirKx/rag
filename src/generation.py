@@ -104,6 +104,30 @@ SYSTEM_PROMPT = {
     ),
 }
 
+# Вариант промпта «сначала перепиши предложение закона с ответом» (GroundedAnswerer(prompt="extractive")):
+# модель 3B часто отказывается, когда вопрос задан обычными словами, хотя норма во фрагменте есть, а просьба
+# переписать предложение из фрагмента при повторе короткого ответа срабатывала (REPORT 7.15)
+EXTRACTIVE_RULES = {
+    "rus": (
+        "3. Начни ответ с предложения из фрагмента, в котором есть ответ на вопрос: перепиши его почти дословно. "
+        "Вопрос может быть задан обычными словами, а в законе то же самое названо юридическим термином — ищи норму "
+        "по смыслу. В конце предложения поставь номер фрагмента, из которого оно взято, в квадратных скобках. "
+        "Ответ не может состоять только из ссылки.\n"
+    ),
+}
+PROMPT_STYLES = ("default", "extractive")
+
+
+def system_prompt(lang: str, n: int, style: str = "default") -> str:
+    """Системные правила модели; style="extractive" заменяет правило 3 (только для русского)."""
+    text = SYSTEM_PROMPT[lang]
+    if style == "extractive" and lang in EXTRACTIVE_RULES:
+        start = text.index("3. ")
+        end = text.index("4. ")
+        text = text[:start] + EXTRACTIVE_RULES[lang] + text[end:]
+    return text.format(refusal=REFUSAL[lang], n=n)
+
+
 # Повторный запрос, если ответ без текста или со ссылкой на несуществующий фрагмент
 RETRY_PROMPT = {
     "rus": (
@@ -304,12 +328,12 @@ class OllamaClient:
         return {**result, "cached": False}
 
 
-def build_messages(question: str, passages: Sequence[Passage], lang: str = "rus") -> List[Dict[str, str]]:
+def build_messages(question: str, passages: Sequence[Passage], lang: str = "rus", style: str = "default") -> List[Dict[str, str]]:
     """Сообщения чата: системные правила и пользовательское сообщение с фрагментами и вопросом."""
     blocks = [f"[{i}] {p.label}\n{p.text.strip()}" for i, p in enumerate(passages, 1)]
     head, q = ("Фрагменты:", "Вопрос:") if lang == "rus" else ("Үзінділер:", "Сұрақ:")
     return [
-        {"role": "system", "content": SYSTEM_PROMPT[lang].format(refusal=REFUSAL[lang], n=len(passages))},
+        {"role": "system", "content": system_prompt(lang, len(passages), style)},
         {"role": "user", "content": f"{head}\n\n" + "\n\n".join(blocks) + f"\n\n{q} {question.strip()}"},
     ]
 
@@ -383,6 +407,32 @@ def drop_invalid_citations(answer: str, n_passages: int) -> str:
 
     cleaned = re.sub(r"[ \t]*" + CITATION.pattern, lambda m: (" " if keep_valid(m) else "") + keep_valid(m), answer)
     return re.sub(r"\s+([.,;:])", r"\1", cleaned).strip()
+
+
+_LEADING_CITATION = re.compile(r"^\s*(?:\d+[.)]?\s+(?=\[\d+\]\s*[A-ZА-ЯЁӘҒҚҢӨҰҮҺІ]))?\[(\d+)\]\s*")
+
+
+def tidy_answer(answer: str, passages: Sequence[Passage]) -> str:
+    """Ответ для показа: без номера пункта и подписи фрагмента, скопированных моделью в начало.
+
+    Модель иногда начинает ответ с номера пункта статьи («2 [1] Основной…») или переписывает подпись фрагмента
+    из промпта («[1] Трудовой кодекс РК, ст. 95 1. Оплачиваемый…»). Ссылка переносится в конец ответа.
+    Проверки ответа выполняются до этой правки, по исходному тексту.
+    """
+    match = _LEADING_CITATION.match(answer)
+    if not match:
+        return answer
+    n = int(match.group(1))
+    rest = answer[match.end():]
+    if 1 <= n <= len(passages):
+        label = passages[n - 1].label
+        if label and rest.startswith(label):
+            rest = rest[len(label):].lstrip(" ,.:—-\n")
+    if not re.search(r"[^\W\d_]", rest):
+        return answer
+    if not CITATION.search(rest):
+        rest = f"{rest.rstrip()} [{n}]"
+    return rest.strip()
 
 
 def _context_numbers(context: str, words: bool = False) -> set:
@@ -588,6 +638,36 @@ def best_quotes(query: str, passages: Sequence[Passage], scorer: QuoteScorer, k:
     scores = scorer(query, [unit for _, unit in units])
     order = sorted(range(len(units)), key=lambda j: -scores[j])[:k]
     return [{"passage": units[j][0], "text": units[j][1], "score": round(float(scores[j]), 4)} for j in order]
+
+
+def focus_passages(
+    query: str, passages: Sequence[Passage], scorer: QuoteScorer, k: int = 4, texts: Optional[Sequence[str]] = None,
+) -> List[Passage]:
+    """Вместо найденных фрагментов — k пунктов закона, ближайших к вопросу по оценке реранкера, лучшие первыми.
+
+    texts — откуда брать пункты для каждого фрагмента (например, статья целиком; по умолчанию текст фрагмента).
+    Пункт наследует подпись, оценку поиска и чанки своего фрагмента, поэтому порог уверенности поиска и ссылки
+    на источники работают как прежде. Одинаковые пункты (одна статья в двух фрагментах) берутся один раз.
+    """
+    sources = list(texts) if texts is not None else [p.text for p in passages]
+    units: List[Tuple[Passage, str]] = []
+    seen = set()
+    for passage, text in zip(passages, sources):
+        for unit in law_units(text):
+            if unit not in seen:
+                seen.add(unit)
+                units.append((passage, unit))
+    if not units:
+        return list(passages)
+    scores = scorer(query, [unit for _, unit in units])
+    order = sorted(range(len(units)), key=lambda j: -scores[j])[:k]
+    return [
+        Passage(id=units[j][0].id, text=units[j][1], law=units[j][0].law, articles=units[j][0].articles,
+                score=units[j][0].score, source_id=units[j][0].source_id, chunk_ids=list(units[j][0].ids))
+        for j in order
+    ]
+
+
 # Следование ответа из фрагментов: (вопрос, ответ, цитируемые фрагменты) -> вероятность (src/nli.py)
 EntailmentScorer = Callable[[str, str, Sequence[Passage]], float]
 
@@ -616,6 +696,8 @@ class GroundedAnswerer:
         number_words: bool = False,
         quote_scorer: Optional[QuoteScorer] = None,
         max_quotes: int = 2,
+        prompt: str = "default",
+        focus_on_refusal: int = 0,
     ):
         """
         Args:
@@ -636,7 +718,13 @@ class GroundedAnswerer:
             number_words: проверка чисел понимает числа, записанные в законе словами («двадцать четыре» = 24).
             quote_scorer: оценка пунктов закона реранкером; если задана, при отказе модели или отклонённом ответе
                           (поиск уверен) в Answer.quotes — max_quotes пунктов, ближайших к вопросу, дословно.
+            prompt: вариант системного промпта (PROMPT_STYLES): "default" или "extractive" — начать ответ
+                    с почти дословного предложения закона.
+            focus_on_refusal: после отказа модели спросить ещё раз по стольким лучшим пунктам статей (focus_passages,
+                              нужен quote_scorer); 0 — без повтора.
         """
+        if prompt not in PROMPT_STYLES:
+            raise ValueError(f"prompt: {prompt!r}, ожидается одно из {PROMPT_STYLES}")
         self.client = client
         self.lang = lang
         self.min_retrieval_score = min_retrieval_score
@@ -651,6 +739,8 @@ class GroundedAnswerer:
         self.number_words = number_words
         self.quote_scorer = quote_scorer
         self.max_quotes = max_quotes
+        self.prompt = prompt
+        self.focus_on_refusal = focus_on_refusal
 
     def retry_prompt(self, answer: str, n_passages: int) -> Optional[Tuple[str, str]]:
         """Повторный запрос к модели и его причина (для трассы); None — ответ принимается как есть."""
@@ -676,7 +766,7 @@ class GroundedAnswerer:
 
         Возвращает словарь OllamaClient.chat с полем retried; токены и время суммируются по обоим запросам.
         """
-        messages = build_messages(question, passages, self.lang)
+        messages = build_messages(question, passages, self.lang, self.prompt)
         first = self._chat("llm", messages)
         retry = self.retry_prompt(first["text"], len(passages))
         if retry is None:
@@ -720,11 +810,39 @@ class GroundedAnswerer:
                 )
         return response
 
-    def answer(self, question: str, passages: Sequence[Passage], search_query: Optional[str] = None) -> Answer:
+    def _refusal_fallback(
+        self, question: str, passages: List[Passage], query: str, source_texts: Optional[Sequence[str]], refused: Answer,
+    ) -> Answer:
+        """После отказа — новый запрос к модели по focus_on_refusal лучшим пунктам статей (focus_passages).
+
+        Длинный контекст сбивает модель 3B: норма есть во фрагменте, а модель отказывается («С какого возраста человек
+        полностью дееспособен?» при найденной ст. 17 ГК). Ответ по пунктам проходит те же проверки, но по тексту
+        пунктов; если он не принят, остаётся отказ.
+        """
+        with span("refusal-fallback", input={"units": self.focus_on_refusal}) as obs:
+            focused = focus_passages(query, passages, self.quote_scorer, self.focus_on_refusal, texts=source_texts)
+            response = self.ask_model(question, focused)
+            usage = {k: response.get(k) for k in ("prompt_tokens", "completion_tokens", "latency_s", "cached", "retried")}
+            for key in ("prompt_tokens", "completion_tokens", "latency_s"):
+                usage[key] = (usage.get(key) or 0) + (refused.usage.get(key) or 0)
+            second = self.judge(question, response["text"], focused, usage)
+            obs.update(output={"status": second.status, "passages": [p.label for p in focused]})
+        if second.status != STATUS_ANSWERED:
+            refused.checks["fallback_raw"] = second.raw
+            return refused
+        second.checks["fallback"] = "ответ по лучшим пунктам статей после отказа"
+        second.checks["first_raw"] = refused.raw
+        return second
+
+    def answer(
+        self, question: str, passages: Sequence[Passage], search_query: Optional[str] = None,
+        source_texts: Optional[Sequence[str]] = None,
+    ) -> Answer:
         """Полный цикл: порог поиска → модель → проверка ответа; при отказе или отклонённом ответе — цитата закона.
 
         search_query — запрос, по которому искали (для законов — вопрос с терминами словаря): по нему выбираются
-        пункты цитаты; по умолчанию — сам вопрос.
+        пункты цитаты; по умолчанию — сам вопрос. source_texts — откуда брать пункты для повтора после отказа
+        (focus_on_refusal), например статьи целиком; по умолчанию — тексты фрагментов.
         """
         model = getattr(self.client, "model", None)
         with span("answer", as_type="chain", input=question, metadata={"model": model, "lang": self.lang}) as obs:
@@ -745,6 +863,8 @@ class GroundedAnswerer:
                 response = self.ask_model(question, passages)
                 usage = {k: response.get(k) for k in ("prompt_tokens", "completion_tokens", "latency_s", "cached", "retried")}
                 result = self.judge(question, response["text"], passages, usage)
+                if result.status == STATUS_REFUSED and self.focus_on_refusal and self.quote_scorer is not None:
+                    result = self._refusal_fallback(question, passages, search_query or question, source_texts, result)
                 if self.quote_scorer is not None and result.status in (STATUS_REFUSED, STATUS_UNVERIFIED):
                     # Поиск уверен, но ответа модели нет: дословные пункты закона вместо пересказа
                     with span("quote", input={"query": search_query or question}) as quote:
@@ -842,4 +962,5 @@ class GroundedAnswerer:
         if self.verify and problems:
             # Сам ответ (и выдуманные в нём числа) не показывается; причины — в checks["problems"]
             return Answer(STATUS_UNVERIFIED, UNVERIFIED[self.lang], passages, raw=raw, cited=[1], checks=checks, usage=usage)
-        return Answer(STATUS_ANSWERED, text, passages, raw=raw, cited=cited or [1], checks=checks, usage=usage)
+        shown = tidy_answer(text, passages)
+        return Answer(STATUS_ANSWERED, shown, passages, raw=raw, cited=cited or [1], checks=checks, usage=usage)
