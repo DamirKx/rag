@@ -276,6 +276,7 @@ def corpus_settings(lang: str, corpus_name: str) -> Dict[str, Any]:
             return {"reranker": params["reranker"], "dictionary": bool(params.get("dictionary")),
                     "retry_short": bool(params.get("retry_short")), "retry_refusals": bool(params.get("retry_refusals")),
                     "number_words": bool(params.get("number_words")),
+                    "focus_on_refusal": int(params.get("focus_on_refusal") or 0),
                     "min_retrieval_score": params.get("min_retrieval_score"),
                     "min_answer_relevance": params.get("min_answer_relevance"), "source": LAWS_SETTINGS.as_posix()}
     return {"reranker": default_reranker(lang), "dictionary": False, "source": f"data/adilet/generation_eval_{lang}.json"}
@@ -480,6 +481,8 @@ def load_answerer(lang: str, corpus_name: str) -> GroundedAnswerer:
             # («двадцать четыре») сверяются с цифрами ответа
             retry_short=settings.get("retry_short", False), retry_refusals=settings.get("retry_refusals", False),
             number_words=settings.get("number_words", False),
+            # Для законов: после отказа модель спрашивают ещё раз по лучшим пунктам найденных статей
+            focus_on_refusal=settings.get("focus_on_refusal", 0),
         )
 
     return model_store().get(("answerer", lang, corpus_name, reranker_name), build)
@@ -496,8 +499,10 @@ def compute_answer(query: str, hits: List[Dict[str, Any]], lang: str, corpus_nam
     passages = build_passages(hits)
     try:
         with st.spinner(f"{DEFAULT_LLM} формулирует ответ по найденным фрагментам..."):
+            contexts = {h["id"]: h.get("context", h["text"]) for h in hits}
             answer = load_answerer(lang, corpus_name).answer(
-                query, passages, search_query=search_query_for(query, lang, corpus_name))
+                query, passages, search_query=search_query_for(query, lang, corpus_name),
+                source_texts=[contexts.get(p.id, p.text) for p in passages])
             return {"answer": answer, "passages": passages, "error": None}
     except OllamaError as e:
         return {"answer": None, "passages": passages, "error": str(e)}
@@ -530,11 +535,15 @@ def render_answer(
         top = answer.checks.get("top_score")
         if answer.status == STATUS_ANSWERED:
             st.markdown(answer.text.replace("\n", "  \n"))
+            # Ссылки [n] — на фрагменты, по которым дан ответ (после повтора по пунктам статей — на пункты)
             sources = []
             for n in answer.cited:
-                url = source_url(lang, passages[n - 1].source_id)
-                sources.append(f"[{n}] [{passages[n - 1].label}]({url})" if url else f"[{n}] {passages[n - 1].label}")
+                source = answer.passages[n - 1]
+                url = source_url(lang, source.source_id)
+                sources.append(f"[{n}] [{source.label}]({url})" if url else f"[{n}] {source.label}")
             st.caption("Источники: " + " · ".join(sources))
+            if answer.checks.get("fallback"):
+                st.caption("Первый раз модель не нашла ответа; ответ дан по пунктам статей, ближайшим к вопросу.")
             relevance = answer.checks.get("answer_relevance")
             entailment = answer.checks.get("entailment")
             st.caption(

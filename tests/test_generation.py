@@ -6,6 +6,7 @@ import pytest
 
 from src.generation import (
     REFUSAL,
+    SYSTEM_PROMPT,
     STATUS_ANSWERED,
     STATUS_NO_CONTEXT,
     STATUS_REFUSED,
@@ -20,6 +21,7 @@ from src.generation import (
     cited_passages,
     drop_invalid_citations,
     extract_citations,
+    focus_passages,
     is_malformed,
     is_refusal,
     is_too_short,
@@ -27,6 +29,8 @@ from src.generation import (
     load_generation_params,
     sentence_support,
     strip_citations,
+    system_prompt,
+    tidy_answer,
     unsupported_numbers,
 )
 from src.nli import entailment_scorer, load_entailment_scorer
@@ -63,6 +67,83 @@ class SequenceClient:
     def chat(self, messages):
         self.calls.append(list(messages))
         return {"text": self.texts[len(self.calls) - 1], "prompt_tokens": 10, "completion_tokens": 5, "latency_s": 0.5, "cached": False}
+
+
+class TestFocusPassages:
+    ARTICLE = (
+        "Статья 17. Дееспособность граждан\n"
+        "1. Гражданская дееспособность возникает в полном объеме с наступлением совершеннолетия.\n"
+        "2. Гражданин, вступивший в брак до восемнадцати лет, приобретает дееспособность в полном объеме.\n"
+        "3. Все граждане имеют равную дееспособность, если иное не установлено законами."
+    )
+
+    @staticmethod
+    def scorer(query, units):
+        return [float("совершеннолет" in u) + 0.5 * float("брак" in u) for u in units]
+
+    def test_best_units_first_with_parent_metadata(self):
+        parent = Passage(id="gk_17_fix_000", text="обрезанный фрагмент", law="ГК РК", articles="ст. 17", score=0.91,
+                         chunk_ids=["gk_17_fix_000", "gk_17_fix_001"])
+        result = focus_passages("С какого возраста дееспособен?", [parent], self.scorer, k=2, texts=[self.ARTICLE])
+        assert [p.text[:2] for p in result] == ["1.", "2."]
+        assert all(p.label == "ГК РК, ст. 17" and p.score == 0.91 for p in result)
+        assert result[0].ids == ["gk_17_fix_000", "gk_17_fix_001"]
+
+    def test_same_article_twice_gives_units_once(self):
+        a = Passage(id="a", text=self.ARTICLE, law="ГК РК", score=0.9)
+        b = Passage(id="b", text=self.ARTICLE, law="ГК РК", score=0.8)
+        result = focus_passages("вопрос", [a, b], self.scorer, k=10)
+        assert len(result) == 3 and len({p.text for p in result}) == 3
+
+    def test_without_units_passages_are_kept(self):
+        short = Passage(id="x", text="Статья 1. Заголовок", score=0.5)
+        assert focus_passages("вопрос", [short], self.scorer) == [short]
+
+
+class TestPromptStyles:
+    def test_default_prompt_is_unchanged(self):
+        assert system_prompt("rus", 3) == SYSTEM_PROMPT["rus"].format(refusal=REFUSAL["rus"], n=3)
+
+    def test_extractive_replaces_rule_3_only(self):
+        default, extractive = system_prompt("rus", 3), system_prompt("rus", 3, "extractive")
+        assert "почти дословно" in extractive and "почти дословно" not in default
+        assert extractive.count("\n") == default.count("\n")
+        assert "от 1 до 3" in extractive and REFUSAL["rus"] in extractive
+
+    def test_extractive_falls_back_for_kazakh(self):
+        assert system_prompt("kaz", 2, "extractive") == system_prompt("kaz", 2)
+
+    def test_unknown_style_is_rejected(self):
+        with pytest.raises(ValueError):
+            GroundedAnswerer(FakeClient(""), prompt="creative")
+
+    def test_answerer_sends_chosen_prompt(self):
+        client = FakeClient("Срок аренды земельного участка — до 49 лет [1].")
+        GroundedAnswerer(client, min_answer_relevance=None, prompt="extractive").answer("Срок аренды?", PASSAGES)
+        assert "почти дословно" in client.calls[0][0]["content"]
+
+
+class TestTidyAnswer:
+    def test_paragraph_number_before_citation_is_removed(self):
+        assert tidy_answer("2 [1] Основной отпуск — 24 календарных дня.", PASSAGES) == "Основной отпуск — 24 календарных дня. [1]"
+
+    def test_copied_passage_label_is_removed(self):
+        text = "[1] Земельный кодекс РК, ст. 12 Срок аренды — до 49 лет."
+        assert tidy_answer(text, PASSAGES) == "Срок аренды — до 49 лет. [1]"
+
+    def test_number_that_is_part_of_answer_is_kept(self):
+        assert tidy_answer("24 [1] календарных дня", PASSAGES) == "24 [1] календарных дня"
+        assert tidy_answer("Срок аренды — до 49 лет [1].", PASSAGES) == "Срок аренды — до 49 лет [1]."
+
+    def test_citation_only_answer_is_unchanged(self):
+        assert tidy_answer("[1]", PASSAGES) == "[1]"
+
+    def test_shown_answer_is_tidied_but_checked_as_is(self):
+        answerer = GroundedAnswerer(FakeClient("1 [1] Срок аренды земельного участка — до 49 лет."), min_answer_relevance=None)
+        result = answerer.answer("Какой срок аренды?", PASSAGES)
+        assert result.status == STATUS_ANSWERED
+        assert result.text == "Срок аренды земельного участка — до 49 лет. [1]"
+        assert result.raw.startswith("1 [1]")
 
 
 class TestChecks:

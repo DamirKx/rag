@@ -18,6 +18,7 @@ MRR@10. Правильный ответ — любая из статей gold в
     python eval_laws_colloquial.py --answers                 # ответы Qwen2.5-3B, выбор настроек для веб-демо
     python eval_laws_colloquial.py --answers --llm qwen3:4b-instruct-2507-q4_K_M   # другая модель на тех же настройках
     python eval_laws_colloquial.py --nli                     # проверка по смыслу (NLI) показанных ответов всех моделей
+    python eval_laws_colloquial.py --context                 # что получает модель: лучшие пункты, 2 фрагмента, промпт
 Результат: data/laws/colloquial_eval.json.
 """
 
@@ -123,7 +124,16 @@ def adilet_regression() -> Dict[str, Any]:
 
 # Настройки корпуса законов для веб-демо. Повтор после отказа добавил один правильный ответ из 49 (после просьбы
 # перепроверить модель чаще отвечает одной ссылкой «[1]»), а каждый отказ делает дольше на запрос к модели — не включён
-CHOSEN = "+ числа словами, повтор коротких"
+PREVIOUS = "+ числа словами, повтор коротких"  # выбор 7.15: на нём сравнивались модели ответа и NLI (7.16)
+CHOSEN = "+ пункты статей после отказа"
+CONTEXT_UNITS = "выбранные, 4 лучших пункта вместо фрагментов"
+CONTEXT_TOP2 = "выбранные, 2 фрагмента"
+CONTEXT_EXTRACTIVE = "выбранные, промпт «перепиши предложение»"
+CONTEXT_UNITS_EXTRACTIVE = "выбранные, 4 пункта + промпт «перепиши предложение»"
+# Варианты --answers: путь к выбранным настройкам (7.15 и 7.18); варианты контекста (--context) — отдельно
+MAIN_VARIANTS = ["как сейчас", "новые настройки", "новые + термины модели", "+ числа словами", PREVIOUS,
+                 "+ числа словами, повтор коротких и отказов", CHOSEN]
+CONTEXT_VARIANTS = [PREVIOUS, CONTEXT_UNITS, CONTEXT_TOP2, CONTEXT_EXTRACTIVE, CONTEXT_UNITS_EXTRACTIVE, CHOSEN]
 
 
 def gold_in(passages, gold, by_id: Dict[str, Dict[str, Any]]) -> bool:
@@ -152,7 +162,8 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
     from ask import build_passages
     from eval_generation import threshold_for
     from src.generation import (
-        DEFAULT_LLM, STATUS_ANSWERED, STATUS_UNVERIFIED, GroundedAnswerer, OllamaClient, best_quotes, reranker_relevance,
+        DEFAULT_LLM, STATUS_ANSWERED, STATUS_UNVERIFIED, GroundedAnswerer, OllamaClient, best_quotes, focus_passages,
+        reranker_relevance,
     )
     from src.nli import load_entailment_scorer
 
@@ -193,6 +204,17 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
                                                        "number_words": True, "retry_short": True, "retry_refusals": True,
                                                        "min_retrieval_score": new_gate, "min_answer_relevance": None},
     }
+    # Что получает модель (--context): выбранные настройки, а вместо трёх фрагментов — лучшие пункты статей,
+    # два фрагмента или промпт «сначала перепиши предложение закона с ответом»
+    chosen = {**configs[PREVIOUS]}
+    configs.update({
+        CONTEXT_UNITS: {**chosen, "units": 4},
+        CONTEXT_TOP2: {**chosen, "top_k": 2},
+        CONTEXT_EXTRACTIVE: {**chosen, "prompt": "extractive"},
+        CONTEXT_UNITS_EXTRACTIVE: {**chosen, "units": 4, "prompt": "extractive"},
+        # После отказа — новый запрос по 4 лучшим пунктам статей: исправил 4 отказа, остальные ответы не изменились
+        CHOSEN: {**chosen, "focus_on_refusal": 4},
+    })
     if only:
         configs = {k: v for k, v in configs.items() if k in only}
     out: Dict[str, Any] = {}
@@ -207,13 +229,19 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
             number_words=bool(cfg.get("number_words")),
             # Цитата закона при отказе или отклонённом ответе (не меняет статусы и метрики ответа)
             quote_scorer=lambda query, units, r=reranker: r.score(query, units),
+            prompt=cfg.get("prompt", "default"), focus_on_refusal=cfg.get("focus_on_refusal", 0),
         )
         records = []
         for q in data:
             query = expand_query(q["question"]) if cfg["dictionary"] else q["question"]
-            hits = engine.search(query, mode="hybrid", top_k=3, rerank=True)
+            hits = engine.search(query, mode="hybrid", top_k=cfg.get("top_k", 3), rerank=True)
             passages = build_passages([{**by_id[doc_id], "score": score} for doc_id, _, score in hits])
-            answer = answerer.answer(query if cfg.get("terms_for_model") else q["question"], passages, search_query=query)
+            if cfg.get("units"):
+                # Пункты из найденных статей целиком (в корпусе законов фрагмент чанка — статья)
+                passages = focus_passages(query, passages, answerer.quote_scorer, cfg["units"],
+                                          texts=[by_id[p.id]["context"] for p in passages])
+            answer = answerer.answer(query if cfg.get("terms_for_model") else q["question"], passages, search_query=query,
+                                     source_texts=[by_id[p.id]["context"] for p in passages])
             gold = {(g["law"], g["article"]) for g in q["gold"]}
             cited = [passages[n - 1] for n in answer.cited if 1 <= n <= len(passages)] if answer.answered else []
             from_gold = any((by_id[i]["law"], a) in gold for p in cited for i in p.ids for a in article_numbers(by_id[i]))
@@ -284,8 +312,8 @@ def nli_stage(results: Dict[str, Any]) -> Dict[str, Any]:
 
     data = {q["id"]: q for q in json.loads(QUESTIONS.read_text(encoding="utf-8"))["questions"]}
     manual = json.loads(MANUAL.read_text(encoding="utf-8"))["models"]
-    answers = {DEFAULT_LLM: results["answers"][CHOSEN]["records"]}
-    answers.update({llm: out[CHOSEN]["records"] for llm, out in results.get("answers_by_llm", {}).items() if CHOSEN in out})
+    answers = {DEFAULT_LLM: results["answers"][PREVIOUS]["records"]}
+    answers.update({llm: out[PREVIOUS]["records"] for llm, out in results.get("answers_by_llm", {}).items() if PREVIOUS in out})
     shown = {llm: [r for r in recs if r["status"] == "answered"] for llm, recs in answers.items()}
 
     corpus = build_chunk_corpus(load_laws(), {})
@@ -333,22 +361,31 @@ def main() -> None:
         results["nli"] = nli_stage(results)
         RESULT.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
         return
+    if "--context" in sys.argv:
+        # Что получает модель: варианты контекста и промпта на выбранных настройках; настройки веб-демо не меняются
+        results = json.loads(RESULT.read_text(encoding="utf-8"))
+        only = [v for v in CONTEXT_VARIANTS if "--fallback-only" not in sys.argv or v in (PREVIOUS, CHOSEN)]
+        out = answers_stage(results, only=only)
+        results["answers_context"] = {**results.get("answers_context", {}), **out}
+        RESULT.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
+        return
     if "--answers" in sys.argv and "--llm" in sys.argv:
         # Другая модель ответа — на выбранных настройках; настройки веб-демо (params) не меняются
         llm = sys.argv[sys.argv.index("--llm") + 1]
         results = json.loads(RESULT.read_text(encoding="utf-8"))
-        out = answers_stage(results, llm, only=[CHOSEN, "+ числа словами, повтор коротких и отказов"])
+        out = answers_stage(results, llm, only=[PREVIOUS, "+ числа словами, повтор коротких и отказов"])
         results.setdefault("answers_by_llm", {})[llm] = out
         RESULT.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
         return
     if "--answers" in sys.argv:
         results = json.loads(RESULT.read_text(encoding="utf-8"))
-        results["answers"] = answers_stage(results)
+        results["answers"] = answers_stage(results, only=MAIN_VARIANTS)
         new = results["answers"][CHOSEN]["params"]
         # Настройки корпуса законов для веб-демо (app.py)
         results["params"] = {"reranker": new["reranker"], "dictionary": True, "terms_for_model": bool(new.get("terms_for_model")),
                              "retry_short": bool(new.get("retry_short")), "retry_refusals": bool(new.get("retry_refusals")),
                              "number_words": bool(new.get("number_words")),
+                             "focus_on_refusal": int(new.get("focus_on_refusal") or 0),
                              "min_retrieval_score": new["min_retrieval_score"], "min_answer_relevance": new["min_answer_relevance"]}
         RESULT.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
         return
