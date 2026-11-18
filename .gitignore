@@ -117,3 +117,7 @@ wandb/
 /figures/
 hf_cache/
 .huggingface/
+
+# Сборка курсовой (coursework/build_docx.py)
+coursework/**/kursovaya.docx
+coursework/**/kursovaya.pdf
