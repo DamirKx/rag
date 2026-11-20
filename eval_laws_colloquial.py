@@ -20,6 +20,13 @@ MRR@10. Правильный ответ — любая из статей gold в
     python eval_laws_colloquial.py --nli                     # проверка по смыслу (NLI) показанных ответов всех моделей
     python eval_laws_colloquial.py --context                 # что получает модель: лучшие пункты, 2 фрагмента, промпт
 Результат: data/laws/colloquial_eval.json.
+
+Проверка на независимом наборе (100 вопросов, data/laws/colloquial_questions_100.json) — в отдельный файл, чтобы
+не менять настройки веб-демо; --frozen берёт пороги из data/laws/colloquial_eval.json, --short — только «как сейчас»
+и выбранные настройки, --no-gate — выбранные без порога уверенности поиска (порог потом считает eval_gate_cv.py):
+    python eval_laws_colloquial.py --questions data/laws/colloquial_questions_100.json --result data/laws/colloquial_eval_100.json
+    python eval_laws_colloquial.py --answers --short --frozen --questions ... --result ...
+    python eval_laws_colloquial.py --answers --no-gate --frozen --questions ... --result ...
 """
 
 import gc
@@ -46,8 +53,20 @@ from src.laws import load_laws
 from src.query_expansion import expand_query
 from src.reranker import DEFAULT_RERANKER, CrossEncoderReranker, default_reranker
 
-QUESTIONS = Path("data/laws/colloquial_questions.json")
-RESULT = Path("data/laws/colloquial_eval.json")
+def _arg(name: str, default: str) -> str:
+    """Значение ключа командной строки «--name значение» или значение по умолчанию."""
+    return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else default
+
+
+# Набор вопросов и файл результата. Веб-демо берёт настройки из data/laws/colloquial_eval.json (LAWS_SETTINGS в app.py),
+# поэтому прогон на другом наборе пишется в отдельный файл: --questions data/laws/colloquial_questions_100.json
+# --result data/laws/colloquial_eval_100.json
+QUESTIONS = Path(_arg("--questions", "data/laws/colloquial_questions.json"))
+RESULT = Path(_arg("--result", "data/laws/colloquial_eval.json"))
+# --frozen: пороги уверенности поиска и соответствия вопросу не подбираются на этих вопросах, а берутся из настроек
+# веб-демо (подобраны на прежнем наборе) — проверка на новых вопросах без подгонки
+FROZEN_SETTINGS = Path("data/laws/colloquial_eval.json")
+FROZEN = "--frozen" in sys.argv
 MANUAL = Path("data/laws/colloquial_manual_check.json")  # ручная проверка показанных ответов (C / P / W)
 CACHE_DIR = "data/adilet/cache"
 LANG = "rus"
@@ -181,6 +200,11 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
     device = "cuda" if torch.cuda.is_available() else "cpu"
     adilet = load_generation_params(LANG, default_reranker(LANG))
     new_gate = threshold_for(results["gates"]["hybrid + реранкер исходный / со словарём"]["answerable_top_scores"])
+    frozen_relevance = None
+    if FROZEN:
+        frozen = json.loads(FROZEN_SETTINGS.read_text(encoding="utf-8"))["params"]
+        new_gate, frozen_relevance = frozen["min_retrieval_score"], frozen["min_answer_relevance"]
+        print(f"Пороги из {FROZEN_SETTINGS}: уверенность поиска {new_gate}, соответствие вопросу {frozen_relevance}")
     llm = llm or DEFAULT_LLM
     # Имя файла кэша из имени модели: «qwen2.5:3b» → llm_qwen2.5_3b.jsonl, «hf.co/автор/модель:Q4_K_M» — без «/»
     client = OllamaClient(llm, retries=3, cache_path=f"{CACHE_DIR}/llm_{re.sub(r'[^\w.-]', '_', llm)}.jsonl")
@@ -217,6 +241,14 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
     })
     if only:
         configs = {k: v for k, v in configs.items() if k in only}
+    if FROZEN:
+        for cfg in configs.values():
+            if cfg["min_answer_relevance"] is None:
+                cfg["min_answer_relevance"] = frozen_relevance
+    if "--no-gate" in sys.argv:
+        # Без порога уверенности поиска: все вопросы доходят до модели, порог потом считается по top_score записей
+        for cfg in configs.values():
+            cfg["min_retrieval_score"] = None
     out: Dict[str, Any] = {}
     for label, cfg in configs.items():
         reranker = CrossEncoderReranker(cfg["reranker"], device=device)
@@ -247,6 +279,7 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
             from_gold = any((by_id[i]["law"], a) in gold for p in cited for i in p.ids for a in article_numbers(by_id[i]))
             # raw — ответ модели до проверки (в answer при отклонении стоит запасной текст), problems — почему отклонён
             records.append({"id": q["id"], "status": answer.status, "from_gold": from_gold, "has_gold": bool(gold),
+                            "top_score": round(float(max(p.score for p in passages)), 4) if passages else None,
                             "gold_in_context": gold_in(passages, gold, by_id),
                             "relevance": answer.checks.get("answer_relevance"), "answer": answer.text, "raw": answer.raw,
                             "problems": list(answer.checks.get("problems", [])),
@@ -377,9 +410,16 @@ def main() -> None:
         results.setdefault("answers_by_llm", {})[llm] = out
         RESULT.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
         return
+    if "--answers" in sys.argv and "--no-gate" in sys.argv:
+        # Выбранные настройки без порога уверенности поиска — отдельный ключ, прежние ответы и настройки не меняются
+        results = json.loads(RESULT.read_text(encoding="utf-8"))
+        results["answers_no_gate"] = answers_stage(results, only=[CHOSEN])
+        RESULT.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
+        return
     if "--answers" in sys.argv:
         results = json.loads(RESULT.read_text(encoding="utf-8"))
-        results["answers"] = answers_stage(results, only=MAIN_VARIANTS)
+        # --short: только исходные настройки и выбранные (без промежуточных шагов 7.15–7.18)
+        results["answers"] = answers_stage(results, only=["как сейчас", CHOSEN] if "--short" in sys.argv else MAIN_VARIANTS)
         new = results["answers"][CHOSEN]["params"]
         # Настройки корпуса законов для веб-демо (app.py)
         results["params"] = {"reranker": new["reranker"], "dictionary": True, "terms_for_model": bool(new.get("terms_for_model")),
