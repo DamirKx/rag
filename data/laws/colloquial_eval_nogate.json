@@ -1,0 +1,2996 @@
+{
+ "questions": 59,
+ "answerable": 49,
+ "outside": 10,
+ "dictionary_covered": 46,
+ "configs": {
+  "bm25 / без словаря": {
+   "hit@1": 0.1224,
+   "hit@3": 0.2857,
+   "mrr@10": 0.2098
+  },
+  "dense / без словаря": {
+   "hit@1": 0.4898,
+   "hit@3": 0.6531,
+   "mrr@10": 0.5903
+  },
+  "hybrid / без словаря": {
+   "hit@1": 0.3061,
+   "hit@3": 0.5102,
+   "mrr@10": 0.4453
+  },
+  "bm25 / со словарём": {
+   "hit@1": 0.4694,
+   "hit@3": 0.7143,
+   "mrr@10": 0.6137
+  },
+  "dense / со словарём": {
+   "hit@1": 0.6939,
+   "hit@3": 0.9184,
+   "mrr@10": 0.8085
+  },
+  "hybrid / со словарём": {
+   "hit@1": 0.5918,
+   "hit@3": 0.898,
+   "mrr@10": 0.7509
+  },
+  "hybrid + реранкер дообученный / без словаря": {
+   "hit@1": 0.3878,
+   "hit@3": 0.6735,
+   "mrr@10": 0.5362
+  },
+  "hybrid + реранкер дообученный / со словарём": {
+   "hit@1": 0.6327,
+   "hit@3": 0.9184,
+   "mrr@10": 0.7854
+  },
+  "hybrid + реранкер исходный / без словаря": {
+   "hit@1": 0.551,
+   "hit@3": 0.7347,
+   "mrr@10": 0.6582
+  },
+  "hybrid + реранкер исходный / со словарём": {
+   "hit@1": 0.7959,
+   "hit@3": 1.0,
+   "mrr@10": 0.8878
+  }
+ },
+ "per_question": {
+  "bm25 / без словаря": {
+   "lq01": null,
+   "lq02": null,
+   "lq03": null,
+   "lq04": null,
+   "lq05": null,
+   "lq06": 3,
+   "lq07": 7,
+   "lq08": null,
+   "lq09": 1,
+   "lq10": null,
+   "lq11": 2,
+   "lq12": null,
+   "lq13": 2,
+   "lq14": null,
+   "lq15": 2,
+   "lq16": null,
+   "lq17": null,
+   "lq18": null,
+   "lq19": null,
+   "lq20": null,
+   "lq21": 1,
+   "lq22": 1,
+   "lq23": 1,
+   "lq24": 9,
+   "lq25": null,
+   "lq26": null,
+   "lq27": null,
+   "lq28": null,
+   "lq29": 3,
+   "lq30": null,
+   "lq31": null,
+   "lq32": null,
+   "lq33": 2,
+   "lq34": null,
+   "lq35": null,
+   "lq36": null,
+   "lq37": null,
+   "lq38": null,
+   "lq39": null,
+   "lq40": null,
+   "lq41": null,
+   "lq42": 4,
+   "lq43": 2,
+   "lq44": 1,
+   "lq45": null,
+   "lq46": 2,
+   "lq47": null,
+   "lq48": 9,
+   "lq49": 1
+  },
+  "dense / без словаря": {
+   "lq01": null,
+   "lq02": null,
+   "lq03": 6,
+   "lq04": 1,
+   "lq05": 4,
+   "lq06": 1,
+   "lq07": 3,
+   "lq08": 1,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 1,
+   "lq12": 4,
+   "lq13": 1,
+   "lq14": 2,
+   "lq15": null,
+   "lq16": 1,
+   "lq17": null,
+   "lq18": 2,
+   "lq19": 1,
+   "lq20": 2,
+   "lq21": 1,
+   "lq22": 1,
+   "lq23": 1,
+   "lq24": null,
+   "lq25": 1,
+   "lq26": 4,
+   "lq27": 7,
+   "lq28": 1,
+   "lq29": 2,
+   "lq30": null,
+   "lq31": null,
+   "lq32": 1,
+   "lq33": 2,
+   "lq34": null,
+   "lq35": 1,
+   "lq36": 1,
+   "lq37": null,
+   "lq38": null,
+   "lq39": null,
+   "lq40": 1,
+   "lq41": 1,
+   "lq42": 1,
+   "lq43": 1,
+   "lq44": 1,
+   "lq45": 5,
+   "lq46": 1,
+   "lq47": 2,
+   "lq48": 1,
+   "lq49": 3
+  },
+  "hybrid / без словаря": {
+   "lq01": 1,
+   "lq02": null,
+   "lq03": 2,
+   "lq04": 4,
+   "lq05": null,
+   "lq06": 1,
+   "lq07": 4,
+   "lq08": 4,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 1,
+   "lq12": 4,
+   "lq13": 1,
+   "lq14": null,
+   "lq15": 3,
+   "lq16": 3,
+   "lq17": null,
+   "lq18": 3,
+   "lq19": 2,
+   "lq20": 4,
+   "lq21": 1,
+   "lq22": 1,
+   "lq23": 1,
+   "lq24": 6,
+   "lq25": 4,
+   "lq26": 7,
+   "lq27": null,
+   "lq28": 5,
+   "lq29": 2,
+   "lq30": null,
+   "lq31": null,
+   "lq32": 1,
+   "lq33": 2,
+   "lq34": null,
+   "lq35": 3,
+   "lq36": 2,
+   "lq37": null,
+   "lq38": 6,
+   "lq39": null,
+   "lq40": 6,
+   "lq41": 7,
+   "lq42": 1,
+   "lq43": 1,
+   "lq44": 1,
+   "lq45": null,
+   "lq46": 1,
+   "lq47": 6,
+   "lq48": 3,
+   "lq49": 1
+  },
+  "bm25 / со словарём": {
+   "lq01": 6,
+   "lq02": 1,
+   "lq03": 3,
+   "lq04": 6,
+   "lq05": 2,
+   "lq06": 1,
+   "lq07": 2,
+   "lq08": 3,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 9,
+   "lq12": 8,
+   "lq13": 1,
+   "lq14": 5,
+   "lq15": 3,
+   "lq16": 10,
+   "lq17": 1,
+   "lq18": 2,
+   "lq19": 1,
+   "lq20": 1,
+   "lq21": 1,
+   "lq22": 1,
+   "lq23": 1,
+   "lq24": 2,
+   "lq25": null,
+   "lq26": 1,
+   "lq27": 1,
+   "lq28": 2,
+   "lq29": 1,
+   "lq30": 5,
+   "lq31": 1,
+   "lq32": 1,
+   "lq33": 1,
+   "lq34": 6,
+   "lq35": null,
+   "lq36": 1,
+   "lq37": null,
+   "lq38": 1,
+   "lq39": 6,
+   "lq40": 4,
+   "lq41": 1,
+   "lq42": 3,
+   "lq43": 2,
+   "lq44": 1,
+   "lq45": 2,
+   "lq46": 3,
+   "lq47": 4,
+   "lq48": 1,
+   "lq49": 1
+  },
+  "dense / со словарём": {
+   "lq01": 2,
+   "lq02": 2,
+   "lq03": 1,
+   "lq04": 1,
+   "lq05": 1,
+   "lq06": 1,
+   "lq07": 1,
+   "lq08": 1,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 1,
+   "lq12": 9,
+   "lq13": 1,
+   "lq14": 1,
+   "lq15": 2,
+   "lq16": 1,
+   "lq17": 2,
+   "lq18": 3,
+   "lq19": 1,
+   "lq20": 1,
+   "lq21": 1,
+   "lq22": 1,
+   "lq23": 1,
+   "lq24": 2,
+   "lq25": 1,
+   "lq26": 3,
+   "lq27": 1,
+   "lq28": 1,
+   "lq29": 1,
+   "lq30": 2,
+   "lq31": 1,
+   "lq32": 1,
+   "lq33": 1,
+   "lq34": 4,
+   "lq35": 1,
+   "lq36": 1,
+   "lq37": 7,
+   "lq38": 1,
+   "lq39": 9,
+   "lq40": 1,
+   "lq41": 1,
+   "lq42": 1,
+   "lq43": 1,
+   "lq44": 1,
+   "lq45": 2,
+   "lq46": 1,
+   "lq47": 2,
+   "lq48": 1,
+   "lq49": 3
+  },
+  "hybrid / со словарём": {
+   "lq01": 4,
+   "lq02": 1,
+   "lq03": 1,
+   "lq04": 3,
+   "lq05": 2,
+   "lq06": 1,
+   "lq07": 1,
+   "lq08": 2,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 3,
+   "lq12": 4,
+   "lq13": 1,
+   "lq14": 2,
+   "lq15": 2,
+   "lq16": 2,
+   "lq17": 1,
+   "lq18": 2,
+   "lq19": 1,
+   "lq20": 1,
+   "lq21": 1,
+   "lq22": 1,
+   "lq23": 1,
+   "lq24": 2,
+   "lq25": 4,
+   "lq26": 3,
+   "lq27": 1,
+   "lq28": 1,
+   "lq29": 1,
+   "lq30": 2,
+   "lq31": 1,
+   "lq32": 1,
+   "lq33": 1,
+   "lq34": 4,
+   "lq35": 3,
+   "lq36": 1,
+   "lq37": 8,
+   "lq38": 1,
+   "lq39": 1,
+   "lq40": 1,
+   "lq41": 1,
+   "lq42": 1,
+   "lq43": 1,
+   "lq44": 1,
+   "lq45": 2,
+   "lq46": 1,
+   "lq47": 3,
+   "lq48": 1,
+   "lq49": 2
+  },
+  "hybrid + реранкер дообученный / без словаря": {
+   "lq01": 3,
+   "lq02": null,
+   "lq03": 1,
+   "lq04": 3,
+   "lq05": 1,
+   "lq06": 1,
+   "lq07": 1,
+   "lq08": 1,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 1,
+   "lq12": 4,
+   "lq13": 3,
+   "lq14": null,
+   "lq15": null,
+   "lq16": 1,
+   "lq17": null,
+   "lq18": 1,
+   "lq19": 3,
+   "lq20": 2,
+   "lq21": 1,
+   "lq22": 2,
+   "lq23": 1,
+   "lq24": 3,
+   "lq25": 1,
+   "lq26": 8,
+   "lq27": 2,
+   "lq28": 1,
+   "lq29": 1,
+   "lq30": null,
+   "lq31": null,
+   "lq32": 2,
+   "lq33": 5,
+   "lq34": null,
+   "lq35": 1,
+   "lq36": 1,
+   "lq37": null,
+   "lq38": 3,
+   "lq39": null,
+   "lq40": 1,
+   "lq41": 5,
+   "lq42": 1,
+   "lq43": 2,
+   "lq44": 2,
+   "lq45": 4,
+   "lq46": 2,
+   "lq47": null,
+   "lq48": 4,
+   "lq49": 2
+  },
+  "hybrid + реранкер дообученный / со словарём": {
+   "lq01": 1,
+   "lq02": 1,
+   "lq03": 1,
+   "lq04": 1,
+   "lq05": 1,
+   "lq06": 1,
+   "lq07": 1,
+   "lq08": 1,
+   "lq09": 1,
+   "lq10": 2,
+   "lq11": 1,
+   "lq12": 5,
+   "lq13": 1,
+   "lq14": 5,
+   "lq15": 3,
+   "lq16": 1,
+   "lq17": 1,
+   "lq18": 1,
+   "lq19": 2,
+   "lq20": 1,
+   "lq21": 1,
+   "lq22": 2,
+   "lq23": 1,
+   "lq24": 1,
+   "lq25": 1,
+   "lq26": 1,
+   "lq27": 3,
+   "lq28": 2,
+   "lq29": 1,
+   "lq30": 1,
+   "lq31": 1,
+   "lq32": 2,
+   "lq33": 1,
+   "lq34": 6,
+   "lq35": 1,
+   "lq36": 1,
+   "lq37": 2,
+   "lq38": 1,
+   "lq39": 2,
+   "lq40": 1,
+   "lq41": 1,
+   "lq42": 1,
+   "lq43": 2,
+   "lq44": 2,
+   "lq45": 4,
+   "lq46": 2,
+   "lq47": 2,
+   "lq48": 1,
+   "lq49": 2
+  },
+  "hybrid + реранкер исходный / без словаря": {
+   "lq01": 5,
+   "lq02": null,
+   "lq03": 1,
+   "lq04": 1,
+   "lq05": 1,
+   "lq06": 1,
+   "lq07": 1,
+   "lq08": 1,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 1,
+   "lq12": 5,
+   "lq13": 1,
+   "lq14": 5,
+   "lq15": 2,
+   "lq16": 1,
+   "lq17": null,
+   "lq18": 1,
+   "lq19": 1,
+   "lq20": 1,
+   "lq21": 1,
+   "lq22": 2,
+   "lq23": 1,
+   "lq24": 3,
+   "lq25": 1,
+   "lq26": 5,
+   "lq27": 1,
+   "lq28": 1,
+   "lq29": 1,
+   "lq30": null,
+   "lq31": null,
+   "lq32": 2,
+   "lq33": 1,
+   "lq34": null,
+   "lq35": 2,
+   "lq36": 1,
+   "lq37": null,
+   "lq38": 2,
+   "lq39": null,
+   "lq40": 1,
+   "lq41": 1,
+   "lq42": 1,
+   "lq43": 1,
+   "lq44": 2,
+   "lq45": 5,
+   "lq46": 1,
+   "lq47": 4,
+   "lq48": 3,
+   "lq49": 3
+  },
+  "hybrid + реранкер исходный / со словарём": {
+   "lq01": 1,
+   "lq02": 1,
+   "lq03": 1,
+   "lq04": 1,
+   "lq05": 1,
+   "lq06": 1,
+   "lq07": 1,
+   "lq08": 1,
+   "lq09": 1,
+   "lq10": 1,
+   "lq11": 1,
+   "lq12": 3,
+   "lq13": 1,
+   "lq14": 2,
+   "lq15": 2,
+   "lq16": 1,
+   "lq17": 1,
+   "lq18": 1,
+   "lq19": 1,
+   "lq20": 1,
+   "lq21": 1,
+   "lq22": 2,
+   "lq23": 1,
+   "lq24": 1,
+   "lq25": 1,
+   "lq26": 1,
+   "lq27": 2,
+   "lq28": 1,
+   "lq29": 1,
+   "lq30": 1,
+   "lq31": 1,
+   "lq32": 1,
+   "lq33": 1,
+   "lq34": 2,
+   "lq35": 2,
+   "lq36": 1,
+   "lq37": 1,
+   "lq38": 1,
+   "lq39": 3,
+   "lq40": 1,
+   "lq41": 1,
+   "lq42": 1,
+   "lq43": 1,
+   "lq44": 2,
+   "lq45": 1,
+   "lq46": 1,
+   "lq47": 1,
+   "lq48": 1,
+   "lq49": 3
+  }
+ },
+ "current_gate": 0.928,
+ "gates": {
+  "hybrid + реранкер дообученный / без словаря": {
+   "reranker": "models/reranker-bge-m3-adilet-rus",
+   "answerable_top_scores": [
+    0.069,
+    0.0451,
+    0.777,
+    0.0347,
+    0.6845,
+    0.9894,
+    0.9922,
+    0.4419,
+    0.0214,
+    0.8521,
+    0.9233,
+    0.1322,
+    0.2098,
+    0.9004,
+    0.0789,
+    0.7032,
+    0.9871,
+    0.9969,
+    0.3777,
+    0.9977,
+    0.0302,
+    0.1322,
+    0.1438,
+    0.1768,
+    0.9762,
+    0.8065,
+    0.105,
+    0.4574,
+    0.9979,
+    0.9754,
+    0.9845,
+    0.2909,
+    0.9463
+   ],
+   "outside_top_scores": [
+    0.0544,
+    0.0454,
+    0.367,
+    0.1488,
+    0.1027,
+    0.0993,
+    0.0188,
+    0.9744,
+    0.317,
+    0.5879
+   ],
+   "curve": [
+    {
+     "threshold": 0.0188,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.0
+    },
+    {
+     "threshold": 0.0214,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0302,
+     "answerable_passed": 0.9697,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0347,
+     "answerable_passed": 0.9394,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0451,
+     "answerable_passed": 0.9091,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0454,
+     "answerable_passed": 0.8788,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0544,
+     "answerable_passed": 0.8788,
+     "outside_rejected": 0.2
+    },
+    {
+     "threshold": 0.069,
+     "answerable_passed": 0.8788,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.0789,
+     "answerable_passed": 0.8485,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.0993,
+     "answerable_passed": 0.8182,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.1027,
+     "answerable_passed": 0.8182,
+     "outside_rejected": 0.4
+    },
+    {
+     "threshold": 0.105,
+     "answerable_passed": 0.8182,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1322,
+     "answerable_passed": 0.7879,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1438,
+     "answerable_passed": 0.7273,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1488,
+     "answerable_passed": 0.697,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1768,
+     "answerable_passed": 0.697,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.2098,
+     "answerable_passed": 0.6667,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.2909,
+     "answerable_passed": 0.6364,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.317,
+     "answerable_passed": 0.6061,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.367,
+     "answerable_passed": 0.6061,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.3777,
+     "answerable_passed": 0.6061,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.4419,
+     "answerable_passed": 0.5758,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.4574,
+     "answerable_passed": 0.5455,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.5879,
+     "answerable_passed": 0.5152,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.6845,
+     "answerable_passed": 0.5152,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.7032,
+     "answerable_passed": 0.4848,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.777,
+     "answerable_passed": 0.4545,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8065,
+     "answerable_passed": 0.4242,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8521,
+     "answerable_passed": 0.3939,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9004,
+     "answerable_passed": 0.3636,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9233,
+     "answerable_passed": 0.3333,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9463,
+     "answerable_passed": 0.303,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9744,
+     "answerable_passed": 0.2727,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9754,
+     "answerable_passed": 0.2727,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9762,
+     "answerable_passed": 0.2424,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9845,
+     "answerable_passed": 0.2121,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9871,
+     "answerable_passed": 0.1818,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9894,
+     "answerable_passed": 0.1515,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9922,
+     "answerable_passed": 0.1212,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9969,
+     "answerable_passed": 0.0909,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9977,
+     "answerable_passed": 0.0606,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9979,
+     "answerable_passed": 0.0303,
+     "outside_rejected": 1.0
+    }
+   ]
+  },
+  "hybrid + реранкер дообученный / со словарём": {
+   "reranker": "models/reranker-bge-m3-adilet-rus",
+   "answerable_top_scores": [
+    0.9123,
+    0.8141,
+    0.4838,
+    0.8622,
+    0.0877,
+    0.6905,
+    0.9974,
+    0.9976,
+    0.9694,
+    0.0365,
+    0.9157,
+    0.8782,
+    0.9947,
+    0.5354,
+    0.5505,
+    0.9906,
+    0.6243,
+    0.0591,
+    0.7032,
+    0.991,
+    0.9969,
+    0.8964,
+    0.9977,
+    0.2731,
+    0.1257,
+    0.5496,
+    0.1569,
+    0.8326,
+    0.3707,
+    0.4564,
+    0.2013,
+    0.9592,
+    0.881,
+    0.3224,
+    0.848,
+    0.8814,
+    0.9348,
+    0.1065,
+    0.9984,
+    0.9834,
+    0.9865,
+    0.8507,
+    0.2053,
+    0.364,
+    0.9787
+   ],
+   "outside_top_scores": [
+    0.0544,
+    0.0454,
+    0.367,
+    0.1488,
+    0.1027,
+    0.0993,
+    0.0188,
+    0.9744,
+    0.317,
+    0.5879
+   ],
+   "curve": [
+    {
+     "threshold": 0.0188,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.0
+    },
+    {
+     "threshold": 0.0365,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0454,
+     "answerable_passed": 0.9778,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0544,
+     "answerable_passed": 0.9778,
+     "outside_rejected": 0.2
+    },
+    {
+     "threshold": 0.0591,
+     "answerable_passed": 0.9778,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.0877,
+     "answerable_passed": 0.9556,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.0993,
+     "answerable_passed": 0.9333,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.1027,
+     "answerable_passed": 0.9333,
+     "outside_rejected": 0.4
+    },
+    {
+     "threshold": 0.1065,
+     "answerable_passed": 0.9333,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1257,
+     "answerable_passed": 0.9111,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1488,
+     "answerable_passed": 0.8889,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.1569,
+     "answerable_passed": 0.8889,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.2013,
+     "answerable_passed": 0.8667,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.2053,
+     "answerable_passed": 0.8444,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.2731,
+     "answerable_passed": 0.8222,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.317,
+     "answerable_passed": 0.8,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.3224,
+     "answerable_passed": 0.8,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.364,
+     "answerable_passed": 0.7778,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.367,
+     "answerable_passed": 0.7556,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.3707,
+     "answerable_passed": 0.7556,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.4564,
+     "answerable_passed": 0.7333,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.4838,
+     "answerable_passed": 0.7111,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.5354,
+     "answerable_passed": 0.6889,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.5496,
+     "answerable_passed": 0.6667,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.5505,
+     "answerable_passed": 0.6444,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.5879,
+     "answerable_passed": 0.6222,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.6243,
+     "answerable_passed": 0.6222,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.6905,
+     "answerable_passed": 0.6,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.7032,
+     "answerable_passed": 0.5778,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8141,
+     "answerable_passed": 0.5556,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8326,
+     "answerable_passed": 0.5333,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.848,
+     "answerable_passed": 0.5111,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8507,
+     "answerable_passed": 0.4889,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8622,
+     "answerable_passed": 0.4667,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8782,
+     "answerable_passed": 0.4444,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.881,
+     "answerable_passed": 0.4222,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8814,
+     "answerable_passed": 0.4,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.8964,
+     "answerable_passed": 0.3778,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9123,
+     "answerable_passed": 0.3556,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9157,
+     "answerable_passed": 0.3333,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9348,
+     "answerable_passed": 0.3111,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9592,
+     "answerable_passed": 0.2889,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9694,
+     "answerable_passed": 0.2667,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9744,
+     "answerable_passed": 0.2444,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.9787,
+     "answerable_passed": 0.2444,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9834,
+     "answerable_passed": 0.2222,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9865,
+     "answerable_passed": 0.2,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9906,
+     "answerable_passed": 0.1778,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.991,
+     "answerable_passed": 0.1556,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9947,
+     "answerable_passed": 0.1333,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9969,
+     "answerable_passed": 0.1111,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9974,
+     "answerable_passed": 0.0889,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9976,
+     "answerable_passed": 0.0667,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9977,
+     "answerable_passed": 0.0444,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9984,
+     "answerable_passed": 0.0222,
+     "outside_rejected": 1.0
+    }
+   ]
+  },
+  "hybrid + реранкер исходный / без словаря": {
+   "reranker": "BAAI/bge-reranker-v2-m3",
+   "answerable_top_scores": [
+    0.1395,
+    0.7633,
+    0.0729,
+    0.8026,
+    0.9431,
+    0.9854,
+    0.5656,
+    0.0333,
+    0.8914,
+    0.8152,
+    0.0563,
+    0.5581,
+    0.6823,
+    0.8252,
+    0.1028,
+    0.8493,
+    0.9623,
+    0.9933,
+    0.1633,
+    0.9972,
+    0.076,
+    0.0663,
+    0.5761,
+    0.7071,
+    0.1071,
+    0.97,
+    0.4372,
+    0.1401,
+    0.778,
+    0.069,
+    0.9973,
+    0.8658,
+    0.9464,
+    0.9172,
+    0.166,
+    0.9516
+   ],
+   "outside_top_scores": [
+    0.0034,
+    0.0249,
+    0.0036,
+    0.0246,
+    0.055,
+    0.0162,
+    0.0016,
+    0.5568,
+    0.244,
+    0.0005
+   ],
+   "curve": [
+    {
+     "threshold": 0.0005,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.0
+    },
+    {
+     "threshold": 0.0016,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0034,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.2
+    },
+    {
+     "threshold": 0.0036,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.0162,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.4
+    },
+    {
+     "threshold": 0.0246,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.0249,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.0333,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.055,
+     "answerable_passed": 0.9722,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.0563,
+     "answerable_passed": 0.9722,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.0663,
+     "answerable_passed": 0.9444,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.069,
+     "answerable_passed": 0.9167,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.0729,
+     "answerable_passed": 0.8889,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.076,
+     "answerable_passed": 0.8611,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.1028,
+     "answerable_passed": 0.8333,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.1071,
+     "answerable_passed": 0.8056,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.1395,
+     "answerable_passed": 0.7778,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.1401,
+     "answerable_passed": 0.75,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.1633,
+     "answerable_passed": 0.7222,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.166,
+     "answerable_passed": 0.6944,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.244,
+     "answerable_passed": 0.6667,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.4372,
+     "answerable_passed": 0.6667,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.5568,
+     "answerable_passed": 0.6389,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.5581,
+     "answerable_passed": 0.6389,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.5656,
+     "answerable_passed": 0.6111,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.5761,
+     "answerable_passed": 0.5833,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.6823,
+     "answerable_passed": 0.5556,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.7071,
+     "answerable_passed": 0.5278,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.7633,
+     "answerable_passed": 0.5,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.778,
+     "answerable_passed": 0.4722,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8026,
+     "answerable_passed": 0.4444,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8152,
+     "answerable_passed": 0.4167,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8252,
+     "answerable_passed": 0.3889,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8493,
+     "answerable_passed": 0.3611,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8658,
+     "answerable_passed": 0.3333,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8914,
+     "answerable_passed": 0.3056,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9172,
+     "answerable_passed": 0.2778,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9431,
+     "answerable_passed": 0.25,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9464,
+     "answerable_passed": 0.2222,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9516,
+     "answerable_passed": 0.1944,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9623,
+     "answerable_passed": 0.1667,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.97,
+     "answerable_passed": 0.1389,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9854,
+     "answerable_passed": 0.1111,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9933,
+     "answerable_passed": 0.0833,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9972,
+     "answerable_passed": 0.0556,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9973,
+     "answerable_passed": 0.0278,
+     "outside_rejected": 1.0
+    }
+   ]
+  },
+  "hybrid + реранкер исходный / со словарём": {
+   "reranker": "BAAI/bge-reranker-v2-m3",
+   "answerable_top_scores": [
+    0.9849,
+    0.9799,
+    0.9706,
+    0.9838,
+    0.8796,
+    0.7542,
+    0.9931,
+    0.9977,
+    0.982,
+    0.343,
+    0.9334,
+    0.6767,
+    0.9804,
+    0.4701,
+    0.9433,
+    0.9706,
+    0.9689,
+    0.9982,
+    0.9665,
+    0.7783,
+    0.8493,
+    0.9916,
+    0.9933,
+    0.9706,
+    0.9972,
+    0.903,
+    0.9291,
+    0.9417,
+    0.8964,
+    0.9202,
+    0.9894,
+    0.9394,
+    0.7633,
+    0.994,
+    0.9497,
+    0.9404,
+    0.6872,
+    0.8253,
+    0.9664,
+    0.9868,
+    0.9329,
+    0.9984,
+    0.9214,
+    0.9717,
+    0.9727,
+    0.9804,
+    0.8052,
+    0.8639,
+    0.9696
+   ],
+   "outside_top_scores": [
+    0.0034,
+    0.0249,
+    0.0036,
+    0.0246,
+    0.055,
+    0.0162,
+    0.0016,
+    0.5568,
+    0.244,
+    0.0005
+   ],
+   "curve": [
+    {
+     "threshold": 0.0005,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.0
+    },
+    {
+     "threshold": 0.0016,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.1
+    },
+    {
+     "threshold": 0.0034,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.2
+    },
+    {
+     "threshold": 0.0036,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.3
+    },
+    {
+     "threshold": 0.0162,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.4
+    },
+    {
+     "threshold": 0.0246,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.5
+    },
+    {
+     "threshold": 0.0249,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.6
+    },
+    {
+     "threshold": 0.055,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.7
+    },
+    {
+     "threshold": 0.244,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.8
+    },
+    {
+     "threshold": 0.343,
+     "answerable_passed": 1.0,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.4701,
+     "answerable_passed": 0.9796,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.5568,
+     "answerable_passed": 0.9592,
+     "outside_rejected": 0.9
+    },
+    {
+     "threshold": 0.6767,
+     "answerable_passed": 0.9592,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.6872,
+     "answerable_passed": 0.9388,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.7542,
+     "answerable_passed": 0.9184,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.7633,
+     "answerable_passed": 0.898,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.7783,
+     "answerable_passed": 0.8776,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8052,
+     "answerable_passed": 0.8571,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8253,
+     "answerable_passed": 0.8367,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8493,
+     "answerable_passed": 0.8163,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8639,
+     "answerable_passed": 0.7959,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8796,
+     "answerable_passed": 0.7755,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.8964,
+     "answerable_passed": 0.7551,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.903,
+     "answerable_passed": 0.7347,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9202,
+     "answerable_passed": 0.7143,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9214,
+     "answerable_passed": 0.6939,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9291,
+     "answerable_passed": 0.6735,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9329,
+     "answerable_passed": 0.6531,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9334,
+     "answerable_passed": 0.6327,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9394,
+     "answerable_passed": 0.6122,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9404,
+     "answerable_passed": 0.5918,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9417,
+     "answerable_passed": 0.5714,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9433,
+     "answerable_passed": 0.551,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9497,
+     "answerable_passed": 0.5306,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9664,
+     "answerable_passed": 0.5102,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9665,
+     "answerable_passed": 0.4898,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9689,
+     "answerable_passed": 0.4694,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9696,
+     "answerable_passed": 0.449,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9706,
+     "answerable_passed": 0.4286,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9706,
+     "answerable_passed": 0.4082,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9717,
+     "answerable_passed": 0.3673,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9727,
+     "answerable_passed": 0.3469,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9799,
+     "answerable_passed": 0.3265,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9804,
+     "answerable_passed": 0.3061,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9804,
+     "answerable_passed": 0.2857,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.982,
+     "answerable_passed": 0.2653,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9838,
+     "answerable_passed": 0.2449,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9849,
+     "answerable_passed": 0.2245,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9868,
+     "answerable_passed": 0.2041,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9894,
+     "answerable_passed": 0.1837,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9916,
+     "answerable_passed": 0.1633,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9931,
+     "answerable_passed": 0.1429,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9933,
+     "answerable_passed": 0.1224,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.994,
+     "answerable_passed": 0.102,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9972,
+     "answerable_passed": 0.0816,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9977,
+     "answerable_passed": 0.0612,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9982,
+     "answerable_passed": 0.0408,
+     "outside_rejected": 1.0
+    },
+    {
+     "threshold": 0.9984,
+     "answerable_passed": 0.0204,
+     "outside_rejected": 1.0
+    }
+   ]
+  }
+ },
+ "answers_no_gate": {
+  "+ пункты статей после отказа": {
+   "params": {
+    "reranker": "BAAI/bge-reranker-v2-m3",
+    "dictionary": true,
+    "number_words": true,
+    "retry_short": true,
+    "min_retrieval_score": null,
+    "min_answer_relevance": 0.039,
+    "focus_on_refusal": 4
+   },
+   "summary": {
+    "answered": 0.6122,
+    "answered_from_gold": 0.5714,
+    "outside_answered": 0.1,
+    "statuses": {
+     "answered": 30,
+     "refused": 13,
+     "unverified": 6
+    },
+    "quotes": {
+     "shown": 19,
+     "first_from_gold": 14,
+     "any_from_gold": 18,
+     "outside": 9
+    }
+   },
+   "records": [
+    {
+     "id": "lq01",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.9849,
+     "gold_in_context": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 2,
+       "text": "Основаниями прекращения трудового договора являются:\n1) расторжение трудового договора по соглашению сторон;\n2) истечение срока трудового договора;\n3) расторжение трудового договора по инициативе работодателя;\n4) в связи с переводом работника к другому работодателю;\n5) расторжение трудового договора по инициативе работника;\n6) обстоятельства, не зависящие от воли сторон;\n7) отказ работника от продолжения трудовых отношений;\n8) переход работника на выборную работу (должность) или назначение его на должность, исключающую возможность продолжения трудовых отношений, кроме случаев, предусмотренных …",
+       "score": 0.9398,
+       "from_gold": false
+      },
+      {
+       "passage": 1,
+       "text": "1. Трудовой договор с работником по инициативе работодателя может быть расторгнут в случаях:\n1) ликвидации работодателя – юридического лица либо прекращения деятельности работодателя – физического лица;\n2) сокращения численности или штата работников;\n3) снижения объема производства, выполняемых работ и оказываемых услуг, повлекшего ухудшение экономического состояния работодателя;\n4) несоответствия работника занимаемой должности или выполняемой работе вследствие недостаточной квалификации, подтвержденной результатами аттестации;\n4-1) несоответствия работника требованиям к профессиональной …",
+       "score": 0.9222,
+       "from_gold": true
+      }
+     ]
+    },
+    {
+     "id": "lq02",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9799,
+     "gold_in_context": true,
+     "relevance": 0.1912,
+     "answer": "Работник вправе по своей инициативе расторгнуть трудовой договор, уведомив об этом работодателя не менее чем за один месяц, за исключением случаев, предусмотренных пунктом 3 настоящей статьи [1].",
+     "raw": "Работник вправе по своей инициативе расторгнуть трудовой договор, уведомив об этом работодателя не менее чем за один месяц, за исключением случаев, предусмотренных пунктом 3 настоящей статьи [1].",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq03",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.9706,
+     "gold_in_context": true,
+     "relevance": 0.009,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент.",
+     "raw": "7 календарных дней [3]",
+     "problems": [
+      "ответ не относится к заданному вопросу"
+     ],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "1. Работник вправе по своей инициативе расторгнуть трудовой договор, уведомив об этом работодателя не менее чем за один месяц, за исключением случаев, предусмотренных пунктом 3 настоящей статьи. В трудовом договоре допускается установление более длительного срока уведомления работником работодателя о расторжении трудового договора.",
+       "score": 0.9889,
+       "from_gold": true
+      },
+      {
+       "passage": 3,
+       "text": "5. Работник, занятый на сезонных работах, имеет право расторгнуть трудовой договор по своей инициативе, уведомив об этом работодателя за семь календарных дней.",
+       "score": 0.9723,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq04",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9838,
+     "gold_in_context": true,
+     "relevance": 0.8139,
+     "answer": "Основной оплачиваемый ежегодный трудовой отпуск работникам предоставляется продолжительностью двадцать четыре календарных дня [1].",
+     "raw": "2 [1] Основной оплачиваемый ежегодный трудовой отпуск работникам предоставляется продолжительностью двадцать четыре календарных дня [1].",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq05",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.8796,
+     "gold_in_context": true,
+     "relevance": 0.0088,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент.",
+     "raw": "[1] Трудовой кодекс РК, ст. 95\n1. Оплачиваемый ежегодный трудовой отпуск может быть прерван работодателем в случае производственной необходимости только с письменного согласия работника.",
+     "problems": [
+      "ответ не относится к заданному вопросу"
+     ],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "4. Не допускается отзыв из оплачиваемого ежегодного трудового отпуска работника, не достигшего восемнадцатилетнего возраста, беременных женщин, предоставивших работодателю справку о беременности, и работников, занятых на тяжелых работах, работах с вредными и (или) опасными условиями труда.",
+       "score": 0.8447,
+       "from_gold": true
+      },
+      {
+       "passage": 2,
+       "text": "6. Предоставление отпуска, перенос либо отзыв из оплачиваемого ежегодного трудового отпуска оформляются актом работодателя.",
+       "score": 0.7003,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq06",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.7542,
+     "gold_in_context": true,
+     "relevance": 0.1383,
+     "answer": "Работодатель выплачивает работнику задолженность и пеню за период задержки платежа. [1]",
+     "raw": "[1] Работодатель выплачивает работнику задолженность и пеню за период задержки платежа.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq07",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9931,
+     "gold_in_context": true,
+     "relevance": 0.7983,
+     "answer": "40 часов в неделю [1].",
+     "raw": "40 часов в неделю [1].",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq08",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9977,
+     "gold_in_context": true,
+     "relevance": 0.9921,
+     "answer": "В выходной день работа оплачивается в размере, указанном в статье 109 настоящего Кодекса. [1]",
+     "raw": "В выходной день работа оплачивается в размере, указанном в статье 109 настоящего Кодекса. [1]",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq09",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.982,
+     "gold_in_context": true,
+     "relevance": 0.8111,
+     "answer": "Общая продолжительность сверхурочных работ не должна превышать сто двадцать часов в год – при установлении суммированного учета рабочего времени. [1]",
+     "raw": "[1] Общая продолжительность сверхурочных работ не должна превышать сто двадцать часов в год – при установлении суммированного учета рабочего времени.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq10",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.343,
+     "gold_in_context": true,
+     "relevance": 0.0266,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент.",
+     "raw": "Удержания из заработной платы работника для погашения его задолженности перед организацией, в которой он работает, могут производиться на основании акта работодателя с уведомлением работника [1].",
+     "problems": [
+      "ответ не относится к заданному вопросу"
+     ],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "2. Удержания из заработной платы работника для погашения его задолженности перед организацией, в которой он работает, могут производиться на основании акта работодателя с уведомлением работника:\n1) для погашения неизрасходованных и своевременно не возвращенных денежных сумм, выданных в связи с командировкой, а также в случае непредоставления подтверждающих расходы документов, связанных с командировкой;",
+       "score": 0.1691,
+       "from_gold": true
+      },
+      {
+       "passage": 1,
+       "text": "1. Удержания из заработной платы работника производятся по решению суда, а также в случаях, предусмотренных законами Республики Казахстан и настоящей статьей Кодекса.",
+       "score": 0.1347,
+       "from_gold": true
+      }
+     ]
+    },
+    {
+     "id": "lq11",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9334,
+     "gold_in_context": true,
+     "relevance": 0.2653,
+     "answer": "Руководители организаций и их заместители, главные бухгалтеры и их заместители, руководители филиалов, представительств организаций могут быть признаны исключительными категориями, для которых испытательный срок может быть увеличен до шести месяцев. [1]",
+     "raw": "[1] Руководители организаций и их заместители, главные бухгалтеры и их заместители, руководители филиалов, представительств организаций могут быть признаны исключительными категориями, для которых испытательный срок может быть увеличен до шести месяцев.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq12",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.6767,
+     "gold_in_context": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "В случае отказа беременной женщины от предложенного работодателем перевода на другую работу она подлежит освобождению от выполнения противопоказанной работы без сохранения заработной платы до предоставления отпуска по беременности и родам.",
+       "score": 0.5432,
+       "from_gold": false
+      },
+      {
+       "passage": 1,
+       "text": "До предоставления беременной женщине другой работы она подлежит освобождению от выполнения работы с сохранением средней заработной платы.",
+       "score": 0.5033,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq13",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.9804,
+     "gold_in_context": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "2. При прекращении трудового договора работнику, который не использовал или использовал не полностью оплачиваемый ежегодный трудовой отпуск (ежегодные трудовые отпуска), производится компенсационная выплата за неиспользованные им дни оплачиваемого ежегодного трудового отпуска (ежегодных трудовых отпусков).",
+       "score": 0.9952,
+       "from_gold": true
+      },
+      {
+       "passage": 1,
+       "text": "Компенсационная выплата за неиспользованные им дни оплачиваемого ежегодного трудового отпуска (ежегодных трудовых отпусков) исчисляется из расчета средней заработной платы работника.",
+       "score": 0.9787,
+       "from_gold": true
+      }
+     ]
+    },
+    {
+     "id": "lq14",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.4701,
+     "gold_in_context": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 2,
+       "text": "1. По соглашению сторон трудового договора на основании заявления работника ему может быть предоставлен отпуск без сохранения заработной платы.",
+       "score": 0.7233,
+       "from_gold": true
+      },
+      {
+       "passage": 1,
+       "text": "Если продолжительность оплачиваемого ежегодного трудового отпуска по трудовому договору о работе по совместительству меньше продолжительности отпуска по основной работе, работодатель по просьбе работника – совместителя предоставляет ему отпуск без сохранения заработной платы на дни, составляющие разницу в продолжительности отпусков.",
+       "score": 0.6039,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq15",
+     "status": "answered",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.9433,
+     "gold_in_context": true,
+     "relevance": 0.1134,
+     "answer": "До достижения возраста трех лет. [1]",
+     "raw": "До достижения возраста трех лет. [1]",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq16",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.9706,
+     "gold_in_context": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "1. Брак (супружество) может быть прекращен путем его расторжения по заявлению одного или обоих супругов, а также по заявлению опекуна супруга (супруги), признанного судом недееспособным.",
+       "score": 0.9123,
+       "from_gold": true
+      },
+      {
+       "passage": 2,
+       "text": "1. Расторжение брака (супружества) в регистрирующих органах производится при взаимном согласии на расторжение брака (супружества) супругов, не имеющих общих несовершеннолетних детей, и при отсутствии имущественных и иных претензий друг к другу.",
+       "score": 0.8531,
+       "from_gold": true
+      }
+     ]
+    },
+    {
+     "id": "lq17",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9689,
+     "gold_in_context": true,
+     "relevance": 0.2372,
+     "answer": "1. Расторжение брака (супружества) в регистрирующих органах производится при взаимном согласии на расторжение брака (супружества) супругов, не имеющих общих несовершеннолетних детей, и при отсутствии имущественных и иных претензий друг к другу. [1]",
+     "raw": "[1] Кодекс РК «О браке (супружестве) и семье», ст. 17\n1. Расторжение брака (супружества) в регистрирующих органах производится при взаимном согласии на расторжение брака (супружества) супругов, не имеющих общих несовершеннолетних детей, и при отсутствии имущественных и иных претензий друг к другу.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq18",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9982,
+     "gold_in_context": true,
+     "relevance": 0.9987,
+     "answer": "В случае, если жена не согласна на развод, суд вправе принять меры к примирению супругов и отложить разбирательство дела, назначив супругам срок для примирения в пределах шести месяцев. Если меры по примирению супругов оказались безрезультатными и супруги настаивают на расторжении брака, расторжение брака производится. [1]",
+     "raw": "[1] В случае, если жена не согласна на развод, суд вправе принять меры к примирению супругов и отложить разбирательство дела, назначив супругам срок для примирения в пределах шести месяцев. Если меры по примирению супругов оказались безрезультатными и супруги настаивают на расторжении брака, расторжение брака производится.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq19",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9665,
+     "gold_in_context": true,
+     "relevance": 0.8637,
+     "answer": "Кодекс РК «О браке (супружестве) и семье» устанавливает брачный (супружеский) возраст для мужчин и женщин в восемнадцать лет. [1]",
+     "raw": "[1] Кодекс РК «О браке (супружестве) и семье» устанавливает брачный (супружеский) возраст для мужчин и женщин в восемнадцать лет.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq20",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.7783,
+     "gold_in_context": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "2. Общее имущество супругов может быть разделено между супругами по их соглашению. Соглашение о разделе общего имущества супругов должно быть нотариально удостоверено.",
+       "score": 0.7411,
+       "from_gold": true
+      },
+      {
+       "passage": 1,
+       "text": "1. Раздел общего имущества супругов может быть произведен как в период брака (супружества), так и после его расторжения по требованию любого из супругов, а также в случае заявления кредитором требования о разделе общего имущества супругов для обращения взыскания на долю одного из супругов в общем имуществе супругов.",
+       "score": 0.466,
+       "from_gold": true
+      }
+     ]
+    },
+    {
+     "id": "lq21",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.8493,
+     "gold_in_context": true,
+     "relevance": 0.8868,
+     "answer": "При отсутствии соглашения об уплате алиментов алименты на одного ребенка взыскиваются ежемесячно в размере одной четверти заработка и (или) иного дохода родителей. [1]",
+     "raw": "1 [1] При отсутствии соглашения об уплате алиментов алименты на одного ребенка взыскиваются ежемесячно в размере одной четверти заработка и (или) иного дохода родителей.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq22",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.9916,
+     "gold_in_context": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 2,
+       "text": "Алименты за прошедший период могут быть взысканы в пределах трехлетнего срока с момента обращения в суд, если судом будет установлено, что до обращения в суд принимались меры к получению средств на содержание, но алименты не были получены вследствие уклонения лица, обязанного уплачивать алименты, от их уплаты.",
+       "score": 0.9935,
+       "from_gold": true
+      },
+      {
+       "passage": 1,
+       "text": "1. Взыскание алиментов за прошедший период на основании соглашения об уплате алиментов или на основании исполнительного документа производится в пределах трехлетнего срока, предшествовавшего предъявлению исполнительного документа, либо соглашения об уплате алиментов, предусмотренного статьей 158 настоящего Кодекса.",
+       "score": 0.9889,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq23",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9933,
+     "gold_in_context": true,
+     "relevance": 0.9961,
+     "answer": "Брачный договор может быть заключен как со дня подачи в регистрирующий орган заявления о государственной регистрации брака (супружества), до государственной регистрации заключения брака (супружества), так и в любое время в период брака (супружества). [1]",
+     "raw": "[1] Брачный договор может быть заключен как со дня подачи в регистрирующий орган заявления о государственной регистрации брака (супружества), до государственной регистрации заключения брака (супружества), так и в любое время в период брака (супружества).",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq24",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9706,
+     "gold_in_context": true,
+     "relevance": 0.254,
+     "answer": "Родитель, проживающий отдельно от ребенка, имеет права на общение с ребенком, участие в его воспитании и решении вопросов получения ребенком образования и других важных для ребенка вопросов. [1]",
+     "raw": "[1] Родитель, проживающий отдельно от ребенка, имеет права на общение с ребенком, участие в его воспитании и решении вопросов получения ребенком образования и других важных для ребенка вопросов.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq25",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.9972,
+     "gold_in_context": true,
+     "relevance": 1.0,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент.",
+     "raw": "За что могут лишить родительских прав? [1]",
+     "problems": [
+      "утверждения, не подтверждённые текстом закона"
+     ],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "1. Родители лишаются родительских прав, если они:\n1) уклоняются от выполнения обязанностей родителей, в том числе злостно уклоняются от уплаты алиментов;\n2) отказываются без уважительных причин взять своего ребенка из родильного дома (отделения), из организаций для детей-сирот, детей, оставшихся без попечения родителей, и иных организаций;\n3) злоупотребляют своими родительскими правами;\n4) жестоко обращаются с ребенком, в том числе осуществляют физическое или психическое насилие над ним, покушаются на его половую неприкосновенность;\n5) злоупотребляют азартными играми, пари, спиртными …",
+       "score": 0.9965,
+       "from_gold": true
+      },
+      {
+       "passage": 1,
+       "text": "2. Родители лишаются родительских прав при совершении ими умышленного уголовного правонарушения против жизни или здоровья своего ребенка, супруга либо других членов семьи.",
+       "score": 0.992,
+       "from_gold": true
+      }
+     ]
+    },
+    {
+     "id": "lq26",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.903,
+     "gold_in_context": true,
+     "relevance": 0.9824,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент.",
+     "raw": "[1] Кодекс РК «О браке (супружестве) и семье», ст. 35\nСтатья 35. Собственность каждого из супругов\n1. Собственностью каждого из супругов являются:\n1) имущество, принадлежавшее каждому из супругов до вступления в брак (супружество);\n...\n\nДелится квартира, которая была у вас до свадьбы, как собственность каждого из супругов.",
+     "problems": [
+      "утверждения, не подтверждённые текстом закона"
+     ],
+     "quotes": [
+      {
+       "passage": 2,
+       "text": "2. Имущество, принадлежавшее супругам до вступления в брак, а также полученное ими во время брака в дар или в порядке наследования, является собственностью каждого из них.",
+       "score": 0.978,
+       "from_gold": false
+      },
+      {
+       "passage": 1,
+       "text": "1. Собственностью каждого из супругов являются:\n1) имущество, принадлежавшее каждому из супругов до вступления в брак (супружество);\n2) имущество, полученное супругами в период брака (супружества) в дар, в порядке наследования или по иным безвозмездным сделкам;\n3) вещи индивидуального пользования (одежда, обувь и другие), за исключением драгоценностей и других предметов роскоши, хотя и приобретенных в период брака (супружества) за счет общих средств супругов.",
+       "score": 0.9736,
+       "from_gold": true
+      }
+     ]
+    },
+    {
+     "id": "lq27",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.9291,
+     "gold_in_context": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "1. Покупатель вправе в течение четырнадцати дней с момента передачи ему непродовольственного товара, если более длительный срок не объявлен продавцом, обменять купленный товар в месте покупки или иных местах, объявленных продавцом, на аналогичный товар другого размера, формы, габарита, фасона, расцветки, комплектации и т.п., произведя, в случае разницы в цене, необходимый перерасчет с продавцом.",
+       "score": 0.9255,
+       "from_gold": false
+      },
+      {
+       "passage": 2,
+       "text": "1. Покупатель вправе в течение четырнадцати дней с момента передачи ему непродовольственного товара, если более длительный срок не объявлен продавцом (изготовителем), обменять купленный товар в месте покупки или иных местах, объявленных продавцом (изготовителем), на аналогичный товар другого размера, формы, габарита, фасона, расцветки, комплектации и тому подобное либо на другой товар по соглашению сторон, произведя в случае разницы в цене необходимый перерасчет с продавцом.",
+       "score": 0.8986,
+       "from_gold": true
+      }
+     ]
+    },
+    {
+     "id": "lq28",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9417,
+     "gold_in_context": true,
+     "relevance": 0.0962,
+     "answer": "Потребитель, которому продан товар ненадлежащего качества, если его недостатки не были оговорены продавцом, вправе по своему выбору потребовать от продавца: соразмерного уменьшения покупной цены, безвозмездного устранения недостатков товара в разумный срок, возмещения своих расходов на устранение недостатков товара, замены товара ненадлежащего качества на товар, соответствующий договору или отказа от исполнения договора и возврата уплаченной за товар денежной суммы [1].",
+     "raw": "Потребитель, которому продан товар ненадлежащего качества, если его недостатки не были оговорены продавцом, вправе по своему выбору потребовать от продавца: соразмерного уменьшения покупной цены, безвозмездного устранения недостатков товара в разумный срок, возмещения своих расходов на устранение недостатков товара, замены товара ненадлежащего качества на товар, соответствующий договору или отказа от исполнения договора и возврата уплаченной за товар денежной суммы [1].",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq29",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.8964,
+     "gold_in_context": true,
+     "relevance": 0.648,
+     "answer": "Днем, в течение которого покупатель вправе обменять купленный товар, является четырнадцатые дни с момента передачи товара покупателю. [1]",
+     "raw": "14 [1] Днем, в течение которого покупатель вправе обменять купленный товар, является четырнадцатые дни с момента передачи товара покупателю. [1]",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq30",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.9202,
+     "gold_in_context": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "Если на товар не установлен гарантийный срок или срок годности, требования, связанные с недостатками товара, могут быть предъявлены потребителем при условии, что недостатки в проданном товаре были обнаружены в пределах двух лет со дня передачи товара потребителю, если более длительные сроки не установлены законодательством Республики Казахстан или договором.",
+       "score": 0.9089,
+       "from_gold": true
+      },
+      {
+       "passage": 1,
+       "text": "2. Если на товар установлен гарантийный срок, потребитель вправе предъявить требования, связанные с недостатками товара, при обнаружении недостатков товара в течение гарантийного срока.",
+       "score": 0.859,
+       "from_gold": true
+      }
+     ]
+    },
+    {
+     "id": "lq31",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9894,
+     "gold_in_context": true,
+     "relevance": 0.056,
+     "answer": "1. Потребитель при обнаружении недостатков в выполненной работе вправе по своему выбору потребовать: безвозмездного устранения недостатков в выполненной работе, соответствующего уменьшения вознаграждения за выполненную работу, безвозмездного изготовления другой вещи из однородного материала такого же качества или повторного выполнения работы, возмещения своих расходов на устранение недостатков, когда право потребителя устранять их предусмотрено в договоре.",
+     "raw": "1. Потребитель при обнаружении недостатков в выполненной работе вправе по своему выбору потребовать: безвозмездного устранения недостатков в выполненной работе, соответствующего уменьшения вознаграждения за выполненную работу, безвозмездного изготовления другой вещи из однородного материала такого же качества или повторного выполнения работы, возмещения своих расходов на устранение недостатков, когда право потребителя устранять их предусмотрено в договоре.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq32",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9394,
+     "gold_in_context": true,
+     "relevance": 0.6234,
+     "answer": "Статья 13. Приобретение нанимателем права собственности на занимаемое жилище из государственного жилищного фонда в порядке приватизации\n1. В случаях, предусмотренных настоящим Законом, наниматель жилища из государственного жилищного фонда с согласия совершеннолетних членов семьи и с учетом прав несовершеннолетних вправе приватизировать жилище по остаточной стоимости на условиях, предусмотренных настоящим Законом, и в порядке, определяемом Правительством Республики Казахстан. [1]",
+     "raw": "[1] Закон РК «О жилищных отношениях», ст. 13\nСтатья 13. Приобретение нанимателем права собственности на занимаемое жилище из государственного жилищного фонда в порядке приватизации\n1. В случаях, предусмотренных настоящим Законом, наниматель жилища из государственного жилищного фонда с согласия совершеннолетних членов семьи и с учетом прав несовершеннолетних вправе приватизировать жилище по остаточной стоимости на условиях, предусмотренных настоящим Законом, и в порядке, определяемом Правительством Республики Казахстан.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq33",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.7633,
+     "gold_in_context": true,
+     "relevance": 0.117,
+     "answer": "В случае сноса в связи с принудительным отчуждением земельного участка для государственных нужд между местным исполнительным органом и собственниками (нанимателями) жилищ может быть заключен договор о предоставлении в собственность (внаем) других жилищ во вновь построенных на этом же или другом земельном участке бывшим собственникам (нанимателям) взамен снесенных жилищ. [1]",
+     "raw": "[1] В случае сноса в связи с принудительным отчуждением земельного участка для государственных нужд между местным исполнительным органом и собственниками (нанимателями) жилищ может быть заключен договор о предоставлении в собственность (внаем) других жилищ во вновь построенных на этом же или другом земельном участке бывшим собственникам (нанимателям) взамен снесенных жилищ.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq34",
+     "status": "answered",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.994,
+     "gold_in_context": true,
+     "relevance": 0.9967,
+     "answer": "1. Собственник вправе сдавать внаем жилище, в котором проживает сам, либо жилище, основным назначением которого является предоставление его нанимателям для постоянного либо временного проживания. [1]",
+     "raw": "1. Собственник вправе сдавать внаем жилище, в котором проживает сам, либо жилище, основным назначением которого является предоставление его нанимателям для постоянного либо временного проживания. [1]",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq35",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9497,
+     "gold_in_context": true,
+     "relevance": 0.0392,
+     "answer": "Восемнадцатилетнего возраста [2].",
+     "raw": "Восемнадцатилетнего возраста [2].",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq36",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9404,
+     "gold_in_context": true,
+     "relevance": 0.7842,
+     "answer": "Несовершеннолетние в возрасте от четырнадцати до восемнадцати лет вправе самостоятельно распоряжаться своим заработком, стипендией, иными доходами и созданными ими объектами права интеллектуальной собственности. [1]",
+     "raw": "[1] Несовершеннолетние в возрасте от четырнадцати до восемнадцати лет вправе самостоятельно распоряжаться своим заработком, стипендией, иными доходами и созданными ими объектами права интеллектуальной собственности.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq37",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.6872,
+     "gold_in_context": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "1. Общий срок исковой давности устанавливается в три года.",
+       "score": 0.6904,
+       "from_gold": true
+      },
+      {
+       "passage": 3,
+       "text": "3. Со дня прекращения обстоятельства, повлекшего приостановление, течение срока исковой давности продолжается. При этом остающаяся часть срока удлиняется до шести месяцев, а если срок исковой давности не превышает шести месяцев - до срока давности.",
+       "score": 0.2515,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq38",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.8253,
+     "gold_in_context": true,
+     "relevance": 0.9997,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент.",
+     "raw": "Дал другу в долг — нужна расписка. В соответствии с [1] статья 716 Гражданского кодекса РК (особенная часть), договор займа признается заключенным в надлежащей письменной форме при наличии облигации, расписки заемщика или иного документа, удостоверяющего передачу ему определенной суммы или определенного количества вещей.",
+     "problems": [
+      "утверждения, не подтверждённые текстом закона"
+     ],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "2. Договор займа признается заключенным в надлежащей письменной форме также при наличии облигации, расписки заемщика или иного документа, удостоверяющего передачу ему займодателем определенной суммы или определенного количества вещей.",
+       "score": 0.8569,
+       "from_gold": true
+      },
+      {
+       "passage": 3,
+       "text": "Расписка может быть заменена надписью на долговом документе, возвращенном должнику.",
+       "score": 0.2712,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq39",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9664,
+     "gold_in_context": true,
+     "relevance": 0.9534,
+     "answer": "В первую очередь право на наследование по закону получают в равных долях дети наследодателя, в том числе родившиеся живыми после его смерти, а также супруг (супруга) и родители наследодателя [3]. Если нет наследников первой очереди, право на наследование по закону во вторую очередь получают в равных долях полнородные и неполнородные братья и сестры наследодателя, а также его дедушка и бабушка как со стороны отца, так и со стороны матери [1]. Если нет наследников первой и второй очереди, право на наследование по закону в третью очередь получают в равных долях родные дяди и тети наследодателя [2]. Внуки наследодателя и их потомки наследуют по праву представления [4].",
+     "raw": "В первую очередь право на наследование по закону получают в равных долях дети наследодателя, в том числе родившиеся живыми после его смерти, а также супруг (супруга) и родители наследодателя [3]. Если нет наследников первой очереди, право на наследование по закону во вторую очередь получают в равных долях полнородные и неполнородные братья и сестры наследодателя, а также его дедушка и бабушка как со стороны отца, так и со стороны матери [1]. Если нет наследников первой и второй очереди, право на наследование по закону в третью очередь получают в равных долях родные дяди и тети наследодателя [2]. Внуки наследодателя и их потомки наследуют по праву представления [4].",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq40",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9868,
+     "gold_in_context": true,
+     "relevance": 0.2585,
+     "answer": "6 месяцев со дня открытия наследства [1]",
+     "raw": "6 месяцев со дня открытия наследства [1]",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq41",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9329,
+     "gold_in_context": true,
+     "relevance": 0.1011,
+     "answer": "В случае отмены дарения одаряемый обязан возвратить подаренную вещь, если она сохранилась в натуре к моменту поступления уведомления об отмене дарения, либо возместить ее стоимость по рыночным ценам в случае ее отчуждения после поступления уведомления об отмене дарения. [1]",
+     "raw": "[1] В случае отмены дарения одаряемый обязан возвратить подаренную вещь, если она сохранилась в натуре к моменту поступления уведомления об отмене дарения, либо возместить ее стоимость по рыночным ценам в случае ее отчуждения после поступления уведомления об отмене дарения.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq42",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9984,
+     "gold_in_context": true,
+     "relevance": 0.9794,
+     "answer": "Доверенность может быть выдана на срок не более трех лет [1].",
+     "raw": "[1] Доверенность может быть выдана на срок не более трех лет [1].",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq43",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9214,
+     "gold_in_context": true,
+     "relevance": 0.9454,
+     "answer": "Пособие на рождение выплачивается за счет бюджетных средств в следующих размерах: на первого, второго, третьего ребенка – 38,0 месячного расчетного показателя; на четвертого и более ребенка – 63,0 месячного расчетного показателя [1].",
+     "raw": "Пособие на рождение выплачивается за счет бюджетных средств в следующих размерах: на первого, второго, третьего ребенка – 38,0 месячного расчетного показателя; на четвертого и более ребенка – 63,0 месячного расчетного показателя [1].",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq44",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9717,
+     "gold_in_context": true,
+     "relevance": 0.9891,
+     "answer": "Лица (семьи), имеющие рожденных живыми, усыновленных (удочеренных), а также взятых под опеку детей, имеют право на получение пособия по уходу в случаях, когда лицо, осуществляющее уход за ребенком, не является участником системы обязательного социального страхования [2].",
+     "raw": "Лица (семьи), имеющие рожденных живыми, усыновленных (удочеренных), а также взятых под опеку детей, имеют право на получение пособия по уходу в случаях, когда лицо, осуществляющее уход за ребенком, не является участником системы обязательного социального страхования [2].",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq45",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9727,
+     "gold_in_context": true,
+     "relevance": 0.8013,
+     "answer": "Получатель социальной выплаты по случаю потери работы имеет право на получение социальной выплаты по случаю потери работы в порядке, предусмотренном настоящим Кодексом [1].",
+     "raw": "Получатель социальной выплаты по случаю потери работы имеет право на получение социальной выплаты по случаю потери работы в порядке, предусмотренном настоящим Кодексом [1].",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq46",
+     "status": "answered",
+     "from_gold": true,
+     "has_gold": true,
+     "top_score": 0.9804,
+     "gold_in_context": true,
+     "relevance": 0.9754,
+     "answer": "Пособие многодетной семье выплачивается ежемесячно за счет бюджетных средств в следующих размерах: на четверых детей – 16,03 месячного расчетного показателя; на пятерых детей – 20,04 месячного расчетного показателя; на шестерых детей – 24,05 месячного расчетного показателя; на семерых детей – 28,06 месячного расчетного показателя; на восьмерых и более детей – 4 месячных расчетных показателя на каждого ребенка [1].",
+     "raw": "Пособие многодетной семье выплачивается ежемесячно за счет бюджетных средств в следующих размерах: на четверых детей – 16,03 месячного расчетного показателя; на пятерых детей – 20,04 месячного расчетного показателя; на шестерых детей – 24,05 месячного расчетного показателя; на семерых детей – 28,06 месячного расчетного показателя; на восьмерых и более детей – 4 месячных расчетных показателя на каждого ребенка [1].",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq47",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.8052,
+     "gold_in_context": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "1. Социальные выплаты по случаю потери дохода в связи с беременностью и родами, усыновлением (удочерением) новорожденного ребенка (детей) назначаются участнику системы обязательного социального страхования со дня возникновения права на социальную выплату.",
+       "score": 0.872,
+       "from_gold": true
+      },
+      {
+       "passage": 2,
+       "text": "1. Беременным женщинам, женщинам, родившим ребенка (детей), женщинам (мужчинам), усыновившим (удочерившим) новорожденного ребенка (детей), предоставляются следующие отпуска в связи с рождением ребенка:\n1) отпуск по беременности и родам;\n2) отпуск работникам, усыновившим (удочерившим) новорожденного ребенка (детей);\n3) отпуск без сохранения заработной платы по уходу за ребенком до достижения им возраста трех лет.",
+       "score": 0.8404,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq48",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.8639,
+     "gold_in_context": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "2. Граждане Республики Казахстан вправе получать не оплачиваемую ими медицинскую помощь, установленную законом.",
+       "score": 0.5365,
+       "from_gold": true
+      },
+      {
+       "passage": 3,
+       "text": "При причинении гражданину увечья или иного повреждения здоровья возмещению подлежит утраченный потерпевшим заработок (доход), который он имел либо определенно мог иметь, а также расходы, вызванные повреждением здоровья (на лечение, дополнительное питание, приобретение лекарств, протезирование, посторонний уход, санаторно-курортное лечение, приобретение специальных транспортных средств, подготовку к другой профессии и другие), если признано, что потерпевший нуждается в этих видах помощи и ухода и не получает их бесплатно.",
+       "score": 0.1959,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq49",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": true,
+     "top_score": 0.9696,
+     "gold_in_context": true,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 2,
+       "text": "3) минимальный размер месячной заработной платы – гарантированный минимум денежных выплат работнику простого неквалифицированного (наименее сложного) труда при выполнении им трудовых обязанностей в нормальных условиях и при нормальной продолжительности рабочего времени, установленных настоящим Кодексом, в месяц;",
+       "score": 0.8542,
+       "from_gold": false
+      },
+      {
+       "passage": 3,
+       "text": "1. Гражданину Республики Казахстан гарантируются минимальный размер заработной платы и пенсии, социальное обеспечение по возрасту, болезни, инвалидности, потере кормильца и по иным законным основаниям.",
+       "score": 0.7328,
+       "from_gold": true
+      }
+     ]
+    },
+    {
+     "id": "lq50",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": false,
+     "top_score": 0.0034,
+     "gold_in_context": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 3,
+       "text": "5. Если решение суда не выполнено, суд вправе наложить на нарушителя штраф, взыскиваемый в доход бюджета. Штраф налагается в порядке и размерах, установленных гражданским процессуальным законодательством. Уплата штрафа не освобождает нарушителя от обязанности выполнить предусмотренное решением суда действие.",
+       "score": 0.0054,
+       "from_gold": false
+      },
+      {
+       "passage": 2,
+       "text": "1. За задержку отправления транспортного средства, перевозящего пассажира, или опоздание такого транспортного средства в пункт назначения (за исключением перевозок в городском и пригородном сообщениях) перевозчик уплачивает пассажиру штраф в размере, установленном законодательными актами о транспорте, если не докажет, что задержка или опоздание имели место вследствие непреодолимой силы.",
+       "score": 0.0047,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq51",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": false,
+     "top_score": 0.0249,
+     "gold_in_context": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "4. Несовершеннолетние в возрасте от четырнадцати до восемнадцати лет самостоятельно несут ответственность по сделкам, совершенным ими в соответствии с правилами настоящей статьи, и несут ответственность за вред, причиненный их действиями, по правилам настоящего Кодекса.",
+       "score": 0.0132,
+       "from_gold": false
+      },
+      {
+       "passage": 2,
+       "text": "1. Несовершеннолетние в возрасте от четырнадцати до восемнадцати лет самостоятельно несут ответственность за причиненный ими вред на общих основаниях.",
+       "score": 0.0101,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq52",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": false,
+     "top_score": 0.0036,
+     "gold_in_context": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "3) документ об образовании, документ о наличии специальных знаний или профессиональной подготовки, переподготовки при заключении трудового договора на работу, требующую соответствующих знаний, умений и навыков.",
+       "score": 0.0144,
+       "from_gold": false
+      },
+      {
+       "passage": 2,
+       "text": "1) гражданин Республики Казахстан, постоянно проживающий в Республике Казахстан или временно пребывающий за границей, предъявляет удостоверение личности либо паспорт; гражданин Республики Казахстан, постоянно проживающий за границей, - паспорт гражданина Республики Казахстан с отметкой консульского учреждения за рубежом о постановке его на учет как постоянно проживающего за границей гражданина Республики Казахстан; иностранец, постоянно проживающий в Республике Казахстан, предъявляет вид на жительство иностранца в Республике Казахстан. Иностранец, временно пребывающий в Республике Казахстан …",
+       "score": 0.005,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq53",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": false,
+     "top_score": 0.0246,
+     "gold_in_context": false,
+     "relevance": 0.0067,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент.",
+     "raw": "[1] Ставка обязательных пенсионных взносов для исполнителей, осуществляющих деятельность по оказанию услуг или выполнению работ с использованием интернет-платформ и (или) мобильных приложений платформенной занятости, составляет один процент от дохода, полученного за отчетный месяц от осуществления такой деятельности.",
+     "problems": [
+      "ответ не относится к заданному вопросу"
+     ],
+     "quotes": [
+      {
+       "passage": 2,
+       "text": "Доля социальных отчислений в ставке единого платежа, установленной пунктом 1 статьи 822 Налогового кодекса Республики Казахстан, составляет: с 1 января 2023 года – 16,0 процента; с 1 января 2024 года – 14,9 процента; с 1 января 2025 года – 18,9 процента; с 1 января 2026 года – 18,1 процента; с 1 января 2027 года – 17,4 процента; с 1 января 2028 года – 17,1 процента.",
+       "score": 0.0738,
+       "from_gold": false
+      },
+      {
+       "passage": 2,
+       "text": "3. Для налоговых агентов, выбравших уплату социальных отчислений в составе единого платежа, ставка социальных отчислений устанавливается в размере 3,2 процента от объекта исчисления социальных отчислений, с 1 января 2025 года – 4,5 процента от объекта исчисления социальных отчислений.",
+       "score": 0.0244,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq54",
+     "status": "unverified",
+     "from_gold": false,
+     "has_gold": false,
+     "top_score": 0.055,
+     "gold_in_context": false,
+     "relevance": 0.003,
+     "answer": "Не удалось сформировать ответ, полностью подтверждённый текстом закона. Ниже — наиболее подходящий фрагмент.",
+     "raw": "[1]",
+     "problems": [
+      "ответ без текста — только ссылка на фрагмент",
+      "ответ не относится к заданному вопросу"
+     ],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "2. Государственная регистрация индивидуальных предпринимателей заключается в постановке на учет в качестве индивидуального предпринимателя.",
+       "score": 0.1979,
+       "from_gold": false
+      },
+      {
+       "passage": 1,
+       "text": "4. Физические лица подлежат государственной регистрации в качестве индивидуального предпринимателя в соответствии с Предпринимательским кодексом Республики Казахстан.",
+       "score": 0.0163,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq55",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": false,
+     "top_score": 0.0162,
+     "gold_in_context": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "При отсутствии в заграничном паспорте иностранца сведений о национальности последняя может быть определена в соответствии с документом, выданным компетентным органом иностранного государства, гражданином которой он является.",
+       "score": 0.0155,
+       "from_gold": false
+      },
+      {
+       "passage": 2,
+       "text": "В случае отсутствия формы заявления установленного образца в тексте заявления в произвольной форме должны содержаться все предусмотренные сведения.",
+       "score": 0.0064,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq56",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": false,
+     "top_score": 0.0016,
+     "gold_in_context": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 1,
+       "text": "1. Размер оплаты услуг государственной регистрации актов гражданского состояния определяется уполномоченным органом в сфере оказания государственных и социально ответственных услуг по согласованию с Министерством юстиции Республики Казахстан и антимонопольным органом.",
+       "score": 0.002,
+       "from_gold": false
+      },
+      {
+       "passage": 1,
+       "text": "2. От оплаты за услуги государственной регистрации актов гражданского состояния освобождаются:\n1) ветераны Великой Отечественной войны, ветераны, приравненные по льготам к ветеранам Великой Отечественной войны, и ветераны боевых действий на территории других государств, лица, награжденные орденами и медалями бывшего Союза ССР за самоотверженный труд и безупречную воинскую службу в тылу в годы Великой Отечественной войны, лица, проработавшие (прослужившие)",
+       "score": 0.0004,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq57",
+     "status": "answered",
+     "from_gold": false,
+     "has_gold": false,
+     "top_score": 0.5568,
+     "gold_in_context": false,
+     "relevance": 0.2254,
+     "answer": "Иностранец, постоянно проживающий в Республике Казахстан, предъявляет вид на жительство иностранца в Республике Казахстан. [1]",
+     "raw": "[1] Иностранец, постоянно проживающий в Республике Казахстан, предъявляет вид на жительство иностранца в Республике Казахстан.",
+     "problems": [],
+     "quotes": []
+    },
+    {
+     "id": "lq58",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": false,
+     "top_score": 0.244,
+     "gold_in_context": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 3,
+       "text": "3) документ об образовании, документ о наличии специальных знаний или профессиональной подготовки, переподготовки при заключении трудового договора на работу, требующую соответствующих знаний, умений и навыков.",
+       "score": 0.1168,
+       "from_gold": false
+      },
+      {
+       "passage": 3,
+       "text": "2) вид на жительство иностранного гражданина в Республике Казахстан или удостоверение лица без гражданства (для иностранных граждан и лиц без гражданства, постоянно проживающих на территории Республики Казахстан) либо удостоверение беженца или свидетельство лица, ищущего убежище;",
+       "score": 0.0079,
+       "from_gold": false
+      }
+     ]
+    },
+    {
+     "id": "lq59",
+     "status": "refused",
+     "from_gold": false,
+     "has_gold": false,
+     "top_score": 0.0005,
+     "gold_in_context": false,
+     "relevance": null,
+     "answer": "В найденных фрагментах закона ответа нет.",
+     "raw": "В найденных фрагментах закона ответа нет.",
+     "problems": [],
+     "quotes": [
+      {
+       "passage": 3,
+       "text": "1) гражданин Республики Казахстан, постоянно проживающий в Республике Казахстан или временно пребывающий за границей, предъявляет удостоверение личности либо паспорт; гражданин Республики Казахстан, постоянно проживающий за границей, - паспорт гражданина Республики Казахстан с отметкой консульского учреждения за рубежом о постановке его на учет как постоянно проживающего за границей гражданина Республики Казахстан; иностранец, постоянно проживающий в Республике Казахстан, предъявляет вид на жительство иностранца в Республике Казахстан. Иностранец, временно пребывающий в Республике Казахстан …",
+       "score": 0.001,
+       "from_gold": false
+      },
+      {
+       "passage": 2,
+       "text": "\"4) с иностранными гражданами и лицами без гражданства, временно пребывающими на территории Республики Казахстан, до получения разрешения местного исполнительного органа на привлечение иностранной рабочей силы либо справки о соответствии квалификации для самостоятельного трудоустройства, выданной в порядке, определяемом уполномоченным органом по вопросам миграции населения, иностранным работникам, либо до получения разрешения трудовому иммигранту, выдаваемого органами внутренних дел в порядке, установленном Министерством внутренних дел Республики Казахстан, или без соблюдения ограничений или …",
+       "score": 0.0007,
+       "from_gold": false
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
