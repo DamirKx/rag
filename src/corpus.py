@@ -151,6 +151,20 @@ def expand_hits(hits: Sequence[Dict[str, Any]], window: int = EXPAND_WINDOW) -> 
     return expanded
 
 
+def index_text(chunk: Dict[str, Any]) -> str:
+    """Текст чанка для поиска с названием закона и заголовком статьи: «Трудовой кодекс РК. Статья 113. Порядок и сроки
+    выплаты заработной платы» + текст чанка.
+
+    Заголовок статьи есть только в первом чанке статьи (в корпусе законов — у 28% чанков), а тема лучше всего видна
+    именно по нему. Модель ответа получает чанк без этой строки (chunk["text"]).
+    """
+    text, title, law = chunk["text"], chunk.get("article_title", ""), chunk.get("law", "")
+    if title and text.startswith(title):
+        title = ""  # первый чанк статьи: заголовок уже в тексте
+    head = ". ".join(part for part in (law, title) if part)
+    return f"{head}\n{text}" if head else text
+
+
 def build_chunk_corpus(
     sub_df: pd.DataFrame,
     titles: Dict[str, str],
