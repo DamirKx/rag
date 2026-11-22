@@ -8962,7 +8962,7 @@
   "retry_refusals": false,
   "number_words": true,
   "focus_on_refusal": 4,
-  "min_retrieval_score": 0.676,
+  "min_retrieval_score": 0.6,
   "min_answer_relevance": 0.039
  },
  "answers_by_llm": {
