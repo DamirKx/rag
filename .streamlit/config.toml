@@ -1,0 +1,12 @@
+# Тема веб-демо (app.py): светлая, акцент — тёмный небесно-голубой; шрифты PT Sans / PT Serif подключаются в CSS app.py
+[theme]
+base = "light"
+primaryColor = "#0F6A86"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F1F4F5"
+textColor = "#1B2A33"
+
+# Веб-демо доступно только с этого компьютера: по умолчанию Streamlit открыт для всей локальной сети (например, общего
+# Wi-Fi). Чтобы показать демо с другого устройства: streamlit run app.py --server.address 0.0.0.0
+[server]
+address = "localhost"

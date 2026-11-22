@@ -80,13 +80,56 @@ EXAMPLES = {
         "Жер учаскесін жалға беру мерзімі қандай?",
     ],
 }
+# Примеры для корпуса законов: короткие вопросы разных тем, на которые система отвечает по правильной статье
+# (data/laws/colloquial_eval.json, REPORT 7.15–7.18)
 LAWS_EXAMPLES = [
-    "Сколько дней ежегодного отпуска положено работнику?",
-    "Можно ли вернуть товар надлежащего качества?",
-    "Как расторгнуть брак?",
-    "Как уволиться по собственному желанию?",
-    "Кто имеет право на пособие по уходу за ребёнком?",
+    "Сколько дней отпуска положено в год?",
+    "Сколько алиментов платят на одного ребёнка?",
+    "Кто получает наследство, если завещания нет?",
+    "Сколько действует доверенность?",
 ]
+
+# Шрифт показывает, откуда текст: антиква PT Serif — дословный текст закона, гротеск PT Sans — ответ и пояснения
+# системы. Номер статьи стоит на полях, как в изданиях кодексов. Без интернета — запасные системные шрифты.
+PAGE_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700&display=swap');
+:root { --ink: #1B2A33; --muted: #56656E; --accent: #0F6A86; --rule: #C9D3D8; --mark: #F2E2A0;
+        --ok: #2F6E4F; --caution: #8A5A00; }
+.stApp, .stApp p, .stApp li, .stApp label, .stApp input, .stApp textarea, .stApp button, .stApp h1, .stApp h2,
+.stApp h3 { font-family: 'PT Sans', 'Segoe UI', Arial, sans-serif; }
+.stApp h1 { font-size: 2.05rem; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
+.lede { color: var(--muted); font-size: 1.08rem; line-height: 1.45; max-width: 36em; margin: 0.2rem 0 1.1rem; }
+.answer { font-size: 1.22rem; line-height: 1.5; max-width: 36em; margin: 0.6rem 0 0.35rem; color: var(--ink); }
+.answer sup { color: var(--accent); font-size: 0.68em; }
+.note { font-size: 0.93rem; line-height: 1.4; color: var(--muted); max-width: 40em; margin: 0 0 1.3rem; }
+.note.ok::before { content: "✓ "; color: var(--ok); font-weight: 700; }
+.note.caution { color: var(--caution); }
+.norm { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 0 1.25rem; margin: 0 0 1.5rem; }
+.norm-margin { text-align: right; padding-top: 0.05rem; }
+.norm-ref { font-size: 0.8rem; color: var(--accent); }
+.norm-article { font-family: 'PT Serif', Georgia, serif; font-size: 1.2rem; font-weight: 700; line-height: 1.2;
+                color: var(--accent); }
+.norm-law { font-size: 0.82rem; line-height: 1.3; color: var(--muted); margin-top: 0.2rem; }
+.norm-body { border-left: 2px solid var(--rule); padding-left: 1.1rem; min-width: 0; }
+.norm-title { font-weight: 700; line-height: 1.35; margin-bottom: 0.3rem; }
+.norm-text { font-family: 'PT Serif', Georgia, serif; font-size: 1.02rem; line-height: 1.65; max-width: 40em;
+             overflow-wrap: anywhere; }
+.norm-text mark { background: var(--mark); color: inherit; padding: 0 0.1em; border-radius: 2px; }
+.norm-link, .norm-meta { font-size: 0.86rem; color: var(--muted); margin-top: 0.4rem; }
+.norm-link a { color: var(--accent); }
+.disclaimer { font-size: 0.86rem; line-height: 1.4; color: var(--muted); border-top: 1px solid var(--rule);
+              padding-top: 0.75rem; margin-top: 2.2rem; max-width: 44em; }
+.stApp a:focus-visible, .stApp button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .norm { grid-template-columns: minmax(0, 1fr); }
+  .norm-margin { text-align: left; display: flex; gap: 0.6rem; align-items: baseline; margin-bottom: 0.35rem; }
+  .norm-law { margin-top: 0; }
+  .norm-body { padding-left: 0.8rem; }
+  .answer { font-size: 1.1rem; }
+}
+</style>
+"""
 
 # Служебные слова не подсвечиваются в найденном тексте
 STOPWORDS = {
@@ -435,19 +478,61 @@ def score_text(mode: str, score: float, rerank: bool = False) -> str:
     return f"RRF {score:.4f}"
 
 
+def article_heading(articles: str) -> str:
+    """Подпись на полях: «ст. 88» → «Статья 88», «ст. 16, ст. 17» → «Статьи 16, 17»; без номера — пусто."""
+    numbers = re.findall(r"\d+(?:-\d+)?", articles or "")
+    if not numbers:
+        return ""
+    return f"Статья {numbers[0]}" if len(numbers) == 1 else "Статьи " + ", ".join(numbers)
+
+
+def answer_html(text: str) -> str:
+    """Ответ модели для показа: экранированный текст, ссылки [n] — верхним индексом."""
+    escaped = html.escape(text.strip())
+    escaped = re.sub(r"\[(\d+(?:\s*[,;]\s*\d+)*)\]", r"<sup>[\1]</sup>", escaped)
+    return escaped.replace("\n", "<br>")
+
+
+def norm_html(
+    law: str, articles: str, text_html: str, *, title: str = "", url: str = "", ref: Optional[int] = None,
+    meta: str = "",
+) -> str:
+    """Норма закона: номер статьи и закон на полях, справа — дословный текст (антиквой) и ссылка на источник.
+
+    text_html — уже экранированный текст (highlight). ref — номер фрагмента, на который ссылается ответ ([n]);
+    meta — служебная строка для режима исследователя (оценка поиска).
+    """
+    heading = article_heading(articles)
+    margin = (
+        (f"<div class='norm-ref'>[{ref}]</div>" if ref is not None else "")
+        + (f"<div class='norm-article'>{html.escape(heading)}</div>" if heading else "")
+        + f"<div class='norm-law'>{html.escape(law)}</div>"
+    )
+    body = (
+        (f"<div class='norm-title'>{html.escape(title)}</div>" if title else "")
+        + f"<div class='norm-text'>{text_html}</div>"
+        + (f"<div class='norm-link'><a href='{html.escape(url, quote=True)}' target='_blank' rel='noopener'>"
+           "Открыть на adilet.zan.kz</a></div>" if url else "")
+        + (f"<div class='norm-meta'>{html.escape(meta)}</div>" if meta else "")
+    )
+    return f"<div class='norm'><div class='norm-margin'>{margin}</div><div class='norm-body'>{body}</div></div>"
+
+
 def render_hit(
-    rank: int, hit: Dict[str, Any], mode: str, lang: str, stems: Set[str], compact: bool = False, rerank: bool = False
+    rank: int, hit: Dict[str, Any], mode: str, lang: str, stems: Set[str], compact: bool = False, rerank: bool = False,
+    research: bool = True,
 ) -> None:
+    """Найденный фрагмент как норма закона; в режиме исследователя — с местом в выдаче и оценкой метода."""
     url = source_url(lang, hit["source_id"])
-    with st.container(border=True):
-        st.markdown(f"**{rank}. {hit['law']}**" + (f" · {hit['articles']}" if hit["articles"] else ""))
-        if hit["article_title"] and not compact:
-            st.caption(hit["article_title"])
-        st.markdown(f"<div class='hit-text'>{highlight(hit['text'], stems)}</div>", unsafe_allow_html=True)
-        st.caption(score_text(mode, hit["score"], rerank) + (f" · [открыть на adilet.zan.kz]({url})" if url else ""))
-        if not compact:
-            with st.expander("Весь фрагмент закона"):
-                st.markdown(f"<div class='hit-text'>{highlight(hit['context'], stems)}</div>", unsafe_allow_html=True)
+    meta = f"{rank}-е место, {score_text(mode, hit['score'], rerank)}" if research else ""
+    st.markdown(
+        norm_html(hit["law"], hit["articles"], highlight(hit["text"], stems),
+                  title="" if compact else hit.get("article_title", ""), url=url, meta=meta),
+        unsafe_allow_html=True,
+    )
+    if not compact and hit.get("context") and hit["context"].strip() != hit["text"].strip():
+        with st.expander("Вся статья"):
+            st.markdown(f"<div class='norm-text'>{highlight(hit['context'], stems)}</div>", unsafe_allow_html=True)
 
 
 def answer_params(lang: str, corpus_name: str) -> Dict[str, Any]:
@@ -498,7 +583,7 @@ def compute_answer(query: str, hits: List[Dict[str, Any]], lang: str, corpus_nam
     # Модель читает чанки с окружающим текстом; пересекающиеся склеиваются, поэтому номера [n] — номера passages
     passages = build_passages(hits)
     try:
-        with st.spinner(f"{DEFAULT_LLM} формулирует ответ по найденным фрагментам..."):
+        with st.spinner("Составляем ответ по тексту закона..."):
             contexts = {h["id"]: h.get("context", h["text"]) for h in hits}
             answer = load_answerer(lang, corpus_name).answer(
                 query, passages, search_query=search_query_for(query, lang, corpus_name),
@@ -508,75 +593,106 @@ def compute_answer(query: str, hits: List[Dict[str, Any]], lang: str, corpus_nam
         return {"answer": None, "passages": passages, "error": str(e)}
 
 
-def render_quotes(quotes: List[Dict[str, Any]], passages: List[Passage], lang: str) -> None:
+def passage_title(passage: Passage, lang: str, corpus_name: str) -> str:
+    """Заголовок статьи фрагмента (из метаданных чанка), если он есть."""
+    return chunks_by_id(lang, corpus_name).get(passage.id, {}).get("article_title", "") or ""
+
+
+def render_quotes(
+    quotes: List[Dict[str, Any]], passages: List[Passage], lang: str, corpus_name: str, stems: Set[str],
+    research: bool,
+) -> None:
     """Пункты закона, ближайшие к вопросу по оценке реранкера, — дословно, без пересказа модели."""
-    st.markdown("**Вероятно, ответ в этих нормах закона** (дословная цитата, а не ответ модели):")
+    st.markdown("<p class='answer'>Готового ответа нет. Ближе всего к вашему вопросу эти нормы закона:</p>",
+                unsafe_allow_html=True)
     for quote in quotes:
         passage = passages[quote["passage"] - 1]
-        url = source_url(lang, passage.source_id)
-        st.markdown("> " + quote["text"].strip().replace("\n", "  \n> "))
-        st.caption(f"[{passage.label}]({url})" if url else passage.label)
-    st.caption("Пункты выбраны реранкером по близости к вопросу. Модель не смогла сформулировать по ним ответ, "
-               "поэтому проверьте, относится ли норма к вашему случаю.")
+        meta = f"оценка реранкера {quote['score']:.3f}" if research and quote.get("score") is not None else ""
+        st.markdown(
+            norm_html(passage.law, passage.articles, highlight(quote["text"].strip(), stems),
+                      title=passage_title(passage, lang, corpus_name), url=source_url(lang, passage.source_id), meta=meta),
+            unsafe_allow_html=True,
+        )
+    st.markdown("<p class='note caution'>Нормы выбраны автоматически и приведены дословно. Проверьте, подходят ли "
+                "они к вашему случаю.</p>", unsafe_allow_html=True)
 
 
 def render_answer(
     answer: Optional[Answer], passages: List[Passage], lang: str, corpus_name: str, error: Optional[str],
-    trace_id: Optional[str] = None,
+    trace_id: Optional[str] = None, stems: Optional[Set[str]] = None, research: bool = False,
 ) -> None:
-    """Ответ модели с итогами проверки и источниками; под ответом — кнопки отзыва (если включён Langfuse)."""
-    answerer = load_answerer(lang, corpus_name)
-    with st.container(border=True):
-        st.markdown("**Ответ**")
-        if answer is None:
-            st.error(error)
-            return
+    """Ответ и нормы закона, на которых он основан; в режиме исследователя — оценки и причины отказа.
 
-        top = answer.checks.get("top_score")
-        if answer.status == STATUS_ANSWERED:
-            st.markdown(answer.text.replace("\n", "  \n"))
-            # Ссылки [n] — на фрагменты, по которым дан ответ (после повтора по пунктам статей — на пункты)
-            sources = []
-            for n in answer.cited:
-                source = answer.passages[n - 1]
-                url = source_url(lang, source.source_id)
-                sources.append(f"[{n}] [{source.label}]({url})" if url else f"[{n}] {source.label}")
-            st.caption("Источники: " + " · ".join(sources))
-            if answer.checks.get("fallback"):
-                st.caption("Первый раз модель не нашла ответа; ответ дан по пунктам статей, ближайшим к вопросу.")
+    Под ответом — кнопки отзыва (если включён Langfuse).
+    """
+    stems = stems or set()
+    if answer is None:
+        if research:
+            st.error(error)
+        else:
+            st.markdown("<p class='note caution'>Ответ сейчас недоступен: не запущена языковая модель. "
+                        "Ниже — найденные статьи закона.</p>", unsafe_allow_html=True)
+        return
+
+    answerer = load_answerer(lang, corpus_name)
+    top = answer.checks.get("top_score")
+    if answer.status == STATUS_ANSWERED:
+        st.markdown(f"<p class='answer'>{answer_html(answer.text)}</p>", unsafe_allow_html=True)
+        note = "Ответ проверен по тексту закона: каждое число и каждое утверждение есть в статье ниже."
+        if answer.checks.get("fallback"):
+            note += " С первого раза модель ответа не нашла, поэтому он составлен по пунктам статей, ближайшим к вопросу."
+        st.markdown(f"<p class='note ok'>{note}</p>", unsafe_allow_html=True)
+        # Ссылки [n] — на фрагменты, по которым дан ответ (после повтора по пунктам статей — на пункты)
+        for n in answer.cited:
+            source = answer.passages[n - 1]
+            st.markdown(
+                norm_html(source.law, source.articles, highlight(source.text.strip(), stems),
+                          title=passage_title(source, lang, corpus_name), url=source_url(lang, source.source_id), ref=n),
+                unsafe_allow_html=True,
+            )
+        if research:
             relevance = answer.checks.get("answer_relevance")
             entailment = answer.checks.get("entailment")
             st.caption(
-                f"✓ Проверено: все числа есть в тексте закона; слова каждого предложения найдены во фрагментах "
+                f"Проверки: числа есть в тексте закона; слова каждого предложения найдены во фрагментах "
                 f"не меньше чем на {answerer.min_sentence_support:.0%} (минимум {answer.checks['min_sentence_support']:.0%})"
-                + (f"; соответствие вопросу {relevance:.2f}" if relevance is not None else "")
+                + (f"; соответствие вопросу {relevance:.2f} (порог {answerer.min_answer_relevance})" if relevance is not None else "")
                 + (f"; следование из фрагмента {entailment:.2f}" if entailment is not None else "")
-                + f" · {answer.usage.get('latency_s', 0):.1f} с"
+                + f"; уверенность поиска {top:.2f}; {answer.usage.get('latency_s', 0):.1f} с"
             )
-        elif answer.status == STATUS_NO_CONTEXT:
-            st.info(answer.text)
-            st.caption(
-                f"Модель не вызывалась: лучший фрагмент получил оценку реранкера {top:.2f} — ниже порога "
-                f"{answerer.min_retrieval_score}. Скорее всего, нужного закона нет в корпусе."
-            )
-        elif answer.status == STATUS_REFUSED:
-            st.info(answer.text)
-            if answer.quotes:
-                render_quotes(answer.quotes, passages, lang)
-            else:
-                st.caption("Модель прочитала найденные фрагменты и не нашла в них ответа.")
+    elif answer.status == STATUS_NO_CONTEXT:
+        laws = sorted({c["law"] for c in build_corpus(lang, corpus_name)})
+        st.markdown(
+            "<p class='answer'>В законах справочника ответа на этот вопрос не нашлось.</p>"
+            f"<p class='note'>Справочник ищет только в этих актах: {html.escape(', '.join(laws))}. Налоги, штрафы, "
+            "уголовные дела, армия и многое другое в них не входят. Если тема подходит, попробуйте спросить иначе.</p>",
+            unsafe_allow_html=True,
+        )
+        if research:
+            st.caption(f"Модель не вызывалась: лучший фрагмент получил оценку реранкера {top:.2f}, "
+                       f"порог {answerer.min_retrieval_score}.")
+    else:
+        if answer.quotes:
+            render_quotes(answer.quotes, passages, lang, corpus_name, stems, research)
         else:
-            st.warning(answer.text)
-            if answer.quotes:
-                render_quotes(answer.quotes, passages, lang)
-            else:
-                st.markdown("> " + passages[0].text.strip().replace("\n", "\n> "))
-                st.caption(f"[1] {passages[0].label}")
-            with st.expander("Почему ответ модели не показан"):
-                st.write("Проверка нашла: " + "; ".join(answer.checks["problems"]) + ".")
-                st.caption("Отклонённый ответ модели (не является ответом системы):")
-                st.text(answer.raw)
-        render_feedback(trace_id)
+            st.markdown("<p class='answer'>Готового ответа нет. Ближе всего к вашему вопросу этот фрагмент закона:</p>",
+                        unsafe_allow_html=True)
+            first = passages[0]
+            st.markdown(norm_html(first.law, first.articles, highlight(first.text.strip(), stems),
+                                  title=passage_title(first, lang, corpus_name), url=source_url(lang, first.source_id)),
+                        unsafe_allow_html=True)
+        if research:
+            reason = ("модель ответила, что во фрагментах ответа нет" if answer.status == STATUS_REFUSED
+                      else "проверка нашла: " + "; ".join(answer.checks.get("problems", [])))
+            with st.expander("Почему нет ответа модели"):
+                st.write(reason[:1].upper() + reason[1:] + ".")
+                if answer.raw and answer.status != STATUS_REFUSED:
+                    st.caption("Отклонённый ответ модели (не является ответом системы):")
+                    st.text(answer.raw)
+                if answer.checks.get("fallback_raw"):
+                    st.caption("Ответ после повтора по пунктам статей, тоже не принят:")
+                    st.text(answer.checks["fallback_raw"])
+    render_feedback(trace_id)
 
 
 def render_feedback(trace_id: Optional[str]) -> None:
@@ -591,7 +707,7 @@ def render_feedback(trace_id: Optional[str]) -> None:
     if choice is not None and st.session_state.get(sent_key) != choice:
         if score_trace(trace_id, "user_feedback", float(choice), data_type="BOOLEAN", score_id=f"{trace_id}-user-feedback"):
             st.session_state[sent_key] = choice
-            st.toast("Спасибо! Оценка сохранена в Langfuse.")
+            st.toast("Спасибо, оценка сохранена.")
 
 
 def load_models(lang: str, model_name: str, corpus_name: str, rerank: bool, generate: bool) -> LegalSearchEngine:
@@ -607,7 +723,7 @@ def load_models(lang: str, model_name: str, corpus_name: str, rerank: bool, gene
     if generate:
         needed.append(("answerer", lang, corpus_name, reranker_name))
     cold = [":".join(key) for key in needed if not store.ready(key)]
-    spinner = st.spinner("Загрузка моделей поиска — только при первом запросе после запуска...") if cold else nullcontext()
+    spinner = st.spinner("Загружаем справочник — это нужно только при первом вопросе...") if cold else nullcontext()
     with span("load-models", input=[":".join(key) for key in needed], metadata={"cold_start": bool(cold)}) as obs, spinner:
         engine = load_engine(lang, model_name, corpus_name)
         if rerank:
@@ -662,38 +778,28 @@ def streamlit_session_id() -> Optional[str]:
         return None
 
 
-def main() -> None:
-    st.set_page_config(page_title="Поиск по законам РК", page_icon="⚖️", layout="wide")
-    st.markdown(
-        """
-        <style>
-        .hit-text { font-size: 0.93rem; line-height: 1.5; }
-        .hit-text mark { background: #ffe58a; color: inherit; padding: 0 2px; border-radius: 3px; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
+def research_settings() -> Dict[str, Any]:
+    """Боковая панель режима исследователя: корпус, язык, метод, модель, реранкер, ответ модели, фильтр по законам."""
     with st.sidebar:
-        st.header("Настройки")
+        st.header("Настройки для исследования")
         corpus_name = st.radio("Корпус", available_corpora(), format_func=CORPUS_LABELS.get, key="corpus")
         if corpus_name == "laws":
             lang = "rus"
         else:
             lang = st.radio("Язык корпуса", list(LANG_LABELS), format_func=LANG_LABELS.get, horizontal=True, key="lang")
-        mode = st.radio("Метод поиска", list(MODE_LABELS), format_func=MODE_LABELS.get)
-        top_k = st.slider("Количество результатов", 1, 10, 5)
-        model_name = st.selectbox("Модель эмбеддингов", available_models(lang))
+        mode = st.radio("Метод поиска", list(MODE_LABELS), format_func=MODE_LABELS.get, key="mode")
+        top_k = st.slider("Количество результатов", 1, 10, 5, key="top_k")
+        model_name = st.selectbox("Модель эмбеддингов", available_models(lang), key="embedder")
         if mode == "hybrid":
             params = load_hybrid_params(model_name, lang)
             st.caption(f"RRF: вес Dense {params['dense_weight']}, вес BM25 {params['sparse_weight']}, k = {params['rrf_k']}")
         generate = st.toggle(
-            "Ответ языковой модели",
+            "Ответ языковой модели", value=True, key="generate",
             help=f"{DEFAULT_LLM} (локально через Ollama) формулирует ответ по {DEFAULT_TOP_K} лучшим фрагментам. "
                  "Ответ, не подтверждённый текстом закона, не показывается. Включает реранкер.",
         )
         rerank = st.toggle(
-            "Реранкер (cross-encoder)", value=generate, disabled=generate,
+            "Реранкер (cross-encoder)", value=True, disabled=generate, key="rerank",
             help="Переранжировать лучших кандидатов выбранного метода нейросетью, читающей вопрос и фрагмент вместе.",
         ) or generate
         settings = corpus_settings(lang, corpus_name)
@@ -708,6 +814,8 @@ def main() -> None:
                 f"{DEFAULT_LLM}: порог реранкера {gate if gate is not None else 'не задан'}, "
                 f"опора предложений на текст ≥ {gen_params['min_sentence_support']}, "
                 f"соответствие ответа вопросу ≥ {relevance if relevance is not None else 'не задано'}"
+                + (f", повтор по {settings['focus_on_refusal']} пунктам после отказа"
+                   if settings.get("focus_on_refusal") else "")
             )
         st.caption(
             "Langfuse: трассировка включена" if get_langfuse() is not None
@@ -715,7 +823,7 @@ def main() -> None:
         )
         corpus = build_corpus(lang, corpus_name)
         all_laws = sorted({c["law"] for c in corpus})
-        laws = st.multiselect("Искать только в законах", all_laws, placeholder="Все законы")
+        laws = st.multiselect("Искать только в законах", all_laws, placeholder="Все законы", key="laws")
         st.divider()
         source_note = (
             "Тексты актов выгружены с adilet.zan.kz." if corpus_name == "laws"
@@ -726,38 +834,123 @@ def main() -> None:
             f"{len({c['id'].split('_fix_')[0] for c in corpus})} фрагментов, {len(corpus)} чанков "
             f"по {CHUNK_SIZE} символов. {source_note}"
         )
+    return {"corpus_name": corpus_name, "lang": lang, "mode": mode, "top_k": top_k, "model_name": model_name,
+            "generate": generate, "rerank": rerank, "laws": laws}
 
-    st.title("⚖️ Поиск по законодательству Республики Казахстан")
-    st.write(
-        "Задайте вопрос обычным языком — система найдёт фрагменты нормативных актов, "
-        "в которых содержится ответ. Каждый результат — текст закона со ссылкой на источник; по желанию языковая "
-        "модель сформулирует ответ только по найденным фрагментам."
-    )
+
+def citizen_settings() -> Dict[str, Any]:
+    """Обычный режим: лучшая конфигурация (REPORT 7.15–7.18) — законы для граждан, гибрид, реранкер, ответ модели."""
+    corpora = available_corpora()
+    corpus_name = "laws" if "laws" in corpora else corpora[0]
+    return {"corpus_name": corpus_name, "lang": "rus", "mode": "hybrid", "top_k": 5, "model_name": default_model("rus"),
+            "generate": True, "rerank": True, "laws": []}
+
+
+def render_disclaimer(corpus_name: str) -> None:
+    """Оговорка внизу страницы: справочник, а не консультация; дата редакции законов."""
     if corpus_name == "laws":
-        st.caption(
-            f"Редакции актов на {laws_as_of()}. Справочная информация, не является юридической "
-            "консультацией: поиск проверен на 49 вопросах обычным языком, сверяйте ответ с текстом закона."
-        )
+        text = (f"Это справочник, а не юридическая консультация. Законы — в редакции на {laws_as_of()}. "
+                "В спорной ситуации обратитесь к юристу.")
+    else:
+        text = ("Датасет используется для измерения качества поиска: часть его актов утратила силу, "
+                "поэтому для реальных вопросов выберите корпус «Законы для граждан».")
+    st.markdown(f"<p class='disclaimer'>{html.escape(text)}</p>", unsafe_allow_html=True)
+
+
+def displayed_passages(answer: Answer, passages: List[Passage]) -> List[Passage]:
+    """Фрагменты, которые render_answer показал под ответом: те, на которые ссылается ответ, процитированные пункты
+    или первый фрагмент. Остальные фрагменты, полученные моделью, не показаны и попадают в «Другие найденные статьи»."""
+    if answer.status == STATUS_ANSWERED:
+        return [answer.passages[n - 1] for n in answer.cited]
+    if answer.quotes:
+        return [passages[quote["passage"] - 1] for quote in answer.quotes]
+    return passages[:1]
+
+
+def render_citizen_results(result: Dict[str, Any], lang: str, corpus_name: str, mode: str, top_k: int,
+                           rerank: bool, stems: Set[str]) -> None:
+    """Обычный режим: ответ с нормами закона, остальные найденные статьи свёрнуты."""
+    answer = result["answer"]
+    hits = result["hits"][:top_k]
+    render_answer(answer, result["passages"], lang, corpus_name, result["error"], result.get("trace_id"), stems,
+                  research=False)
+    if answer is None:  # модель недоступна — найденные статьи и есть результат
+        for rank, hit in enumerate(hits, 1):
+            render_hit(rank, hit, mode, lang, stems, rerank=rerank, research=False)
+        return
+    if answer.status == STATUS_NO_CONTEXT:  # поиск не уверен: найденные статьи к вопросу, скорее всего, не относятся
+        return
+    shown = {chunk_id for p in displayed_passages(answer, result["passages"]) for chunk_id in p.ids}
+    others = [h for h in hits if h["id"] not in shown]
+    if others:
+        with st.expander(f"Другие найденные статьи ({len(others)})"):
+            for rank, hit in enumerate(others, 1):
+                render_hit(rank, hit, mode, lang, stems, compact=True, rerank=rerank, research=False)
+
+
+def render_compare(query: str, lang: str, model_name: str, corpus_name: str, laws: List[str], rerank: bool,
+                   stems: Set[str]) -> None:
+    """Вкладка режима исследователя: три лучших результата каждого метода по одному вопросу."""
+    cache = result_cache()
+    st.caption("Три лучших результата каждого метода по одному и тому же вопросу.")
+    engine = load_models(lang, model_name, corpus_name, rerank, False)
+    # С включённым реранкером добавляется колонка Hybrid + реранкер
+    columns = [(m, False) for m in MODE_LABELS] + ([("hybrid", True)] if rerank else [])
+    for col, (m, m_rerank) in zip(st.columns(len(columns)), columns):
+        with col:
+            st.subheader(m.upper() + (" + реранкер" if m_rerank else ""))
+            key = ("compare", corpus_name, lang, model_name, query.strip(), m, tuple(laws), m_rerank)
+            hits = cache.get(key)
+            if hits is None:
+                hits = run_search(engine, lang, query, m, 3, laws, m_rerank, corpus_name)
+                cache.put(key, hits)
+                release_gpu_memory()
+            for rank, hit in enumerate(hits, 1):
+                render_hit(rank, hit, m, lang, stems, compact=True, rerank=m_rerank)
+
+
+def main() -> None:
+    research = bool(st.session_state.get("research", False))
+    st.set_page_config(page_title="Законы Казахстана — справочник", page_icon="⚖️",
+                       layout="wide" if research else "centered")
+    st.markdown(PAGE_CSS, unsafe_allow_html=True)
+
+    head, switch = st.columns([4, 1.4], vertical_alignment="bottom")
+    with switch:
+        research = st.toggle("Режим исследователя", key="research",
+                             help="Настройки поиска и модели, оценки проверок и сравнение методов — для защиты и экспериментов.")
+    with head:
+        st.title("Справочник по законам Казахстана")
+    s = research_settings() if research else citizen_settings()
+    corpus_name, lang, mode, top_k = s["corpus_name"], s["lang"], s["mode"], s["top_k"]
+    model_name, generate, rerank, laws = s["model_name"], s["generate"], s["rerank"], s["laws"]
+
+    lede = ("Спросите своими словами. Ответ строится только по тексту закона, а рядом показана сама статья "
+            "со ссылкой на источник." if corpus_name == "laws"
+            else "Поиск по датасету Adilet Legal QA: фрагменты 14 нормативных актов, вопросы языком закона.")
+    st.markdown(f"<p class='lede'>{lede}</p>", unsafe_allow_html=True)
 
     examples = LAWS_EXAMPLES if corpus_name == "laws" else EXAMPLES[lang]
-    st.caption("Примеры вопросов:")
-    cols = st.columns(len(examples))
-    for col, example in zip(cols, examples):
-        if col.button(example, width="stretch"):
-            st.session_state.query = example
+    picked = st.pills("Можно начать с примера", examples, key=f"example-{corpus_name}-{lang}")
+    # Снятый выбор тоже запоминается: иначе повторный выбор того же примера не подставил бы его в вопрос
+    if st.session_state.get("example_used") != picked:
+        if picked:
+            st.session_state.query = picked
+        st.session_state.example_used = picked
 
-    query = st.text_input("Ваш вопрос", key="query", placeholder="Например: кто может быть избран Президентом?")
+    query = st.text_input("Ваш вопрос", key="query", placeholder="Например: сколько дней отпуска положено в год?")
     # Страница уже показана: пока пользователь набирает вопрос, модели загружаются в фоне
     start_warm_up(lang, model_name, corpus_name)
     if generate:
         start_answer_warm_up(lang, corpus_name)
     if not query.strip():
+        render_disclaimer(corpus_name)
         return
 
     stems = query_stems(query)
-    tab_search, tab_compare = st.tabs(["Результаты", "Сравнение методов"])
-
     cache = result_cache()
+    tab_search, tab_compare = st.tabs(["Результаты", "Сравнение методов"]) if research else (st.container(), None)
+
     with tab_search:
         # Streamlit перезапускает скрипт при любом клике: готовый результат берётся из памяти.
         # Трасса Langfuse пишется только при настоящем поиске; вкладка сравнения методов не трассируется
@@ -770,31 +963,25 @@ def main() -> None:
                 cache.put(key, result)
         hits = result["hits"]
         if not hits:
-            st.info("Ничего не найдено. Попробуйте переформулировать вопрос или снять фильтр по законам.")
-        else:
+            st.markdown("<p class='note'>Ничего не найдено. Попробуйте спросить иначе или назовите тему: работа, "
+                        "семья, жильё, покупки, наследство.</p>", unsafe_allow_html=True)
+        elif research:
             if generate:
-                render_answer(result["answer"], result["passages"], lang, corpus_name, result["error"], result.get("trace_id"))
+                render_answer(result["answer"], result["passages"], lang, corpus_name, result["error"],
+                              result.get("trace_id"), stems, research=True)
             label = MODE_LABELS[mode] + (" + реранкер" if rerank else "")
-            st.caption(f"{label} · найдено {len(hits[:top_k])} за {result['search_ms']:.0f} мс")
+            st.subheader("Найденные фрагменты")
+            st.caption(f"{label}: {len(hits[:top_k])} результатов за {result['search_ms']:.0f} мс")
             for rank, hit in enumerate(hits[:top_k], 1):
                 render_hit(rank, hit, mode, lang, stems, rerank=rerank)
+        else:
+            render_citizen_results(result, lang, corpus_name, mode, top_k, rerank, stems)
+        render_disclaimer(corpus_name)
 
-    with tab_compare:
-        st.caption("Топ-3 каждого метода по одному и тому же вопросу.")
-        engine = load_models(lang, model_name, corpus_name, rerank, False)
-        # С включённым реранкером добавляется колонка Hybrid + реранкер
-        columns = [(m, False) for m in MODE_LABELS] + ([("hybrid", True)] if rerank else [])
-        for col, (m, m_rerank) in zip(st.columns(len(columns)), columns):
-            with col:
-                st.subheader(m.upper() + (" + RERANK" if m_rerank else ""))
-                key = ("compare", corpus_name, lang, model_name, query.strip(), m, tuple(laws), m_rerank)
-                hits = cache.get(key)
-                if hits is None:
-                    hits = run_search(engine, lang, query, m, 3, laws, m_rerank, corpus_name)
-                    cache.put(key, hits)
-                    release_gpu_memory()
-                for rank, hit in enumerate(hits, 1):
-                    render_hit(rank, hit, m, lang, stems, compact=True, rerank=m_rerank)
+    if tab_compare is not None:
+        with tab_compare:
+            render_compare(query, lang, model_name, corpus_name, laws, rerank, stems)
+
 
 if __name__ == "__main__":
     main()
