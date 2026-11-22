@@ -1,0 +1,128 @@
+[
+ {
+  "generated": "подросток 15 лет может сам тратить свою зарплату?",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Может ли подросток в 16 лет сам тратить свою зарплату?",
+  "jaccard": 1.0
+ },
+ {
+  "generated": "на сколько лет максимум можно выдать доверенность",
+  "eval_set": "colloquial_questions_independent.json",
+  "eval": "На сколько лет можно выписать доверенность на машину?",
+  "jaccard": 0.5
+ },
+ {
+  "generated": "как может быть указан срок в договоре",
+  "eval_set": "colloquial_questions_independent.json",
+  "eval": "Какой максимум может быть испытательный срок?",
+  "jaccard": 0.5
+ },
+ {
+  "generated": "сколько лет можно судиться за долг",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Со скольки лет можно жениться?",
+  "jaccard": 0.5
+ },
+ {
+  "generated": "можно ли сдавать квартиру которая в ипотеке",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Можно ли сдавать квартиру, в которой я сам живу?",
+  "jaccard": 0.571
+ },
+ {
+  "generated": "гарантии нет — сколько лет можно предъявлять претензии за брак",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Сколько времени можно предъявлять претензии к браку товара?",
+  "jaccard": 0.5
+ },
+ {
+  "generated": "сколько дней есть, чтобы обменять неподошедшую вещь",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Сколько дней есть, чтобы обменять одежду в магазине?",
+  "jaccard": 0.556
+ },
+ {
+  "generated": "сколько месяцев есть чтобы вступить в наследство",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Сколько времени есть, чтобы вступить в наследство?",
+  "jaccard": 0.714
+ },
+ {
+  "generated": "со скольки лет можно избраться в маслихат",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Со скольки лет можно жениться?",
+  "jaccard": 0.5
+ },
+ {
+  "generated": "со скольки лет можно выйти замуж в казахстане",
+  "eval_set": "colloquial_questions_independent.json",
+  "eval": "Со скольки лет можно жениться в Казахстане?",
+  "jaccard": 0.571
+ },
+ {
+  "generated": "делим квартиру при разводе — обязательно через суд?",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Как делится квартира при разводе?",
+  "jaccard": 0.5
+ },
+ {
+  "generated": "бывшая не даёт видеться с сыном, что делать",
+  "eval_set": "colloquial_questions_100.json",
+  "eval": "Бывшая жена не даёт мне видеться с сыном, трубку не берёт, к двери не подпускает. Что делать?",
+  "jaccard": 0.5
+ },
+ {
+  "generated": "можно ли взыскать алименты за прошлые годы",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Можно ли взыскать алименты за прошлые месяцы?",
+  "jaccard": 0.667
+ },
+ {
+  "generated": "развод через загс если есть дети возможен?",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Можно ли развестись через ЗАГС, если есть дети?",
+  "jaccard": 0.556
+ },
+ {
+  "generated": "мама умерла, кто теперь получает пособие на ребенка",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Кто получает пособие по уходу за ребёнком?",
+  "jaccard": 0.5
+ },
+ {
+  "generated": "сколько мрп дают при рождении четвертого ребенка",
+  "eval_set": "colloquial_questions_independent.json",
+  "eval": "Сколько дают денег сразу при рождении ребенка?",
+  "jaccard": 0.556
+ },
+ {
+  "generated": "какие документы нужны для устройства на работу",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Какие документы нужны для поступления в вуз?",
+  "jaccard": 0.5
+ },
+ {
+  "generated": "сколько часов в неделю максимум можно работать",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Сколько часов в неделю можно работать?",
+  "jaccard": 0.833
+ },
+ {
+  "generated": "сколько дней отпуска положено в год",
+  "eval_set": "colloquial_questions_100.json",
+  "eval": "сколько дней отпуска в году положено",
+  "jaccard": 1.0
+ },
+ {
+  "generated": "при увольнении платят за неиспользованный отпуск?",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Заплатят ли мне за неиспользованный отпуск при увольнении?",
+  "jaccard": 0.571
+ },
+ {
+  "generated": "сколько есть времени, чтобы оспорить увольнение",
+  "eval_set": "colloquial_questions.json",
+  "eval": "Сколько времени есть, чтобы вступить в наследство?",
+  "jaccard": 0.5
+ }
+]
