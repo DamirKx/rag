@@ -605,11 +605,18 @@ def render_quotes(
     """Пункты закона, ближайшие к вопросу по оценке реранкера, — дословно, без пересказа модели."""
     st.markdown("<p class='answer'>Готового ответа нет. Ближе всего к вашему вопросу эти нормы закона:</p>",
                 unsafe_allow_html=True)
+    # Пункты одной статьи — в одной карточке (в порядке оценки реранкера), иначе заголовок статьи повторяется подряд
+    groups: "OrderedDict[tuple, List[Dict[str, Any]]]" = OrderedDict()
     for quote in quotes:
         passage = passages[quote["passage"] - 1]
-        meta = f"оценка реранкера {quote['score']:.3f}" if research and quote.get("score") is not None else ""
+        groups.setdefault(article_key(passage.law, passage.articles, passage.id), []).append(quote)
+    for group in groups.values():
+        passage = passages[group[0]["passage"] - 1]
+        scores = [f"{q['score']:.3f}" for q in group if q.get("score") is not None]
+        meta = f"оценка реранкера {', '.join(scores)}" if research and scores else ""
+        text_html = "<br><br>".join(highlight(q["text"].strip(), stems) for q in group)
         st.markdown(
-            norm_html(passage.law, passage.articles, highlight(quote["text"].strip(), stems),
+            norm_html(passage.law, passage.articles, text_html,
                       title=passage_title(passage, lang, corpus_name), url=source_url(lang, passage.source_id), meta=meta),
             unsafe_allow_html=True,
         )
@@ -661,11 +668,15 @@ def render_answer(
                 + f"; уверенность поиска {top:.2f}; {answer.usage.get('latency_s', 0):.1f} с"
             )
     elif answer.status == STATUS_NO_CONTEXT:
+        # Поиск не уверен, что нашёл норму: модель не вызывалась. Это не значит, что темы нет в справочнике
+        # (ст. 113 ТК на «зарплату платят наличкой» получает оценку 0,10), поэтому найденные статьи показываются ниже
         laws = sorted({c["law"] for c in build_corpus(lang, corpus_name)})
         st.markdown(
-            "<p class='answer'>В законах справочника ответа на этот вопрос не нашлось.</p>"
-            f"<p class='note'>Справочник ищет только в этих актах: {html.escape(', '.join(laws))}. Налоги, штрафы, "
-            "уголовные дела, армия и многое другое в них не входят. Если тема подходит, попробуйте спросить иначе.</p>",
+            "<p class='answer'>Уверенного ответа нет.</p>"
+            "<p class='note'>Поиск не нашёл статьи, которая точно отвечает на вопрос, поэтому ответ не составлялся. "
+            f"Справочник ищет только в этих актах: {html.escape(', '.join(laws))}. Налоги, штрафы, уголовные дела, "
+            "армия и многое другое в них не входят. Если тема подходит, попробуйте спросить иначе или посмотрите "
+            "найденные статьи ниже.</p>",
             unsafe_allow_html=True,
         )
         if research:
@@ -857,6 +868,23 @@ def render_disclaimer(corpus_name: str) -> None:
     st.markdown(f"<p class='disclaimer'>{html.escape(text)}</p>", unsafe_allow_html=True)
 
 
+def article_key(law: str, articles: str, fallback_id: str) -> tuple:
+    """Статья, к которой относится фрагмент; фрагмент без номера статьи (преамбула) — сам по себе."""
+    return (law, articles or fallback_id)
+
+
+def unique_articles(hits: List[Dict[str, Any]], exclude: Set[tuple] = frozenset()) -> List[Dict[str, Any]]:
+    """По одному (лучшему) чанку на статью, без статей из exclude: иначе одна статья стоит двумя карточками подряд."""
+    seen = set(exclude)
+    result = []
+    for hit in hits:
+        key = article_key(hit["law"], hit["articles"], hit["id"])
+        if key not in seen:
+            seen.add(key)
+            result.append(hit)
+    return result
+
+
 def displayed_passages(answer: Answer, passages: List[Passage]) -> List[Passage]:
     """Фрагменты, которые render_answer показал под ответом: те, на которые ссылается ответ, процитированные пункты
     или первый фрагмент. Остальные фрагменты, полученные моделью, не показаны и попадают в «Другие найденные статьи»."""
@@ -878,10 +906,16 @@ def render_citizen_results(result: Dict[str, Any], lang: str, corpus_name: str, 
         for rank, hit in enumerate(hits, 1):
             render_hit(rank, hit, mode, lang, stems, rerank=rerank, research=False)
         return
-    if answer.status == STATUS_NO_CONTEXT:  # поиск не уверен: найденные статьи к вопросу, скорее всего, не относятся
+    if answer.status == STATUS_NO_CONTEXT:
+        # Поиск не уверен: статьи свёрнуты и помечены, человек сам решает, подходят ли они
+        found = unique_articles(hits)
+        if found:
+            with st.expander(f"Статьи, которые нашёл поиск, — проверьте, подходят ли они ({len(found)})"):
+                for rank, hit in enumerate(found, 1):
+                    render_hit(rank, hit, mode, lang, stems, compact=True, rerank=rerank, research=False)
         return
-    shown = {chunk_id for p in displayed_passages(answer, result["passages"]) for chunk_id in p.ids}
-    others = [h for h in hits if h["id"] not in shown]
+    shown = displayed_passages(answer, result["passages"])
+    others = unique_articles(hits, exclude={article_key(p.law, p.articles, p.id) for p in shown})
     if others:
         with st.expander(f"Другие найденные статьи ({len(others)})"):
             for rank, hit in enumerate(others, 1):
@@ -915,7 +949,8 @@ def main() -> None:
                        layout="wide" if research else "centered")
     st.markdown(PAGE_CSS, unsafe_allow_html=True)
 
-    head, switch = st.columns([4, 1.4], vertical_alignment="bottom")
+    # Колонка переключателя — по ширине подписи «Режим исследователя» с подсказкой (уже — подпись обрезается)
+    head, switch = st.columns([3, 1.7], vertical_alignment="bottom")
     with switch:
         research = st.toggle("Режим исследователя", key="research",
                              help="Настройки поиска и модели, оценки проверок и сравнение методов — для защиты и экспериментов.")
@@ -931,7 +966,13 @@ def main() -> None:
     st.markdown(f"<p class='lede'>{lede}</p>", unsafe_allow_html=True)
 
     examples = LAWS_EXAMPLES if corpus_name == "laws" else EXAMPLES[lang]
-    picked = st.pills("Можно начать с примера", examples, key=f"example-{corpus_name}-{lang}")
+    pills_key = f"example-{corpus_name}-{lang}"
+    used = st.session_state.get("example_used")
+    if used and st.session_state.get("query") != used:
+        # Вопрос изменён вручную: пример больше не выделен (иначе кажется, что ответ дан на него)
+        st.session_state[pills_key] = None
+        st.session_state.example_used = None
+    picked = st.pills("Можно начать с примера", examples, key=pills_key)
     # Снятый выбор тоже запоминается: иначе повторный выбор того же примера не подставил бы его в вопрос
     if st.session_state.get("example_used") != picked:
         if picked:

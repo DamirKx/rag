@@ -410,15 +410,38 @@ def drop_invalid_citations(answer: str, n_passages: int) -> str:
 
 
 _LEADING_CITATION = re.compile(r"^\s*(?:\d+[.)]?\s+(?=\[\d+\]\s*[A-ZА-ЯЁӘҒҚҢӨҰҮҺІ]))?\[(\d+)\]\s*")
+# «статье [1]» — модель поставила ссылку на фрагмент на место номера статьи
+_ARTICLE_WORD_CITATION = re.compile(r"(?i)\b(стать(?:я|и|е|ю|ей))[ \t]*\[(\d+)\]")
+
+
+def article_number(passage: Passage) -> str:
+    """Номер статьи фрагмента («22», «5-1») из метаданных; пусто, если фрагмент охватывает не одну статью."""
+    numbers = re.findall(r"ст\.\s*(\d+(?:-\d+)?)", passage.articles or "")
+    return numbers[0] if len(numbers) == 1 else ""
+
+
+def insert_article_numbers(answer: str, passages: Sequence[Passage]) -> str:
+    """«Согласно статье [1] Кодекса» → «Согласно статье 22 [1] Кодекса»: надстрочная «[1]» иначе читается как «статья 1».
+
+    Номер берётся из разбора закона (Passage.articles), а не из текста модели.
+    """
+    def repl(match: "re.Match") -> str:
+        word, n = match.group(1), int(match.group(2))
+        number = article_number(passages[n - 1]) if 1 <= n <= len(passages) else ""
+        return f"{word} {number} [{n}]" if number else match.group(0)
+
+    return _ARTICLE_WORD_CITATION.sub(repl, answer)
 
 
 def tidy_answer(answer: str, passages: Sequence[Passage]) -> str:
-    """Ответ для показа: без номера пункта и подписи фрагмента, скопированных моделью в начало.
+    """Ответ для показа: без номера пункта и подписи фрагмента, скопированных моделью в начало, и с номером статьи
+    вместо ссылки «статье [1]» (insert_article_numbers).
 
     Модель иногда начинает ответ с номера пункта статьи («2 [1] Основной…») или переписывает подпись фрагмента
     из промпта («[1] Трудовой кодекс РК, ст. 95 1. Оплачиваемый…»). Ссылка переносится в конец ответа.
     Проверки ответа выполняются до этой правки, по исходному тексту.
     """
+    answer = insert_article_numbers(answer, passages)
     match = _LEADING_CITATION.match(answer)
     if not match:
         return answer

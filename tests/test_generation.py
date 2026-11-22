@@ -138,6 +138,18 @@ class TestTidyAnswer:
     def test_citation_only_answer_is_unchanged(self):
         assert tidy_answer("[1]", PASSAGES) == "[1]"
 
+    def test_article_number_inserted_where_model_put_citation(self):
+        # «статье [1]» читается как «статья 1»: номер статьи — из метаданных фрагмента
+        assert (tidy_answer("Согласно статье [1] Земельного кодекса, срок аренды — до 49 лет.", PASSAGES)
+                == "Согласно статье 12 [1] Земельного кодекса, срок аренды — до 49 лет.")
+        assert tidy_answer("в пункте 1 статьи [1] сказано", PASSAGES) == "в пункте 1 статьи 12 [1] сказано"
+
+    def test_article_number_not_inserted_without_single_article(self):
+        assert tidy_answer("Согласно статье [2] хранитель обязан.", PASSAGES) == "Согласно статье [2] хранитель обязан."
+        two = [Passage(id="x", text="текст", articles="ст. 16, ст. 17")]
+        assert tidy_answer("Согласно статье [1] брак расторгается.", two) == "Согласно статье [1] брак расторгается."
+        assert tidy_answer("Согласно статье [5] текст.", PASSAGES) == "Согласно статье [5] текст."
+
     def test_shown_answer_is_tidied_but_checked_as_is(self):
         answerer = GroundedAnswerer(FakeClient("1 [1] Срок аренды земельного участка — до 49 лет."), min_answer_relevance=None)
         result = answerer.answer("Какой срок аренды?", PASSAGES)

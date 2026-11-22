@@ -38,6 +38,8 @@ def run_app(status: str = "answered", answer_available: bool = True) -> None:
     hit88 = {"id": passage.id, "law": passage.law, "articles": passage.articles, "source_id": passage.source_id,
              "article_title": "Продолжительность основного оплачиваемого ежегодного трудового отпуска",
              "text": passage.text, "context": passage.text, "score": 0.95}
+    # Второй чанк той же ст. 87: в списках статей он не должен стать второй карточкой
+    other_b = {**other, "id": "tk_87_fix_001", "text": "Отпуска предоставляются в порядке очерёдности.", "score": 0.5}
     # Модель получает оба фрагмента, а ответ ссылается (цитата — указывает) только на первый
     passage87 = Passage(id=other["id"], text=other["text"], law=other["law"], articles=other["articles"], score=0.6,
                         source_id=other["source_id"])
@@ -49,7 +51,8 @@ def run_app(status: str = "answered", answer_available: bool = True) -> None:
         "no_context": Answer("no_context", "В найденных фрагментах закона ответа нет.", both, checks={"top_score": 0.3}),
         "refused": Answer("refused", "В найденных фрагментах закона ответа нет.", both, raw="В найденных фрагментах закона ответа нет.",
                           checks={"top_score": 0.9, "problems": []},
-                          quotes=[{"passage": 1, "text": passage.text, "score": 0.8}]),
+                          quotes=[{"passage": 1, "text": passage.text, "score": 0.8},
+                                  {"passage": 1, "text": "Очерёдность утверждает работодатель.", "score": 0.7}]),
     }
     answer = answers[status] if answer_available else None
 
@@ -59,8 +62,8 @@ def run_app(status: str = "answered", answer_available: bool = True) -> None:
     app.start_answer_warm_up = lambda *a, **k: None
     app.available_corpora = lambda: ["laws", "adilet"]
     app.laws_as_of = lambda: "2026-11-09"
-    app.build_corpus = lambda lang, corpus_name="adilet": [hit88, other]
-    app.chunks_by_id = lambda lang, corpus_name: {hit88["id"]: hit88, other["id"]: other}
+    app.build_corpus = lambda lang, corpus_name="adilet": [hit88, other, other_b]
+    app.chunks_by_id = lambda lang, corpus_name: {h["id"]: h for h in (hit88, other, other_b)}
     app.corpus_settings = lambda lang, corpus_name: {"reranker": "BAAI/bge-reranker-v2-m3", "dictionary": True,
                                                     "focus_on_refusal": 4}
     app.answer_params = lambda lang, corpus_name: {"min_retrieval_score": 0.676, "min_sentence_support": 0.8,
@@ -73,9 +76,9 @@ def run_app(status: str = "answered", answer_available: bool = True) -> None:
     app.rerank_pool = lambda lang: 20
     app.get_langfuse = lambda: None
     app.load_models = lambda *a, **k: None
-    app.run_search = lambda *a, **k: [hit88, other]
+    app.run_search = lambda *a, **k: [hit88, other, other_b]
     app.search_and_answer = lambda *a, **k: {
-        "hits": [hit88, other], "search_ms": 12.0, "answer": answer, "passages": both, "trace_id": None,
+        "hits": [hit88, other, other_b], "search_ms": 12.0, "answer": answer, "passages": both, "trace_id": None,
         "error": None if answer_available else "Ollama недоступна по адресу http://localhost:11434",
     }
     app.main()
@@ -101,7 +104,8 @@ def test_citizen_mode_shows_answer_with_article_in_margin():
     assert "norm-article'>Статья 88<" in page
     assert "Открыть на adilet.zan.kz" in page
     assert "реранкер" not in page.lower() and "оценка" not in page.lower()
-    # Фрагмент, который модель получила, но на который ответ не ссылается, не пропадает со страницы
+    # Фрагмент, который модель получила, но на который ответ не ссылается, не пропадает со страницы;
+    # два чанка ст. 87 — одна карточка
     assert any(e.label == "Другие найденные статьи (1)" for e in at.expander)
     assert "Статья 87" in page
     assert "не юридическая консультация" in page
@@ -118,11 +122,14 @@ def test_research_mode_shows_settings_scores_and_comparison():
     assert [t.label for t in at.tabs] == ["Результаты", "Сравнение методов"]
 
 
-def test_question_outside_corpus_lists_laws_of_the_reference():
+def test_uncertain_search_lists_laws_and_shows_found_articles_folded():
     at = ask(AppTest.from_function(run_app, kwargs={"status": "no_context"}).run(timeout=30))
     page = html_text(at)
-    assert "ответа на этот вопрос не нашлось" in page
-    assert "Трудовой кодекс РК" in page
+    assert "Уверенного ответа нет" in page
+    assert "Справочник ищет только в этих актах: Трудовой кодекс РК" in page
+    # Тема может быть в справочнике, хотя поиск не уверен: найденные статьи свёрнуты, по одной карточке на статью
+    assert any(e.label == "Статьи, которые нашёл поиск, — проверьте, подходят ли они (2)" for e in at.expander)
+    assert "Статья 88" in page and "Статья 87" in page
 
 
 def test_refusal_shows_law_quotes_with_caution():
@@ -130,6 +137,9 @@ def test_refusal_shows_law_quotes_with_caution():
     page = html_text(at)
     assert "Готового ответа нет" in page
     assert "проверьте, подходят ли" in page.lower()
+    # Два пункта ст. 88 — одна карточка с обоими пунктами
+    assert page.count("norm-article'>Статья 88<") == 1
+    assert "Очерёдность утверждает работодатель." in page
 
 
 def test_model_unavailable_shows_found_articles():
@@ -154,6 +164,14 @@ def test_same_example_picked_again_fills_question_again():
     at.button_group[0].set_value(None).run(timeout=30)  # снять выбор примера
     at.button_group[0].set_value(example).run(timeout=30)
     assert at.text_input(key="query").value == example
+
+
+def test_example_unselected_when_question_typed_by_hand():
+    at = AppTest.from_function(run_app).run(timeout=30)
+    at.button_group[0].set_value("Сколько дней отпуска положено в год?").run(timeout=30)
+    at = ask(at, "Сколько алиментов платят?")
+    assert at.button_group[0].value is None
+    assert at.text_input(key="query").value == "Сколько алиментов платят?"
 
 
 def test_refusal_keeps_unquoted_passages_in_other_articles():
