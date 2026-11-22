@@ -6,13 +6,12 @@
 файлы корпуса и размеченных QA-запросов для оценки RAG-поиска (Retrieval Evaluation).
 """
 
-import os
 import sys
 import json
 import re
 import argparse
 from pathlib import Path
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any
 import pandas as pd
 
 # Обеспечиваем корректный вывод UTF-8 в консоли Windows
