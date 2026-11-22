@@ -516,9 +516,11 @@ def main() -> None:
     current = load_generation_params(LANG, default_reranker(LANG))["min_retrieval_score"]
     results["current_gate"] = current
     results["gates"] = gates
-    if RESULT.exists():  # замер на Adilet (--adilet) считается отдельно и не пересчитывается здесь
+    if RESULT.exists():
+        # Замер на Adilet (--adilet) считается отдельно и не пересчитывается здесь; настройки веб-демо (params)
+        # меняет только этап --answers — повторный прогон поиска не должен их стирать
         previous = json.loads(RESULT.read_text(encoding="utf-8"))
-        results.update({k: previous[k] for k in ("adilet_regression",) if k in previous})
+        results.update({k: previous[k] for k in ("adilet_regression", "params") if k in previous})
     RESULT.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
 
     print(f"\n{'конфигурация':52s} {'Hit@1':>6s} {'Hit@3':>6s} {'MRR@10':>7s}")
