@@ -2263,6 +2263,3968 @@
      "top_score": 0.0403
     }
    }
+  },
+  "без заголовка / e5 дообученная / пул 20 / реранкер reranker-bge-m3-laws-colloquial": {
+   "hit@1": 0.525,
+   "hit@3": 0.7,
+   "mrr@10": 0.6323,
+   "context": 0.675,
+   "context_articles": 0.7,
+   "confident_context": 0.625,
+   "confident_context_articles": 0.65,
+   "outside_passed": 2,
+   "outside_max": 0.7209,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.9331,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq02": {
+     "top_score": 0.9992,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.8939,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9915,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.9973,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq06": {
+     "top_score": 0.9775,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.9803,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.9672,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.9959,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.8026,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.9991,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.5458,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.2919,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq14": {
+     "top_score": 0.9757,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.9894,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.9955,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq17": {
+     "top_score": 0.9683,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.8751,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.6549,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.995,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.7502,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.8675,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.7012,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq24": {
+     "top_score": 0.9177,
+     "rank": 7,
+     "context": false,
+     "context_articles": false
+    },
+    "iq25": {
+     "top_score": 0.8166,
+     "rank": 5,
+     "context": false,
+     "context_articles": false
+    },
+    "iq26": {
+     "top_score": 0.8412,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq27": {
+     "top_score": 0.7624,
+     "rank": 5,
+     "context": false,
+     "context_articles": false
+    },
+    "iq28": {
+     "top_score": 0.2814,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq29": {
+     "top_score": 0.9938,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.1561,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq31": {
+     "top_score": 0.9979,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.983,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq33": {
+     "top_score": 0.8492,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.9976,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.3375,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq36": {
+     "top_score": 0.8695,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq37": {
+     "top_score": 0.9837,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.9654,
+     "rank": 2,
+     "context": false,
+     "context_articles": true
+    },
+    "iq39": {
+     "top_score": 0.8862,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq40": {
+     "top_score": 0.1124,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.1445
+    },
+    "iq42": {
+     "top_score": 0.0131
+    },
+    "iq43": {
+     "top_score": 0.1748
+    },
+    "iq44": {
+     "top_score": 0.6429
+    },
+    "iq45": {
+     "top_score": 0.0051
+    },
+    "iq46": {
+     "top_score": 0.7209
+    },
+    "iq47": {
+     "top_score": 0.219
+    },
+    "iq48": {
+     "top_score": 0.2147
+    },
+    "iq49": {
+     "top_score": 0.0527
+    },
+    "iq50": {
+     "top_score": 0.2842
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / реранкер reranker-bge-m3-laws-colloquial": {
+   "hit@1": 0.575,
+   "hit@3": 0.775,
+   "mrr@10": 0.6758,
+   "context": 0.75,
+   "context_articles": 0.775,
+   "confident_context": 0.7,
+   "confident_context_articles": 0.725,
+   "outside_passed": 2,
+   "outside_max": 0.7778,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.986,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq02": {
+     "top_score": 0.9993,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.9686,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9927,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.9975,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq06": {
+     "top_score": 0.9741,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.9805,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.9716,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.9962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.9425,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.999,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.6217,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.7661,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq14": {
+     "top_score": 0.9938,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.9907,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.9921,
+     "rank": 5,
+     "context": false,
+     "context_articles": false
+    },
+    "iq17": {
+     "top_score": 0.9901,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.8776,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.5492,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.996,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.9363,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.9237,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.7498,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq24": {
+     "top_score": 0.9601,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq25": {
+     "top_score": 0.9697,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq26": {
+     "top_score": 0.8713,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq27": {
+     "top_score": 0.768,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.7564,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "iq29": {
+     "top_score": 0.9929,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.2188,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq31": {
+     "top_score": 0.9984,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.9894,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.8236,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.9979,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.9977,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.8803,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq37": {
+     "top_score": 0.9848,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.9651,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.906,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq40": {
+     "top_score": 0.4096,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.3216
+    },
+    "iq42": {
+     "top_score": 0.0185
+    },
+    "iq43": {
+     "top_score": 0.0096
+    },
+    "iq44": {
+     "top_score": 0.3676
+    },
+    "iq45": {
+     "top_score": 0.0031
+    },
+    "iq46": {
+     "top_score": 0.7387
+    },
+    "iq47": {
+     "top_score": 0.522
+    },
+    "iq48": {
+     "top_score": 0.7778
+    },
+    "iq49": {
+     "top_score": 0.0933
+    },
+    "iq50": {
+     "top_score": 0.5516
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / doc2query append, утечки ≥ 0.2": {
+   "hit@1": 0.5,
+   "hit@3": 0.75,
+   "mrr@10": 0.6146,
+   "context": 0.75,
+   "context_articles": 0.75,
+   "confident_context": 0.375,
+   "confident_context_articles": 0.375,
+   "outside_passed": 0,
+   "outside_max": 0.1268,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.0814,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq02": {
+     "top_score": 0.9838,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.2714,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9599,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.1985,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq06": {
+     "top_score": 0.8768,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.6757,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.082,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.8409,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.6857,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.7426,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.0986,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.0222,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq14": {
+     "top_score": 0.5949,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.9011,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.2399,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq17": {
+     "top_score": 0.8123,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.195,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.0283,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.872,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.914,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.5018,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.3683,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq24": {
+     "top_score": 0.5193,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq25": {
+     "top_score": 0.0007,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq26": {
+     "top_score": 0.0142,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq27": {
+     "top_score": 0.0265,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.1731,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq29": {
+     "top_score": 0.8571,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.0006,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq31": {
+     "top_score": 0.5242,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.8834,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.4388,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.9652,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.0134,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.3854,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq37": {
+     "top_score": 0.6583,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.8872,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.0669,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq40": {
+     "top_score": 0.002,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.0056
+    },
+    "iq42": {
+     "top_score": 0.019
+    },
+    "iq43": {
+     "top_score": 0.0057
+    },
+    "iq44": {
+     "top_score": 0.0017
+    },
+    "iq45": {
+     "top_score": 0.1268
+    },
+    "iq46": {
+     "top_score": 0.0054
+    },
+    "iq47": {
+     "top_score": 0.0021
+    },
+    "iq48": {
+     "top_score": 0.0022
+    },
+    "iq49": {
+     "top_score": 0.0507
+    },
+    "iq50": {
+     "top_score": 0.0485
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / doc2query append, утечки ≥ 0.2": {
+   "hit@1": 0.65,
+   "hit@3": 0.775,
+   "mrr@10": 0.7125,
+   "context": 0.775,
+   "context_articles": 0.775,
+   "confident_context": 0.375,
+   "confident_context_articles": 0.375,
+   "outside_passed": 0,
+   "outside_max": 0.097,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.1842,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq02": {
+     "top_score": 0.9808,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.5798,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9427,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.3054,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq06": {
+     "top_score": 0.7535,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.778,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.4747,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.7958,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.6965,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.6056,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.1494,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.0282,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq14": {
+     "top_score": 0.6121,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.8963,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.3998,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq17": {
+     "top_score": 0.9876,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.4047,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.0258,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.8508,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.9298,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.4626,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.6639,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq24": {
+     "top_score": 0.4009,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq25": {
+     "top_score": 0.0006,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq26": {
+     "top_score": 0.0037,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq27": {
+     "top_score": 0.0163,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.1928,
+     "rank": 6,
+     "context": false,
+     "context_articles": false
+    },
+    "iq29": {
+     "top_score": 0.9266,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.0015,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq31": {
+     "top_score": 0.3736,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.8127,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.2056,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.8725,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.0195,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.3032,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq37": {
+     "top_score": 0.5902,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.8991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.0542,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq40": {
+     "top_score": 0.0017,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.002
+    },
+    "iq42": {
+     "top_score": 0.0149
+    },
+    "iq43": {
+     "top_score": 0.001
+    },
+    "iq44": {
+     "top_score": 0.0014
+    },
+    "iq45": {
+     "top_score": 0.097
+    },
+    "iq46": {
+     "top_score": 0.0047
+    },
+    "iq47": {
+     "top_score": 0.0023
+    },
+    "iq48": {
+     "top_score": 0.0003
+    },
+    "iq49": {
+     "top_score": 0.0015
+    },
+    "iq50": {
+     "top_score": 0.0238
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / doc2query separate, утечки ≥ 0.2": {
+   "hit@1": 0.525,
+   "hit@3": 0.775,
+   "mrr@10": 0.6438,
+   "context": 0.775,
+   "context_articles": 0.775,
+   "confident_context": 0.375,
+   "confident_context_articles": 0.375,
+   "outside_passed": 0,
+   "outside_max": 0.1174,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.0991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq02": {
+     "top_score": 0.9838,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.2714,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9599,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.3061,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq06": {
+     "top_score": 0.8768,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.6757,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.082,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.8409,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.6857,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.7426,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.0991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.02,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq14": {
+     "top_score": 0.5949,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.9011,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.2399,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq17": {
+     "top_score": 0.8123,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.195,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.0283,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.872,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.914,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.5018,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.3683,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq24": {
+     "top_score": 0.5193,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq25": {
+     "top_score": 0.0004,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq26": {
+     "top_score": 0.0208,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq27": {
+     "top_score": 0.0172,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.1731,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq29": {
+     "top_score": 0.8571,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.0003,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq31": {
+     "top_score": 0.5242,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.8834,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.4388,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.9652,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.0134,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.1684,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq37": {
+     "top_score": 0.6583,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.8872,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.0669,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq40": {
+     "top_score": 0.002,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.0024
+    },
+    "iq42": {
+     "top_score": 0.019
+    },
+    "iq43": {
+     "top_score": 0.0057
+    },
+    "iq44": {
+     "top_score": 0.0003
+    },
+    "iq45": {
+     "top_score": 0.1174
+    },
+    "iq46": {
+     "top_score": 0.0054
+    },
+    "iq47": {
+     "top_score": 0.0024
+    },
+    "iq48": {
+     "top_score": 0.0006
+    },
+    "iq49": {
+     "top_score": 0.0042
+    },
+    "iq50": {
+     "top_score": 0.0485
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / doc2query separate, утечки ≥ 0.2": {
+   "hit@1": 0.6,
+   "hit@3": 0.7,
+   "mrr@10": 0.6562,
+   "context": 0.675,
+   "context_articles": 0.7,
+   "confident_context": 0.35,
+   "confident_context_articles": 0.35,
+   "outside_passed": 0,
+   "outside_max": 0.0677,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.1731,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq02": {
+     "top_score": 0.9808,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.5798,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9427,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.3054,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq06": {
+     "top_score": 0.7535,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.778,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.0513,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.7958,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.6965,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.6056,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.1494,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.0228,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq14": {
+     "top_score": 0.4987,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.8963,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.3999,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq17": {
+     "top_score": 0.9876,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.2832,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.0258,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.8508,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.9298,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.4626,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.6639,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq24": {
+     "top_score": 0.4009,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "iq25": {
+     "top_score": 0.0006,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq26": {
+     "top_score": 0.006,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq27": {
+     "top_score": 0.0163,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.1928,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq29": {
+     "top_score": 0.9266,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.0008,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq31": {
+     "top_score": 0.3736,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.8135,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.2056,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.8725,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.0084,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.0721,
+     "rank": 6,
+     "context": false,
+     "context_articles": false
+    },
+    "iq37": {
+     "top_score": 0.5902,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.8991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.0208,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq40": {
+     "top_score": 0.0017,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.002
+    },
+    "iq42": {
+     "top_score": 0.0149
+    },
+    "iq43": {
+     "top_score": 0.001
+    },
+    "iq44": {
+     "top_score": 0.0004
+    },
+    "iq45": {
+     "top_score": 0.0677
+    },
+    "iq46": {
+     "top_score": 0.0069
+    },
+    "iq47": {
+     "top_score": 0.0005
+    },
+    "iq48": {
+     "top_score": 0.0003
+    },
+    "iq49": {
+     "top_score": 0.002
+    },
+    "iq50": {
+     "top_score": 0.0238
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / doc2query append, утечки ≥ 0.3": {
+   "hit@1": 0.5,
+   "hit@3": 0.75,
+   "mrr@10": 0.6223,
+   "context": 0.75,
+   "context_articles": 0.75,
+   "confident_context": 0.375,
+   "confident_context_articles": 0.375,
+   "outside_passed": 0,
+   "outside_max": 0.1268,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.0814,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq02": {
+     "top_score": 0.9838,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.2714,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9599,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.1985,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq06": {
+     "top_score": 0.8768,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.6757,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.082,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.8409,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.6857,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.7426,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.0991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.0222,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq14": {
+     "top_score": 0.5949,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.9011,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.2399,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq17": {
+     "top_score": 0.8123,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.195,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.0283,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.872,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.914,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.5018,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.3683,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq24": {
+     "top_score": 0.5193,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq25": {
+     "top_score": 0.0007,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq26": {
+     "top_score": 0.0142,
+     "rank": 6,
+     "context": false,
+     "context_articles": false
+    },
+    "iq27": {
+     "top_score": 0.0265,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.1731,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq29": {
+     "top_score": 0.8571,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.0006,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq31": {
+     "top_score": 0.5242,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.8834,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.4388,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.9652,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.0134,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.3854,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq37": {
+     "top_score": 0.6583,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.8872,
+     "rank": 7,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.0669,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq40": {
+     "top_score": 0.002,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.0056
+    },
+    "iq42": {
+     "top_score": 0.019
+    },
+    "iq43": {
+     "top_score": 0.0057
+    },
+    "iq44": {
+     "top_score": 0.0017
+    },
+    "iq45": {
+     "top_score": 0.1268
+    },
+    "iq46": {
+     "top_score": 0.0054
+    },
+    "iq47": {
+     "top_score": 0.0025
+    },
+    "iq48": {
+     "top_score": 0.0022
+    },
+    "iq49": {
+     "top_score": 0.0507
+    },
+    "iq50": {
+     "top_score": 0.0485
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / doc2query append, утечки ≥ 0.3": {
+   "hit@1": 0.65,
+   "hit@3": 0.8,
+   "mrr@10": 0.7208,
+   "context": 0.8,
+   "context_articles": 0.8,
+   "confident_context": 0.375,
+   "confident_context_articles": 0.375,
+   "outside_passed": 0,
+   "outside_max": 0.097,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.1842,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq02": {
+     "top_score": 0.9808,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.5798,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9427,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.3054,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq06": {
+     "top_score": 0.7535,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.778,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.4747,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.7958,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.6965,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.6056,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.1494,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.0282,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq14": {
+     "top_score": 0.6121,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.8963,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.3998,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq17": {
+     "top_score": 0.9876,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.4047,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.0258,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.8508,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.9298,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.4626,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.6639,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq24": {
+     "top_score": 0.4009,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq25": {
+     "top_score": 0.0006,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq26": {
+     "top_score": 0.0037,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq27": {
+     "top_score": 0.0163,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.1928,
+     "rank": 6,
+     "context": false,
+     "context_articles": false
+    },
+    "iq29": {
+     "top_score": 0.9266,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.0015,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq31": {
+     "top_score": 0.3736,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.8127,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.2056,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.8725,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.0195,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.3032,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq37": {
+     "top_score": 0.5902,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.8991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.0542,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq40": {
+     "top_score": 0.0017,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.002
+    },
+    "iq42": {
+     "top_score": 0.0149
+    },
+    "iq43": {
+     "top_score": 0.001
+    },
+    "iq44": {
+     "top_score": 0.0014
+    },
+    "iq45": {
+     "top_score": 0.097
+    },
+    "iq46": {
+     "top_score": 0.0047
+    },
+    "iq47": {
+     "top_score": 0.0023
+    },
+    "iq48": {
+     "top_score": 0.0003
+    },
+    "iq49": {
+     "top_score": 0.0015
+    },
+    "iq50": {
+     "top_score": 0.0238
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / doc2query separate, утечки ≥ 0.3": {
+   "hit@1": 0.525,
+   "hit@3": 0.775,
+   "mrr@10": 0.65,
+   "context": 0.775,
+   "context_articles": 0.775,
+   "confident_context": 0.375,
+   "confident_context_articles": 0.375,
+   "outside_passed": 0,
+   "outside_max": 0.1174,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.0991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq02": {
+     "top_score": 0.9838,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.2714,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9599,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.3061,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq06": {
+     "top_score": 0.8768,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.6757,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.082,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.8409,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.6857,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.7426,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.0991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.02,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq14": {
+     "top_score": 0.5949,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.9011,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.2399,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq17": {
+     "top_score": 0.8123,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.195,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.0283,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.872,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.914,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.5018,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.3683,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq24": {
+     "top_score": 0.5193,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq25": {
+     "top_score": 0.0004,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq26": {
+     "top_score": 0.0208,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq27": {
+     "top_score": 0.0172,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.1731,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq29": {
+     "top_score": 0.8571,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.0003,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq31": {
+     "top_score": 0.5242,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.8834,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.4388,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.9652,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.0134,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.1684,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq37": {
+     "top_score": 0.6583,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.8872,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.0669,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq40": {
+     "top_score": 0.002,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.0024
+    },
+    "iq42": {
+     "top_score": 0.019
+    },
+    "iq43": {
+     "top_score": 0.0057
+    },
+    "iq44": {
+     "top_score": 0.0005
+    },
+    "iq45": {
+     "top_score": 0.1174
+    },
+    "iq46": {
+     "top_score": 0.0054
+    },
+    "iq47": {
+     "top_score": 0.0025
+    },
+    "iq48": {
+     "top_score": 0.0006
+    },
+    "iq49": {
+     "top_score": 0.0042
+    },
+    "iq50": {
+     "top_score": 0.0485
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / doc2query separate, утечки ≥ 0.3": {
+   "hit@1": 0.6,
+   "hit@3": 0.725,
+   "mrr@10": 0.6687,
+   "context": 0.7,
+   "context_articles": 0.725,
+   "confident_context": 0.35,
+   "confident_context_articles": 0.35,
+   "outside_passed": 0,
+   "outside_max": 0.0677,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.1731,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq02": {
+     "top_score": 0.9808,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.5798,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9427,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.3054,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq06": {
+     "top_score": 0.7535,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.778,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.0513,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.7958,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.6965,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.6056,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.1494,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.0228,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq14": {
+     "top_score": 0.4987,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.8963,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.3999,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq17": {
+     "top_score": 0.9876,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.2832,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.0258,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.8508,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.9298,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.4626,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.6639,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq24": {
+     "top_score": 0.4009,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "iq25": {
+     "top_score": 0.0006,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq26": {
+     "top_score": 0.006,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq27": {
+     "top_score": 0.0163,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.1928,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq29": {
+     "top_score": 0.9266,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.0008,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq31": {
+     "top_score": 0.3736,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.8135,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.2056,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.8725,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.0084,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.0721,
+     "rank": 6,
+     "context": false,
+     "context_articles": false
+    },
+    "iq37": {
+     "top_score": 0.5902,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.8991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.0208,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq40": {
+     "top_score": 0.0017,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.002
+    },
+    "iq42": {
+     "top_score": 0.0149
+    },
+    "iq43": {
+     "top_score": 0.001
+    },
+    "iq44": {
+     "top_score": 0.0007
+    },
+    "iq45": {
+     "top_score": 0.0677
+    },
+    "iq46": {
+     "top_score": 0.0069
+    },
+    "iq47": {
+     "top_score": 0.0015
+    },
+    "iq48": {
+     "top_score": 0.0003
+    },
+    "iq49": {
+     "top_score": 0.002
+    },
+    "iq50": {
+     "top_score": 0.0238
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / doc2query append, без фильтра пересказов": {
+   "hit@1": 0.575,
+   "hit@3": 0.825,
+   "mrr@10": 0.7009,
+   "context": 0.825,
+   "context_articles": 0.825,
+   "confident_context": 0.375,
+   "confident_context_articles": 0.375,
+   "outside_passed": 0,
+   "outside_max": 0.1268,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.0814,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq02": {
+     "top_score": 0.9838,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.2714,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9599,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.5286,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq06": {
+     "top_score": 0.8768,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.6757,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.082,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.8409,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.6857,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.7426,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.0991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.0265,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq14": {
+     "top_score": 0.5949,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.9011,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.2399,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq17": {
+     "top_score": 0.8123,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.195,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.0283,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.872,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.914,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.5018,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.3683,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq24": {
+     "top_score": 0.5193,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq25": {
+     "top_score": 0.0007,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq26": {
+     "top_score": 0.0142,
+     "rank": 6,
+     "context": false,
+     "context_articles": false
+    },
+    "iq27": {
+     "top_score": 0.0265,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.1731,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq29": {
+     "top_score": 0.8571,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.0018,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq31": {
+     "top_score": 0.5242,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.8834,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.4388,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.9652,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.0134,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.3854,
+     "rank": 7,
+     "context": false,
+     "context_articles": false
+    },
+    "iq37": {
+     "top_score": 0.6583,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.8872,
+     "rank": 7,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.0669,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq40": {
+     "top_score": 0.002,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.0056
+    },
+    "iq42": {
+     "top_score": 0.019
+    },
+    "iq43": {
+     "top_score": 0.0057
+    },
+    "iq44": {
+     "top_score": 0.0017
+    },
+    "iq45": {
+     "top_score": 0.1268
+    },
+    "iq46": {
+     "top_score": 0.0054
+    },
+    "iq47": {
+     "top_score": 0.0025
+    },
+    "iq48": {
+     "top_score": 0.0022
+    },
+    "iq49": {
+     "top_score": 0.0507
+    },
+    "iq50": {
+     "top_score": 0.0485
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / doc2query append, без фильтра пересказов": {
+   "hit@1": 0.675,
+   "hit@3": 0.85,
+   "mrr@10": 0.7583,
+   "context": 0.85,
+   "context_articles": 0.85,
+   "confident_context": 0.375,
+   "confident_context_articles": 0.375,
+   "outside_passed": 0,
+   "outside_max": 0.097,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.1842,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq02": {
+     "top_score": 0.9808,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.5798,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9427,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.5001,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq06": {
+     "top_score": 0.7535,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.778,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.4747,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.7958,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.6965,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.6056,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.1494,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.0282,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq14": {
+     "top_score": 0.6121,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.8963,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.3998,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq17": {
+     "top_score": 0.9876,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.4047,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.0258,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.8508,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.9298,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.4626,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.6639,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq24": {
+     "top_score": 0.4009,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq25": {
+     "top_score": 0.0006,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq26": {
+     "top_score": 0.0037,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq27": {
+     "top_score": 0.0163,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.1928,
+     "rank": 6,
+     "context": false,
+     "context_articles": false
+    },
+    "iq29": {
+     "top_score": 0.9266,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.0015,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq31": {
+     "top_score": 0.3736,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.8127,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.2056,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.8725,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.0195,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.3032,
+     "rank": 6,
+     "context": false,
+     "context_articles": false
+    },
+    "iq37": {
+     "top_score": 0.5902,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.8991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.0542,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq40": {
+     "top_score": 0.0017,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.002
+    },
+    "iq42": {
+     "top_score": 0.0149
+    },
+    "iq43": {
+     "top_score": 0.001
+    },
+    "iq44": {
+     "top_score": 0.0014
+    },
+    "iq45": {
+     "top_score": 0.097
+    },
+    "iq46": {
+     "top_score": 0.0047
+    },
+    "iq47": {
+     "top_score": 0.0023
+    },
+    "iq48": {
+     "top_score": 0.0003
+    },
+    "iq49": {
+     "top_score": 0.0016
+    },
+    "iq50": {
+     "top_score": 0.0238
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / doc2query separate, без фильтра пересказов": {
+   "hit@1": 0.65,
+   "hit@3": 0.825,
+   "mrr@10": 0.7382,
+   "context": 0.825,
+   "context_articles": 0.825,
+   "confident_context": 0.375,
+   "confident_context_articles": 0.375,
+   "outside_passed": 0,
+   "outside_max": 0.1174,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.0991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq02": {
+     "top_score": 0.9838,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.2714,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9599,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.5286,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq06": {
+     "top_score": 0.8768,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.6757,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.082,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.8409,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.6857,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.7426,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.0991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.02,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq14": {
+     "top_score": 0.3581,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.9011,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.2399,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq17": {
+     "top_score": 0.8123,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.1925,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.0283,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.872,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.914,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.5018,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.3683,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq24": {
+     "top_score": 0.5193,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq25": {
+     "top_score": 0.0004,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq26": {
+     "top_score": 0.0208,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq27": {
+     "top_score": 0.0172,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.1731,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "iq29": {
+     "top_score": 0.8571,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.0018,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq31": {
+     "top_score": 0.5242,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.8834,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.4388,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.9652,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.0134,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.0344,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq37": {
+     "top_score": 0.6583,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.8872,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.0669,
+     "rank": 9,
+     "context": false,
+     "context_articles": false
+    },
+    "iq40": {
+     "top_score": 0.002,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.0024
+    },
+    "iq42": {
+     "top_score": 0.019
+    },
+    "iq43": {
+     "top_score": 0.0057
+    },
+    "iq44": {
+     "top_score": 0.0005
+    },
+    "iq45": {
+     "top_score": 0.1174
+    },
+    "iq46": {
+     "top_score": 0.0054
+    },
+    "iq47": {
+     "top_score": 0.0025
+    },
+    "iq48": {
+     "top_score": 0.0006
+    },
+    "iq49": {
+     "top_score": 0.0042
+    },
+    "iq50": {
+     "top_score": 0.0485
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / doc2query separate, без фильтра пересказов": {
+   "hit@1": 0.65,
+   "hit@3": 0.8,
+   "mrr@10": 0.7271,
+   "context": 0.775,
+   "context_articles": 0.8,
+   "confident_context": 0.35,
+   "confident_context_articles": 0.35,
+   "outside_passed": 0,
+   "outside_max": 0.0677,
+   "per_question": {
+    "iq01": {
+     "top_score": 0.1731,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq02": {
+     "top_score": 0.9808,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq03": {
+     "top_score": 0.5798,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq04": {
+     "top_score": 0.9427,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq05": {
+     "top_score": 0.5001,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq06": {
+     "top_score": 0.7535,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq07": {
+     "top_score": 0.778,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq08": {
+     "top_score": 0.0513,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq09": {
+     "top_score": 0.7958,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq10": {
+     "top_score": 0.6965,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq11": {
+     "top_score": 0.6056,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq12": {
+     "top_score": 0.1494,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq13": {
+     "top_score": 0.0228,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq14": {
+     "top_score": 0.4987,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq15": {
+     "top_score": 0.8963,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq16": {
+     "top_score": 0.3999,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq17": {
+     "top_score": 0.9876,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq18": {
+     "top_score": 0.2832,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq19": {
+     "top_score": 0.0258,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq20": {
+     "top_score": 0.8508,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq21": {
+     "top_score": 0.9298,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq22": {
+     "top_score": 0.4626,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq23": {
+     "top_score": 0.6639,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq24": {
+     "top_score": 0.4009,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "iq25": {
+     "top_score": 0.0006,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq26": {
+     "top_score": 0.006,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq27": {
+     "top_score": 0.0163,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq28": {
+     "top_score": 0.1928,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "iq29": {
+     "top_score": 0.9266,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq30": {
+     "top_score": 0.0015,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq31": {
+     "top_score": 0.3736,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq32": {
+     "top_score": 0.8135,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq33": {
+     "top_score": 0.2056,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq34": {
+     "top_score": 0.8725,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq35": {
+     "top_score": 0.0084,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq36": {
+     "top_score": 0.0721,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "iq37": {
+     "top_score": 0.5902,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "iq38": {
+     "top_score": 0.8991,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq39": {
+     "top_score": 0.0208,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq40": {
+     "top_score": 0.0017,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "iq41": {
+     "top_score": 0.002
+    },
+    "iq42": {
+     "top_score": 0.0149
+    },
+    "iq43": {
+     "top_score": 0.001
+    },
+    "iq44": {
+     "top_score": 0.0007
+    },
+    "iq45": {
+     "top_score": 0.0677
+    },
+    "iq46": {
+     "top_score": 0.0069
+    },
+    "iq47": {
+     "top_score": 0.0015
+    },
+    "iq48": {
+     "top_score": 0.0003
+    },
+    "iq49": {
+     "top_score": 0.002
+    },
+    "iq50": {
+     "top_score": 0.0238
+    }
+   }
   }
  },
  "colloquial_questions.json": {
@@ -4959,6 +8921,4724 @@
     },
     "lq59": {
      "top_score": 0.0009
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / реранкер reranker-bge-m3-laws-colloquial": {
+   "hit@1": 0.7347,
+   "hit@3": 0.9388,
+   "mrr@10": 0.8493,
+   "context": 0.9388,
+   "context_articles": 0.9388,
+   "confident_context": 0.8571,
+   "confident_context_articles": 0.8571,
+   "outside_passed": 2,
+   "outside_max": 0.9226,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9208,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9501,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.9956,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9992,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.4629,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.7608,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.9988,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9995,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.9955,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.9352,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.9959,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.9574,
+     "rank": 6,
+     "context": false,
+     "context_articles": false
+    },
+    "lq13": {
+     "top_score": 0.973,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.2793,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.5782,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.9932,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.9882,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9976,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9545,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.9799,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.9587,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.9956,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9943,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9909,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9993,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.9988,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9205,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "lq28": {
+     "top_score": 0.9882,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.9876,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.9781,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9588,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.9936,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.9913,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.9996,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.9945,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9977,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.995,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq38": {
+     "top_score": 0.997,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9791,
+     "rank": 5,
+     "context": false,
+     "context_articles": false
+    },
+    "lq40": {
+     "top_score": 0.9321,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.8991,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.9996,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9895,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9973,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.8856,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9598,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.4306,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.9857,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9991,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.0143
+    },
+    "lq51": {
+     "top_score": 0.4192
+    },
+    "lq52": {
+     "top_score": 0.3917
+    },
+    "lq53": {
+     "top_score": 0.0942
+    },
+    "lq54": {
+     "top_score": 0.882
+    },
+    "lq55": {
+     "top_score": 0.4309
+    },
+    "lq56": {
+     "top_score": 0.2593
+    },
+    "lq57": {
+     "top_score": 0.9226
+    },
+    "lq58": {
+     "top_score": 0.2435
+    },
+    "lq59": {
+     "top_score": 0.0348
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / реранкер reranker-bge-m3-laws-colloquial": {
+   "hit@1": 0.7143,
+   "hit@3": 0.9592,
+   "mrr@10": 0.8425,
+   "context": 0.9592,
+   "context_articles": 0.9592,
+   "confident_context": 0.9184,
+   "confident_context_articles": 0.9184,
+   "outside_passed": 1,
+   "outside_max": 0.9837,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9396,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.944,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.9961,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9994,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.7028,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.9796,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.9988,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9997,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.9966,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.9483,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.9944,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.9976,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9967,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.4044,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.492,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.9958,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.9875,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9995,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9911,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.983,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.9336,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.9967,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9947,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9884,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.999,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.998,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9885,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9945,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.9896,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.9952,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9689,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.9935,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.9942,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.9997,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.9946,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9987,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.9967,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq38": {
+     "top_score": 0.9976,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9751,
+     "rank": 5,
+     "context": false,
+     "context_articles": false
+    },
+    "lq40": {
+     "top_score": 0.9351,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.9135,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.9996,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9925,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9981,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.8876,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9412,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.7546,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "lq48": {
+     "top_score": 0.9846,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9989,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.0217
+    },
+    "lq51": {
+     "top_score": 0.4949
+    },
+    "lq52": {
+     "top_score": 0.3453
+    },
+    "lq53": {
+     "top_score": 0.2604
+    },
+    "lq54": {
+     "top_score": 0.9837
+    },
+    "lq55": {
+     "top_score": 0.1095
+    },
+    "lq56": {
+     "top_score": 0.0078
+    },
+    "lq57": {
+     "top_score": 0.275
+    },
+    "lq58": {
+     "top_score": 0.1771
+    },
+    "lq59": {
+     "top_score": 0.1826
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / doc2query append, утечки ≥ 0.2": {
+   "hit@1": 0.7755,
+   "hit@3": 0.9796,
+   "mrr@10": 0.8673,
+   "context": 0.9592,
+   "context_articles": 0.9796,
+   "confident_context": 0.9184,
+   "confident_context_articles": 0.9388,
+   "outside_passed": 0,
+   "outside_max": 0.5568,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9849,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9799,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9838,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.8796,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.7972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.9931,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9977,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.343,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.9334,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.6767,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9804,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.4701,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.9433,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.9689,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9665,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.7783,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.8493,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.9916,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9933,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.903,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9291,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9417,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.8964,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.9202,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9894,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.9394,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.7633,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.994,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.9497,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9404,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.3125,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "lq38": {
+     "top_score": 0.8253,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9664,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq40": {
+     "top_score": 0.9868,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.9329,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.9984,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9214,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9717,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.9727,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9804,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.8052,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.8639,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9696,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.003
+    },
+    "lq51": {
+     "top_score": 0.0249
+    },
+    "lq52": {
+     "top_score": 0.0036
+    },
+    "lq53": {
+     "top_score": 0.0246
+    },
+    "lq54": {
+     "top_score": 0.055
+    },
+    "lq55": {
+     "top_score": 0.0162
+    },
+    "lq56": {
+     "top_score": 0.0016
+    },
+    "lq57": {
+     "top_score": 0.5568
+    },
+    "lq58": {
+     "top_score": 0.244
+    },
+    "lq59": {
+     "top_score": 0.0011
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / doc2query append, утечки ≥ 0.2": {
+   "hit@1": 0.7959,
+   "hit@3": 0.9592,
+   "mrr@10": 0.8759,
+   "context": 0.9388,
+   "context_articles": 0.9592,
+   "confident_context": 0.898,
+   "confident_context_articles": 0.9184,
+   "outside_passed": 0,
+   "outside_max": 0.4482,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9847,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9736,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9808,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.9151,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.911,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.98,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.9691,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.2999,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.8353,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.9718,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9859,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.5941,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.9427,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.963,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9551,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.7748,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.7422,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.987,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9837,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9817,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9902,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.8931,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9154,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9448,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.7725,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.916,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9832,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.9091,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.9918,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.8796,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9425,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.1562,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "lq38": {
+     "top_score": 0.7047,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9508,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "lq40": {
+     "top_score": 0.9648,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.8168,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.994,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9233,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9499,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.9561,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9727,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.8019,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.8457,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9429,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.0038
+    },
+    "lq51": {
+     "top_score": 0.0121
+    },
+    "lq52": {
+     "top_score": 0.0012
+    },
+    "lq53": {
+     "top_score": 0.0163
+    },
+    "lq54": {
+     "top_score": 0.0219
+    },
+    "lq55": {
+     "top_score": 0.0046
+    },
+    "lq56": {
+     "top_score": 0.0006
+    },
+    "lq57": {
+     "top_score": 0.4482
+    },
+    "lq58": {
+     "top_score": 0.0061
+    },
+    "lq59": {
+     "top_score": 0.0008
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / doc2query separate, утечки ≥ 0.2": {
+   "hit@1": 0.7959,
+   "hit@3": 1.0,
+   "mrr@10": 0.8878,
+   "context": 0.9796,
+   "context_articles": 1.0,
+   "confident_context": 0.9388,
+   "confident_context_articles": 0.9592,
+   "outside_passed": 0,
+   "outside_max": 0.5568,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9849,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9799,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9838,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.8796,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.7972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.9931,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9977,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.343,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.9334,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.6767,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9804,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.4701,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.9433,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.9689,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9665,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.7783,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.8493,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.9916,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9933,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.903,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9291,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9417,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.8964,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.9202,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9894,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.9394,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.7633,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.994,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.9497,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9404,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.6872,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq38": {
+     "top_score": 0.8253,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9664,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq40": {
+     "top_score": 0.9868,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.9329,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.9984,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9214,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9717,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.9727,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9804,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.8052,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.8639,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9696,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.0034
+    },
+    "lq51": {
+     "top_score": 0.0249
+    },
+    "lq52": {
+     "top_score": 0.0036
+    },
+    "lq53": {
+     "top_score": 0.0246
+    },
+    "lq54": {
+     "top_score": 0.055
+    },
+    "lq55": {
+     "top_score": 0.0162
+    },
+    "lq56": {
+     "top_score": 0.0016
+    },
+    "lq57": {
+     "top_score": 0.5568
+    },
+    "lq58": {
+     "top_score": 0.244
+    },
+    "lq59": {
+     "top_score": 0.0006
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / doc2query separate, утечки ≥ 0.2": {
+   "hit@1": 0.8163,
+   "hit@3": 0.9796,
+   "mrr@10": 0.8963,
+   "context": 0.9796,
+   "context_articles": 0.9796,
+   "confident_context": 0.9184,
+   "confident_context_articles": 0.9184,
+   "outside_passed": 0,
+   "outside_max": 0.4482,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9847,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9736,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9808,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.9151,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.911,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.98,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.9691,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.2999,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.8353,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.9718,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9859,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.5941,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.9427,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.963,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9551,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.7748,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.7422,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.987,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9837,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9817,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9902,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.8931,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9154,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9448,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.7724,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.916,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9832,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.9621,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.9091,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.9918,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.8796,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9425,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.5553,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq38": {
+     "top_score": 0.7047,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9508,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "lq40": {
+     "top_score": 0.9648,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.8168,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.994,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9233,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9499,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.9561,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9727,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.8019,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.8457,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9429,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.0038
+    },
+    "lq51": {
+     "top_score": 0.0023
+    },
+    "lq52": {
+     "top_score": 0.0012
+    },
+    "lq53": {
+     "top_score": 0.0163
+    },
+    "lq54": {
+     "top_score": 0.0174
+    },
+    "lq55": {
+     "top_score": 0.0046
+    },
+    "lq56": {
+     "top_score": 0.0003
+    },
+    "lq57": {
+     "top_score": 0.4482
+    },
+    "lq58": {
+     "top_score": 0.0061
+    },
+    "lq59": {
+     "top_score": 0.0006
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / doc2query append, утечки ≥ 0.3": {
+   "hit@1": 0.7755,
+   "hit@3": 0.9796,
+   "mrr@10": 0.8673,
+   "context": 0.9592,
+   "context_articles": 0.9796,
+   "confident_context": 0.9184,
+   "confident_context_articles": 0.9388,
+   "outside_passed": 0,
+   "outside_max": 0.5568,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9849,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9799,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9838,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.8796,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.7542,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.9931,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9977,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.343,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.9334,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.6767,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9804,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.4701,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.9433,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.9689,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9665,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.7783,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.8493,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.9916,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9933,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.903,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9291,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9417,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.8964,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.9202,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9894,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.9394,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.7633,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.994,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.9497,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9404,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.3125,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "lq38": {
+     "top_score": 0.8253,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9664,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq40": {
+     "top_score": 0.9868,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.9329,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.9984,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9214,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9717,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.9727,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9804,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.8052,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.8639,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9696,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.003
+    },
+    "lq51": {
+     "top_score": 0.0249
+    },
+    "lq52": {
+     "top_score": 0.0036
+    },
+    "lq53": {
+     "top_score": 0.0246
+    },
+    "lq54": {
+     "top_score": 0.055
+    },
+    "lq55": {
+     "top_score": 0.0162
+    },
+    "lq56": {
+     "top_score": 0.0016
+    },
+    "lq57": {
+     "top_score": 0.5568
+    },
+    "lq58": {
+     "top_score": 0.244
+    },
+    "lq59": {
+     "top_score": 0.0011
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / doc2query append, утечки ≥ 0.3": {
+   "hit@1": 0.7959,
+   "hit@3": 0.9592,
+   "mrr@10": 0.8759,
+   "context": 0.9388,
+   "context_articles": 0.9592,
+   "confident_context": 0.898,
+   "confident_context_articles": 0.9184,
+   "outside_passed": 0,
+   "outside_max": 0.4482,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9847,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9736,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9808,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.9151,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.911,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.98,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.9691,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.2999,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.8353,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.9718,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9859,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.5941,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.9427,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.963,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9551,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.7748,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.7422,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.987,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9837,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9817,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9902,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.8931,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9154,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9448,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.7725,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.916,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9832,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.9091,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.9918,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.8796,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9425,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.1562,
+     "rank": null,
+     "context": false,
+     "context_articles": false
+    },
+    "lq38": {
+     "top_score": 0.7047,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9508,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "lq40": {
+     "top_score": 0.9648,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.8168,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.994,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9233,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9499,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.9561,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9727,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.8019,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.8457,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9429,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.0038
+    },
+    "lq51": {
+     "top_score": 0.0121
+    },
+    "lq52": {
+     "top_score": 0.0012
+    },
+    "lq53": {
+     "top_score": 0.0163
+    },
+    "lq54": {
+     "top_score": 0.0219
+    },
+    "lq55": {
+     "top_score": 0.0046
+    },
+    "lq56": {
+     "top_score": 0.0006
+    },
+    "lq57": {
+     "top_score": 0.4482
+    },
+    "lq58": {
+     "top_score": 0.0061
+    },
+    "lq59": {
+     "top_score": 0.0008
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / doc2query separate, утечки ≥ 0.3": {
+   "hit@1": 0.7959,
+   "hit@3": 1.0,
+   "mrr@10": 0.8878,
+   "context": 0.9796,
+   "context_articles": 1.0,
+   "confident_context": 0.9388,
+   "confident_context_articles": 0.9592,
+   "outside_passed": 0,
+   "outside_max": 0.5568,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9849,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9799,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9838,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.8796,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.7972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.9931,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9977,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.343,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.9334,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.6767,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9804,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.4701,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.9433,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.9689,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9665,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.7783,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.8493,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.9916,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9933,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.903,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9291,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9417,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.8964,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.9202,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9894,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.9394,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.7633,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.994,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.9497,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9404,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.6872,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq38": {
+     "top_score": 0.8253,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9664,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq40": {
+     "top_score": 0.9868,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.9329,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.9984,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9214,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9717,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.9727,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9804,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.8052,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.8639,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9696,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.0034
+    },
+    "lq51": {
+     "top_score": 0.0249
+    },
+    "lq52": {
+     "top_score": 0.0036
+    },
+    "lq53": {
+     "top_score": 0.0246
+    },
+    "lq54": {
+     "top_score": 0.055
+    },
+    "lq55": {
+     "top_score": 0.0162
+    },
+    "lq56": {
+     "top_score": 0.0016
+    },
+    "lq57": {
+     "top_score": 0.5568
+    },
+    "lq58": {
+     "top_score": 0.244
+    },
+    "lq59": {
+     "top_score": 0.0006
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / doc2query separate, утечки ≥ 0.3": {
+   "hit@1": 0.8163,
+   "hit@3": 0.9796,
+   "mrr@10": 0.8963,
+   "context": 0.9796,
+   "context_articles": 0.9796,
+   "confident_context": 0.9184,
+   "confident_context_articles": 0.9184,
+   "outside_passed": 0,
+   "outside_max": 0.4482,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9847,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9736,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9808,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.9151,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.911,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.98,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.9691,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.2999,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.8353,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.9718,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9859,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.5941,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.9427,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.963,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9551,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.7748,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.7422,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.987,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9837,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9817,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9902,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.8931,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9154,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9448,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.7724,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.916,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9832,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.9621,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.9091,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.9918,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.8796,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9425,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.5553,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq38": {
+     "top_score": 0.7047,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9508,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "lq40": {
+     "top_score": 0.9648,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.8168,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.994,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9233,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9499,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.9561,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9727,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.8019,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.8457,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9429,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.0038
+    },
+    "lq51": {
+     "top_score": 0.0023
+    },
+    "lq52": {
+     "top_score": 0.0012
+    },
+    "lq53": {
+     "top_score": 0.0163
+    },
+    "lq54": {
+     "top_score": 0.0174
+    },
+    "lq55": {
+     "top_score": 0.0046
+    },
+    "lq56": {
+     "top_score": 0.0003
+    },
+    "lq57": {
+     "top_score": 0.4482
+    },
+    "lq58": {
+     "top_score": 0.0061
+    },
+    "lq59": {
+     "top_score": 0.0006
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / doc2query append, без фильтра пересказов": {
+   "hit@1": 0.7959,
+   "hit@3": 1.0,
+   "mrr@10": 0.8878,
+   "context": 0.9796,
+   "context_articles": 1.0,
+   "confident_context": 0.9388,
+   "confident_context_articles": 0.9592,
+   "outside_passed": 0,
+   "outside_max": 0.5568,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9849,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9799,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9838,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.8796,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.7542,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.9931,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9977,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.343,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.9334,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.6767,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9804,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.4701,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.9433,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.9689,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9665,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.7783,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.8493,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.9916,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9933,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.903,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9291,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9417,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.8964,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.9202,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9894,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.9394,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.7633,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.994,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.9497,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9404,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.6872,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq38": {
+     "top_score": 0.8253,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9664,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq40": {
+     "top_score": 0.9868,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.9329,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.9984,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9214,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9717,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.9727,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9804,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.8052,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.8639,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9696,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.003
+    },
+    "lq51": {
+     "top_score": 0.0249
+    },
+    "lq52": {
+     "top_score": 0.0036
+    },
+    "lq53": {
+     "top_score": 0.0246
+    },
+    "lq54": {
+     "top_score": 0.055
+    },
+    "lq55": {
+     "top_score": 0.0162
+    },
+    "lq56": {
+     "top_score": 0.0016
+    },
+    "lq57": {
+     "top_score": 0.5568
+    },
+    "lq58": {
+     "top_score": 0.244
+    },
+    "lq59": {
+     "top_score": 0.0011
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / doc2query append, без фильтра пересказов": {
+   "hit@1": 0.8163,
+   "hit@3": 0.9796,
+   "mrr@10": 0.8963,
+   "context": 0.9592,
+   "context_articles": 0.9796,
+   "confident_context": 0.898,
+   "confident_context_articles": 0.9184,
+   "outside_passed": 0,
+   "outside_max": 0.4482,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9847,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9736,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9808,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.9151,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.911,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.98,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.9691,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.2999,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.8353,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.9718,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9859,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.5941,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.9427,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.963,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9551,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.7748,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.7422,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.987,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9837,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9817,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9902,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.8931,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9154,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9448,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.7725,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.916,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9832,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.9621,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.9091,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.9918,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.8796,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9425,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.5553,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq38": {
+     "top_score": 0.7047,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9508,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "lq40": {
+     "top_score": 0.9648,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.8168,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.994,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9233,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9499,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.9561,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9727,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.8019,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.8457,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9429,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.0038
+    },
+    "lq51": {
+     "top_score": 0.0121
+    },
+    "lq52": {
+     "top_score": 0.0012
+    },
+    "lq53": {
+     "top_score": 0.0163
+    },
+    "lq54": {
+     "top_score": 0.0219
+    },
+    "lq55": {
+     "top_score": 0.0046
+    },
+    "lq56": {
+     "top_score": 0.0006
+    },
+    "lq57": {
+     "top_score": 0.4482
+    },
+    "lq58": {
+     "top_score": 0.0061
+    },
+    "lq59": {
+     "top_score": 0.0008
+    }
+   }
+  },
+  "без заголовка / e5 дообученная / пул 20 / doc2query separate, без фильтра пересказов": {
+   "hit@1": 0.7959,
+   "hit@3": 1.0,
+   "mrr@10": 0.8878,
+   "context": 0.9796,
+   "context_articles": 1.0,
+   "confident_context": 0.9388,
+   "confident_context_articles": 0.9592,
+   "outside_passed": 0,
+   "outside_max": 0.5568,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9849,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9799,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9838,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.8796,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.7972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.9931,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9977,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.343,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.9334,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.6767,
+     "rank": 3,
+     "context": false,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9804,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.4701,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.9433,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.9689,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9665,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.7783,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.8493,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.9916,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9933,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9706,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.903,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9291,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9417,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.8964,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.9202,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9894,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.9394,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.7633,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.994,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.9497,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9404,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.6872,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq38": {
+     "top_score": 0.8253,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9664,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq40": {
+     "top_score": 0.9868,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.9329,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.9984,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9214,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9717,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.9727,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9804,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.8052,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.8639,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9696,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.0034
+    },
+    "lq51": {
+     "top_score": 0.0249
+    },
+    "lq52": {
+     "top_score": 0.0036
+    },
+    "lq53": {
+     "top_score": 0.0246
+    },
+    "lq54": {
+     "top_score": 0.055
+    },
+    "lq55": {
+     "top_score": 0.0162
+    },
+    "lq56": {
+     "top_score": 0.0016
+    },
+    "lq57": {
+     "top_score": 0.5568
+    },
+    "lq58": {
+     "top_score": 0.244
+    },
+    "lq59": {
+     "top_score": 0.0006
+    }
+   }
+  },
+  "с заголовком / e5 дообученная / пул 20 / doc2query separate, без фильтра пересказов": {
+   "hit@1": 0.8163,
+   "hit@3": 0.9796,
+   "mrr@10": 0.8963,
+   "context": 0.9796,
+   "context_articles": 0.9796,
+   "confident_context": 0.9184,
+   "confident_context_articles": 0.9184,
+   "outside_passed": 0,
+   "outside_max": 0.4482,
+   "per_question": {
+    "lq01": {
+     "top_score": 0.9847,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq02": {
+     "top_score": 0.9736,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq03": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq04": {
+     "top_score": 0.9808,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq05": {
+     "top_score": 0.9151,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq06": {
+     "top_score": 0.911,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq07": {
+     "top_score": 0.98,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq08": {
+     "top_score": 0.9972,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq09": {
+     "top_score": 0.9691,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq10": {
+     "top_score": 0.2999,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq11": {
+     "top_score": 0.8353,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq12": {
+     "top_score": 0.9718,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq13": {
+     "top_score": 0.9859,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq14": {
+     "top_score": 0.5941,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq15": {
+     "top_score": 0.9427,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq16": {
+     "top_score": 0.962,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq17": {
+     "top_score": 0.963,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq18": {
+     "top_score": 0.9982,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq19": {
+     "top_score": 0.9551,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq20": {
+     "top_score": 0.7748,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq21": {
+     "top_score": 0.7422,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq22": {
+     "top_score": 0.987,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq23": {
+     "top_score": 0.9837,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq24": {
+     "top_score": 0.9817,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq25": {
+     "top_score": 0.9902,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq26": {
+     "top_score": 0.8931,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq27": {
+     "top_score": 0.9154,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq28": {
+     "top_score": 0.9448,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq29": {
+     "top_score": 0.7724,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq30": {
+     "top_score": 0.916,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq31": {
+     "top_score": 0.9832,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq32": {
+     "top_score": 0.9621,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq33": {
+     "top_score": 0.9091,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq34": {
+     "top_score": 0.9918,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq35": {
+     "top_score": 0.8796,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq36": {
+     "top_score": 0.9425,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq37": {
+     "top_score": 0.5553,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq38": {
+     "top_score": 0.7047,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq39": {
+     "top_score": 0.9508,
+     "rank": 4,
+     "context": false,
+     "context_articles": false
+    },
+    "lq40": {
+     "top_score": 0.9648,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq41": {
+     "top_score": 0.8168,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq42": {
+     "top_score": 0.994,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq43": {
+     "top_score": 0.9233,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq44": {
+     "top_score": 0.9499,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq45": {
+     "top_score": 0.9561,
+     "rank": 2,
+     "context": true,
+     "context_articles": true
+    },
+    "lq46": {
+     "top_score": 0.9727,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq47": {
+     "top_score": 0.8019,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq48": {
+     "top_score": 0.8457,
+     "rank": 1,
+     "context": true,
+     "context_articles": true
+    },
+    "lq49": {
+     "top_score": 0.9429,
+     "rank": 3,
+     "context": true,
+     "context_articles": true
+    },
+    "lq50": {
+     "top_score": 0.0038
+    },
+    "lq51": {
+     "top_score": 0.0023
+    },
+    "lq52": {
+     "top_score": 0.0012
+    },
+    "lq53": {
+     "top_score": 0.0163
+    },
+    "lq54": {
+     "top_score": 0.0174
+    },
+    "lq55": {
+     "top_score": 0.0046
+    },
+    "lq56": {
+     "top_score": 0.0003
+    },
+    "lq57": {
+     "top_score": 0.4482
+    },
+    "lq58": {
+     "top_score": 0.0061
+    },
+    "lq59": {
+     "top_score": 0.0006
     }
    }
   }

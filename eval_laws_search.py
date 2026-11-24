@@ -22,7 +22,17 @@
 Запуск (нужна видеокарта; новые эмбеддинги корпуса считаются один раз и кэшируются):
     python eval_laws_search.py --questions data/laws/colloquial_questions_independent.json
     python eval_laws_search.py --questions data/laws/colloquial_questions_100.json --variants "..."
-Результат дописывается в data/laws/search_variants.json (ключ — имя файла вопросов).
+    python eval_laws_search.py --reranker models/reranker-bge-m3-laws-colloquial --pools 20
+Результат дописывается в data/laws/search_variants.json (ключ — имя файла вопросов). С ключом --reranker к названию
+варианта добавляется «/ реранкер <папка>», прежние результаты не перезаписываются. Порог 0,6 подобран для исходного
+реранкера; для другого порог надо подбирать заново по per_question (top_score сохраняется у всех вопросов).
+
+doc2query (src/doc2query.py) — сгенерированные разговорные вопросы к статьям как дополнительные ключи индекса;
+реранкер по-прежнему видит только текст закона:
+    python eval_laws_search.py --doc2query append --leak 0.2 --pools 20 --variants "без заголовка / e5 дообученная / пул 20"
+--doc2query append — вопросы дописываются к чанку, separate — отдельные документы; --leak — порог сходства, с которого
+сгенерированный вопрос к той же статье считается пересказом проверочного и убирается (0,2 строго, 0,3 умеренно;
+none — без этого фильтра).
 """
 
 import gc
@@ -40,6 +50,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 from ask import LegalSearchEngine, default_model, load_bm25_params, load_hybrid_params
 from eval_laws_colloquial import DEPTH, article_numbers, gold_rank, metrics
 from run_adilet_eval import DEFAULT_MODEL, model_cache_name
+from src import doc2query as d2q
 from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus, index_text
 from src.embeddings import EmbeddingModel
 from src.laws import load_laws
@@ -51,6 +62,9 @@ LANG = "rus"
 GATE = 0.6  # порог уверенности поиска веб-демо (data/laws/colloquial_eval.json, params)
 CONTEXT = 3  # сколько чанков получает модель (DEFAULT_TOP_K)
 RESULT = Path("data/laws/search_variants.json")
+EVAL_SETS = ["data/laws/colloquial_questions_100.json", "data/laws/colloquial_questions_independent.json",
+             "data/laws/colloquial_questions.json"]
+LEAKS = "data/laws/doc2query_leaks_{leak}.json"  # какие сгенерированные вопросы убраны как пересказы и почему
 
 
 def _arg(name: str, default: Optional[str]) -> Optional[str]:
@@ -74,23 +88,47 @@ def distinct_articles(chunk_ids: List[str], by_id: Dict[str, Dict[str, Any]], k:
     return result
 
 
-def build_engine(corpus: List[Dict[str, Any]], model_name: str, heading: bool) -> LegalSearchEngine:
-    """Индексы BM25 и FAISS по тексту чанков (с заголовком или без); эмбеддинги корпуса — на видеокарте, с кэшем."""
+def rerank_texts(corpus: List[Dict[str, Any]], heading: bool) -> Dict[str, str]:
+    """Текст чанка, который видит реранкер: текст закона (с заголовком или без), без вопросов doc2query."""
+    return {c["id"]: index_text(c) if heading else c["text"] for c in corpus}
+
+
+def build_engine(corpus: List[Dict[str, Any]], model_name: str, heading: bool,
+                 d2q_mode: Optional[str] = None, by_chunk: Optional[Dict[str, List[str]]] = None) -> LegalSearchEngine:
+    """Индексы BM25 и FAISS по тексту чанков (с заголовком или без) и, если задан doc2query, по сгенерированным
+    вопросам; эмбеддинги — на видеокарте, с кэшем (имя файла включает отпечаток текстов)."""
     import torch
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    texts = [index_text(c) if heading else c["text"] for c in corpus]
+    base = rerank_texts(corpus, heading)
+    ids = [c["id"] for c in corpus]
+    texts = [base[i] for i in ids]
     suffix = "_laws_heading" if heading else "_laws"
+    if d2q_mode == "append":
+        texts = [d2q.append_questions(base[i], (by_chunk or {}).get(i, [])) for i in ids]
+        suffix += "_d2q_append"
+    elif d2q_mode == "separate":
+        q_texts, q_ids = d2q.question_docs(by_chunk or {})
+        texts, ids = texts + q_texts, ids + q_ids
+        suffix += "_d2q_separate"
     return LegalSearchEngine(
-        docs=texts, doc_ids=[c["id"] for c in corpus],
+        docs=texts, doc_ids=ids,
         embedder=EmbeddingModel(model_name=model_name, device=device), cache_dir=CACHE_DIR,
         cache_key=f"{model_cache_name(model_name)}_{LANG}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}{suffix}",
         hybrid_params=load_hybrid_params(model_name, LANG), bm25_params=load_bm25_params(LANG),
     )
 
 
+def candidates_for(engine: LegalSearchEngine, query: str, pool: int, texts: Dict[str, str],
+                   separate: bool) -> List[Tuple[str, str, float]]:
+    """pool чанков-кандидатов для реранкера с текстом закона. В режиме «separate» найденные вопросы заменяются
+    своими чанками (повторы убираются), поэтому ищется с запасом."""
+    hits = engine.search(query, mode="hybrid", top_k=pool * 4 if separate else pool)
+    return [(cid, texts[cid], score) for cid, score in d2q.collapse(hits, pool)]
+
+
 def evaluate(engine: LegalSearchEngine, data: List[Dict[str, Any]], by_id: Dict[str, Dict[str, Any]],
-             pools: List[int]) -> Dict[int, Dict[str, Any]]:
+             pools: List[int], texts: Dict[str, str], separate: bool = False) -> Dict[int, Dict[str, Any]]:
     """Для каждого размера пула: метрики и по каждому вопросу место правильной статьи и оценка лучшего чанка."""
     out: Dict[int, Dict[str, Any]] = {}
     queries = {q["id"]: expand_query(q["question"]) for q in data}
@@ -98,7 +136,7 @@ def evaluate(engine: LegalSearchEngine, data: List[Dict[str, Any]], by_id: Dict[
         per_question, ranks = {}, []
         for q in data:
             # Отдельный поиск для каждого пула: с пулом 20 — ровно те же кандидаты, что в веб-демо
-            candidates = engine.search(queries[q["id"]], mode="hybrid", top_k=pool)
+            candidates = candidates_for(engine, queries[q["id"]], pool, texts, separate)
             reranked = engine.rerank(queries[q["id"]], candidates, DEPTH)
             ids = [h[0] for h in reranked]
             top = reranked[0][2] if reranked else float("-inf")
@@ -127,16 +165,50 @@ def evaluate(engine: LegalSearchEngine, data: List[Dict[str, Any]], by_id: Dict[
     return out
 
 
+def load_doc2query(corpus: List[Dict[str, Any]], leak: Optional[float]) -> Dict[str, List[str]]:
+    """Сгенерированные вопросы по чанкам без пересказов проверочных вопросов (всех трёх наборов сразу,
+    чтобы индекс был один для отладки и итоговой проверки). leak=None — без этого фильтра (остаётся только
+    фильтр prepare_reranker_colloquial.py: доля общих основ слов ≥ 0,5)."""
+    if leak is None:
+        records = d2q.load_generated()
+        print(f"doc2query: {len(records)} вопросов, без дополнительного фильтра пересказов")
+        return d2q.expansions(records)
+    frag_keys: Dict[str, set] = {}
+    for c in corpus:
+        frag_keys.setdefault(c["id"].split("_fix_")[0], set()).update(article_keys(c))
+    records = d2q.load_generated()
+    eval_questions = [(q["question"], {(g["law"], g["article"]) for g in q["gold"]})
+                      for f in EVAL_SETS for q in json.loads(Path(f).read_text(encoding="utf-8"))["questions"]]
+    kept, removed = d2q.leak_filter(records, eval_questions, [frag_keys.get(r["article"], set()) for r in records], leak)
+    print(f"doc2query: {len(records)} вопросов, убрано как пересказы проверочных {len(removed)} (сходство ≥ {leak}), "
+          f"осталось {len(kept)}")
+    Path(LEAKS.format(leak=leak)).write_text(json.dumps([{k: r[k] for k in ("question", "leak_eval", "leak_sim")} for r in removed],
+                                ensure_ascii=False, indent=1), encoding="utf-8")
+    return d2q.expansions(kept)
+
+
 def main() -> None:
     questions = Path(_arg("--questions", "data/laws/colloquial_questions_independent.json"))
     data = json.loads(questions.read_text(encoding="utf-8"))["questions"]
     pools = [int(p) for p in (_arg("--pools", "20,50") or "").split(",")]
     models = {"e5 дообученная": default_model(LANG), "e5 исходная": DEFAULT_MODEL}
     wanted = _arg("--variants", None)
+    reranker_name = _arg("--reranker", DEFAULT_RERANKER)
+    reranker_suffix = "" if reranker_name == DEFAULT_RERANKER else f" / реранкер {Path(reranker_name).name}"
     corpus = build_chunk_corpus(load_laws(), {})
     by_id = {c["id"]: c for c in corpus}
     n_in = sum(bool(q["gold"]) for q in data)
     print(f"{questions.name}: {n_in} вопросов с ответом в корпусе, {len(data) - n_in} вне корпуса | пулы {pools}")
+
+    d2q_mode = _arg("--doc2query", None)
+    if d2q_mode not in (None, "append", "separate"):
+        raise SystemExit("--doc2query: append или separate")
+    leak_arg = _arg("--leak", str(d2q.LEAK_STRICT))
+    leak = None if leak_arg == "none" else float(leak_arg)
+    by_chunk: Dict[str, List[str]] = {}
+    if d2q_mode:
+        by_chunk = load_doc2query(corpus, leak)
+        reranker_suffix += f" / doc2query {d2q_mode}, " + ("без фильтра пересказов" if leak is None else f"утечки ≥ {leak}")
 
     reranker = None
     results: Dict[str, Any] = {}
@@ -145,13 +217,15 @@ def main() -> None:
             labels = {pool: f"{'с заголовком' if heading else 'без заголовка'} / {model_label} / пул {pool}" for pool in pools}
             if wanted and not any(label in wanted for label in labels.values()):
                 continue
-            engine = build_engine(corpus, model_name, heading)
+            labels = {pool: label + reranker_suffix for pool, label in labels.items()}
+            engine = build_engine(corpus, model_name, heading, d2q_mode, by_chunk)
             if reranker is None:
                 import torch
 
-                reranker = CrossEncoderReranker(DEFAULT_RERANKER, device="cuda" if torch.cuda.is_available() else "cpu")
+                reranker = CrossEncoderReranker(reranker_name, device="cuda" if torch.cuda.is_available() else "cpu")
             engine.reranker = reranker
-            for pool, value in evaluate(engine, data, by_id, pools).items():
+            texts = rerank_texts(corpus, heading)
+            for pool, value in evaluate(engine, data, by_id, pools, texts, d2q_mode == "separate").items():
                 results[labels[pool]] = value
             del engine
             gc.collect()
