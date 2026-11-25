@@ -5,8 +5,23 @@
 с использованием предобученных нейросетевых моделей на базе архитектуры Transformer.
 """
 
-from typing import List
+from typing import List, Tuple
 import numpy as np
+
+# Префиксы, с которыми модель обучалась: (к вопросу, к фрагменту документа). Ключ — часть имени модели
+# в нижнем регистре, берётся первая подходящая строка. У моделей без строки (bge-m3, deepvk/USER-bge-m3)
+# префиксов нет. Значения — из config_sentence_transformers.json моделей (поле prompts).
+MODEL_PREFIXES = [
+    ("frida", ("search_query: ", "search_document: ")),
+    ("qwen3-embedding", ("Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:", "")),
+    ("e5", ("query: ", "passage: ")),  # семейство E5, в том числе дообученная models/e5-small-adilet-rus
+]
+
+
+def model_prefixes(model_name: str) -> Tuple[str, str]:
+    """Префиксы вопроса и фрагмента для модели (пустые, если модель обучалась без них)."""
+    name = model_name.lower()
+    return next((prefixes for key, prefixes in MODEL_PREFIXES if key in name), ("", ""))
 
 
 class EmbeddingModel:
@@ -19,7 +34,7 @@ class EmbeddingModel:
     - Безопасное приведение векторов к типу np.float32 для совместимости с FAISS.
     """
 
-    def __init__(self, model_name: str, device: str = "cpu"):
+    def __init__(self, model_name: str, device: str = "cpu", fp16: bool = False):
         """Инициализирует модель эмбеддингов и определяет её тип.
 
         Рекомендуемые модели для русскоязычных нормативных документов:
@@ -32,6 +47,8 @@ class EmbeddingModel:
         Args:
             model_name (str): Идентификатор модели на HuggingFace Hub или путь к локальным весам.
             device (str): Устройство для инференса ('cpu', 'cuda', 'mps'). По умолчанию 'cpu'.
+            fp16 (bool): Половинная точность (только для GPU): большие модели (FRIDA, bge-m3) иначе
+                         не помещаются в 4 ГБ видеопамяти вместе с вычислениями.
         """
         self.model_name = model_name
         self.device = device
@@ -41,10 +58,12 @@ class EmbeddingModel:
         from sentence_transformers import SentenceTransformer
 
         self.model = SentenceTransformer(model_name, device=device)
+        if fp16:
+            self.model.half()
 
-        # Проверка: является ли модель представителем семейства E5.
-        # Модели E5 обучались контрастным обучением с жестким требованием к префиксам:
-        # запросы должны предваряться 'query: ', а индексируемые документы — 'passage: '.
+        # Префиксы вопроса и документа, с которыми модель обучалась (MODEL_PREFIXES). Например, модели E5
+        # обучались контрастным обучением с жестким требованием: запросы предваряются 'query: ', документы — 'passage: '.
+        self.query_prefix, self.document_prefix = model_prefixes(model_name)
         self.is_e5 = "e5" in model_name.lower()
 
     def to(self, device: str) -> "EmbeddingModel":
@@ -63,11 +82,8 @@ class EmbeddingModel:
             np.ndarray: Двумерный массив эмбеддингов формы (N_queries, Embedding_dim)
                         в формате float32 с единичной L2-нормой.
         """
-        # Если модель относится к семейству E5, добавляем обязательный префикс запроса
-        if self.is_e5:
-            processed_queries = [f"query: {q}" for q in queries]
-        else:
-            processed_queries = queries
+        # Префикс запроса, с которым обучалась модель ('query: ' у E5; у bge-m3 префикса нет)
+        processed_queries = [f"{self.query_prefix}{q}" for q in queries]
 
         # Вычисление эмбеддингов:
         # normalize_embeddings=True гарантирует ||v||_2 = 1 (длина каждого вектора равна 1)
@@ -91,11 +107,8 @@ class EmbeddingModel:
             np.ndarray: Двумерный массив эмбеддингов формы (N_docs, Embedding_dim)
                         в формате float32 с единичной L2-нормой.
         """
-        # Для E5 моделей документы должны маркироваться префиксом 'passage: '
-        if self.is_e5:
-            processed_docs = [f"passage: {d}" for d in documents]
-        else:
-            processed_docs = documents
+        # Префикс документа, с которым обучалась модель ('passage: ' у E5)
+        processed_docs = [f"{self.document_prefix}{d}" for d in documents]
 
         # Векторизация с отображением индикатора выполнения (progress bar)
         embeddings = self.model.encode(

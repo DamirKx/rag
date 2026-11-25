@@ -252,6 +252,17 @@ $env:LANGFUSE_PUBLIC_KEY="pk-lf-..."; $env:LANGFUSE_SECRET_KEY="sk-lf-..."
 $env:LANGFUSE_BASE_URL="https://cloud.langfuse.com"   # Langfuse Cloud или адрес своего сервера
 ```
 
+**Трассы в консоли и разбор поиска по логам.** `python show_trace.py` — последние трассы; `--last` или
+`--trace-id ID` — этапы трассы по порядку (вектор вопроса и модель эмбеддингов, FAISS IndexFlatIP — косинусная
+близость, BM25, RRF, реранкер, ответ и проверки), `--search-only` — только поиск, `--full` — без сокращений.
+Разговорные вопросы законов трассируются ключом `--langfuse` (в метаданных — эталонные статьи, чтобы видеть, на каком
+этапе теряется правильная): `python eval_laws_colloquial.py --answers --langfuse --frozen --questions
+data/laws/colloquial_questions_100.json --result data/laws/colloquial_eval_100.json`. Гипотезы из разбора трасс
+проверены честно (выбор на чётных вопросах, проверка на нечётных): `eval_laws_pool.py` — пул кандидатов реранкера и
+вес FAISS в RRF, `eval_laws_embedders.py` — готовые модели эмбеддингов (multilingual-e5-small, USER-bge-m3, bge-m3,
+FRIDA, Qwen3-Embedding; префиксы — `src/embeddings.MODEL_PREFIXES`). Обе без выигрыша: результаты в
+`data/laws/pool_eval.json` и `data/laws/embedders_eval.json`.
+
 Параметры BM25 и гибрида подхватываются из `bm25_tuning_{lang}.json` и `hybrid_tuning_{lang}.json`.
 При первом запуске эмбеддинги корпуса вычисляются (на GPU — меньше минуты), затем берутся из кэша
 `data/adilet/cache/`; в ключ кэша входят отпечатки модели и текстов, поэтому устаревший кэш не используется.
