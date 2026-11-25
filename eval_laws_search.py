@@ -5,7 +5,8 @@
 не подстроенные под конкретные вопросы и без языковой модели (правила курсовой разрешают её только для ответа):
 
 - текст чанка для поиска: как есть или с названием закона и заголовком статьи (src/corpus.index_text) —
-  заголовок есть лишь у 28% чанков, а тема лучше всего видна по нему;
+  заголовок есть лишь у 28% чанков, а тема лучше всего видна по нему; с заголовком и для реранкера или только
+  для поиска кандидатов (реранкер видит текст как есть);
 - пул кандидатов реранкера: 20 (как сейчас) или 50;
 - эмбеддер: дообученная на языке закона e5 или исходная multilingual-e5-small.
 
@@ -64,6 +65,10 @@ CONTEXT = 3  # сколько чанков получает модель (DEFAUL
 RESULT = Path("data/laws/search_variants.json")
 EVAL_SETS = ["data/laws/colloquial_questions_100.json", "data/laws/colloquial_questions_independent.json",
              "data/laws/colloquial_questions.json"]
+# Текст чанка: (подпись, заголовок в индексе BM25/e5, заголовок в тексте для реранкера). С заголовком у реранкера
+# на наборе 100 правильная статья получала более низкую оценку (nq052 0,73 → 0,52), поэтому третий вариант —
+# заголовок только для поиска кандидатов
+HEADINGS = [("без заголовка", False, False), ("с заголовком", True, True), ("заголовок только для поиска", True, False)]
 LEAKS = "data/laws/doc2query_leaks_{leak}.json"  # какие сгенерированные вопросы убраны как пересказы и почему
 
 
@@ -151,6 +156,7 @@ def evaluate(engine: LegalSearchEngine, data: List[Dict[str, Any]], by_id: Dict[
             per_question[q["id"]] = record
         inside = [r for r in per_question.values() if "rank" in r]
         outside = [r for r in per_question.values() if "rank" not in r]
+        honest = max((r["top_score"] for r in outside), default=float("-inf"))
         share = lambda xs: round(sum(xs) / len(inside), 4) if inside else None  # noqa: E731
         out[pool] = {
             **metrics(ranks),
@@ -160,6 +166,9 @@ def evaluate(engine: LegalSearchEngine, data: List[Dict[str, Any]], by_id: Dict[
             "confident_context_articles": share([r["context_articles"] and r["top_score"] >= GATE for r in inside]),
             "outside_passed": sum(r["top_score"] >= GATE for r in outside),
             "outside_max": max((r["top_score"] for r in outside), default=None),
+            # У разных реранкеров разные шкалы оценок, поэтому для сравнения — «честный» порог: выше наибольшей
+            # оценки вопроса вне корпуса этого набора (ни один такой вопрос не получил бы ответа)
+            "confident_context_honest": share([r["context"] and r["top_score"] > honest for r in inside]),
             "per_question": per_question,
         }
     return out
@@ -213,8 +222,8 @@ def main() -> None:
     reranker = None
     results: Dict[str, Any] = {}
     for model_label, model_name in models.items():
-        for heading in (False, True):
-            labels = {pool: f"{'с заголовком' if heading else 'без заголовка'} / {model_label} / пул {pool}" for pool in pools}
+        for heading_label, heading, rerank_heading in HEADINGS:
+            labels = {pool: f"{heading_label} / {model_label} / пул {pool}" for pool in pools}
             if wanted and not any(label in wanted for label in labels.values()):
                 continue
             labels = {pool: label + reranker_suffix for pool, label in labels.items()}
@@ -224,18 +233,19 @@ def main() -> None:
 
                 reranker = CrossEncoderReranker(reranker_name, device="cuda" if torch.cuda.is_available() else "cpu")
             engine.reranker = reranker
-            texts = rerank_texts(corpus, heading)
+            texts = rerank_texts(corpus, rerank_heading)
             for pool, value in evaluate(engine, data, by_id, pools, texts, d2q_mode == "separate").items():
                 results[labels[pool]] = value
             del engine
             gc.collect()
 
     print(f"\n{'вариант':48s} {'Hit@1':>6s} {'Hit@3':>6s} {'в конт.':>8s} {'3 стат.':>8s} {'увер.+к.':>9s} "
-          f"{'увер.+3 ст.':>11s} {'вне: прошло / макс':>19s}")
+          f"{'увер.+3 ст.':>11s} {'вне: прошло / макс':>19s} {'увер.+к. при пороге > макс. вне':>32s}")
     for label, m in results.items():
         print(f"{label:48s} {m['hit@1']:6.3f} {m['hit@3']:6.3f} {m['context']:8.3f} {m['context_articles']:8.3f} "
               f"{m['confident_context']:9.3f} {m['confident_context_articles']:11.3f} "
-              f"{m['outside_passed']:>8d} / {m['outside_max'] if m['outside_max'] is not None else float('nan'):.3f}")
+              f"{m['outside_passed']:>8d} / {m['outside_max'] if m['outside_max'] is not None else float('nan'):.3f}"
+              f" {m['confident_context_honest']:32.3f}")
 
     saved = json.loads(RESULT.read_text(encoding="utf-8")) if RESULT.exists() else {}
     saved.setdefault(questions.name, {}).update(results)

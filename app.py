@@ -36,7 +36,9 @@ from ask import (
     load_rerank_pool,
 )
 from run_adilet_eval import DEFAULT_MODEL, model_cache_name, texts_fingerprint
-from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus, law_titles
+from src.corpus import (
+    CHUNK_OVERLAP, CHUNK_SIZE, LAWS_CACHE_SUFFIX, LAWS_INDEX_HEADING, build_chunk_corpus, law_titles, search_texts,
+)
 from src.nli import load_entailment_scorer
 from src.embeddings import EmbeddingModel
 from src.generation import (
@@ -270,8 +272,9 @@ def load_embedder(model_name: str) -> EmbeddingModel:
 def load_engine(lang: str, model_name: str, corpus_name: str = "adilet") -> LegalSearchEngine:
     def build() -> LegalSearchEngine:
         corpus = build_corpus(lang, corpus_name)
-        texts = [c["text"] for c in corpus]
-        suffix = "_laws" if corpus_name == "laws" else ""
+        heading = corpus_name == "laws" and LAWS_INDEX_HEADING
+        texts = search_texts(corpus, heading)
+        suffix = LAWS_CACHE_SUFFIX if corpus_name == "laws" else ""
         cache_key = f"{model_cache_name(model_name)}_{lang}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}{suffix}"
         embedder = load_embedder(model_name)
         # Если кэша эмбеддингов корпуса нет, корпус векторизуется на видеокарте (на CPU это минуты), затем e5
@@ -290,6 +293,8 @@ def load_engine(lang: str, model_name: str, corpus_name: str = "adilet") -> Lega
                     cache_key=cache_key,
                     hybrid_params=load_hybrid_params(model_name, lang),
                     bm25_params=load_bm25_params(lang),
+                    # Реранкер — по тексту чанка без заголовка (src/corpus.LAWS_INDEX_HEADING)
+                    rerank_docs=[c["text"] for c in corpus] if heading else None,
                 )
             finally:
                 if gpu:

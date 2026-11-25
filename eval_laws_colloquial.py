@@ -46,7 +46,7 @@ import numpy as np
 
 from ask import LegalSearchEngine, default_model, load_bm25_params, load_hybrid_params, load_rerank_pool
 from run_adilet_eval import model_cache_name
-from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, build_chunk_corpus
+from src.corpus import CHUNK_OVERLAP, CHUNK_SIZE, LAWS_INDEX_HEADING, build_chunk_corpus, search_texts
 from src.embeddings import EmbeddingModel
 from src.generation import load_generation_params
 from src.laws import load_laws
@@ -67,10 +67,31 @@ RESULT = Path(_arg("--result", "data/laws/colloquial_eval.json"))
 # веб-демо (подобраны на прежнем наборе) — проверка на новых вопросах без подгонки
 FROZEN_SETTINGS = Path("data/laws/colloquial_eval.json")
 FROZEN = "--frozen" in sys.argv
+# --answers --other-reranker NAME --gate X: выбранные настройки с другим реранкером поиска и порогом уверенности X
+# (результат — ключ answers_other_reranker, настройки веб-демо не меняются; нужен --frozen для порога соответствия)
+OTHER_RERANKER = _arg("--other-reranker", "") or None
+OTHER_GATE = float(_arg("--gate", "nan")) if OTHER_RERANKER else None
 MANUAL = Path("data/laws/colloquial_manual_check.json")  # ручная проверка показанных ответов (C / P / W)
 CACHE_DIR = "data/adilet/cache"
 LANG = "rus"
 DEPTH = 10  # сколько чанков выдачи учитывается в метриках
+# Индекс законов (BM25 + e5) — по тексту с заголовком статьи, как в веб-демо (src/corpus.LAWS_INDEX_HEADING);
+# --no-heading — по тексту чанка как есть (так получены результаты до 24.11.2026)
+HEADING = LAWS_INDEX_HEADING and "--no-heading" not in sys.argv
+
+
+def laws_engine(corpus: List[Dict[str, Any]], model_name: str) -> LegalSearchEngine:
+    """Поиск по корпусу законов, как в веб-демо: гибрид BM25 + e5 (запрос на CPU) по тексту с заголовком статьи,
+    реранкер — по тексту чанка, пул реранкера из настроек."""
+    return LegalSearchEngine(
+        docs=search_texts(corpus, HEADING), doc_ids=[c["id"] for c in corpus],
+        embedder=EmbeddingModel(model_name=model_name, device="cpu"), cache_dir=CACHE_DIR,
+        cache_key=f"{model_cache_name(model_name)}_{LANG}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}"
+                  f"{'_laws_heading' if HEADING else '_laws'}",
+        hybrid_params=load_hybrid_params(model_name, LANG), bm25_params=load_bm25_params(LANG),
+        rerank_pool=load_rerank_pool(LANG),
+        rerank_docs=[c["text"] for c in corpus] if HEADING else None,  # реранкер — текст чанка без заголовка
+    )
 
 
 def article_numbers(chunk: Dict[str, Any]) -> List[str]:
@@ -190,13 +211,7 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
     corpus = build_chunk_corpus(load_laws(), {})
     by_id = {c["id"]: c for c in corpus}
     model_name = default_model(LANG)
-    engine = LegalSearchEngine(
-        docs=[c["text"] for c in corpus], doc_ids=[c["id"] for c in corpus],
-        embedder=EmbeddingModel(model_name=model_name, device="cpu"), cache_dir=CACHE_DIR,
-        cache_key=f"{model_cache_name(model_name)}_{LANG}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}_laws",
-        hybrid_params=load_hybrid_params(model_name, LANG), bm25_params=load_bm25_params(LANG),
-        rerank_pool=load_rerank_pool(LANG),
-    )
+    engine = laws_engine(corpus, model_name)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     adilet = load_generation_params(LANG, default_reranker(LANG))
     new_gate = threshold_for(results["gates"]["hybrid + реранкер исходный / со словарём"]["answerable_top_scores"])
@@ -249,13 +264,20 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
         # Без порога уверенности поиска: все вопросы доходят до модели, порог потом считается по top_score записей
         for cfg in configs.values():
             cfg["min_retrieval_score"] = None
+    if OTHER_RERANKER:
+        # Другой реранкер для поиска и порог уверенности в его шкале (подобран на отладочных вопросах);
+        # соответствие ответа вопросу — прежним реранкером на процессоре, с прежним порогом (шкала та же)
+        for cfg in configs.values():
+            cfg.update({"reranker": OTHER_RERANKER, "min_retrieval_score": OTHER_GATE, "relevance_reranker": DEFAULT_RERANKER})
     out: Dict[str, Any] = {}
     for label, cfg in configs.items():
         reranker = CrossEncoderReranker(cfg["reranker"], device=device)
         engine.reranker = reranker
+        relevance_model = (CrossEncoderReranker(cfg["relevance_reranker"], device="cpu")
+                           if cfg.get("relevance_reranker") else reranker)
         answerer = GroundedAnswerer(
             client, LANG, min_retrieval_score=cfg["min_retrieval_score"], min_sentence_support=adilet["min_sentence_support"],
-            min_answer_relevance=cfg["min_answer_relevance"], relevance_scorer=reranker_relevance(reranker),
+            min_answer_relevance=cfg["min_answer_relevance"], relevance_scorer=reranker_relevance(relevance_model),
             min_entailment=adilet["min_entailment"], entailment_scorer=entailment,
             retry_short=bool(cfg.get("retry_short")), retry_refusals=bool(cfg.get("retry_refusals")),
             number_words=bool(cfg.get("number_words")),
@@ -316,7 +338,7 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
                        "outside": sum(bool(r.get("quotes")) for r in outside)},
         }
         out[label] = {"params": {k: v for k, v in cfg.items()}, "summary": summary, "records": records}
-        del reranker
+        del reranker, relevance_model
         engine.reranker = None
         gc.collect()
         if device == "cuda":
@@ -352,13 +374,7 @@ def nli_stage(results: Dict[str, Any]) -> Dict[str, Any]:
     corpus = build_chunk_corpus(load_laws(), {})
     by_id = {c["id"]: c for c in corpus}
     model_name = default_model(LANG)
-    engine = LegalSearchEngine(
-        docs=[c["text"] for c in corpus], doc_ids=[c["id"] for c in corpus],
-        embedder=EmbeddingModel(model_name=model_name, device="cpu"), cache_dir=CACHE_DIR,
-        cache_key=f"{model_cache_name(model_name)}_{LANG}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}_laws",
-        hybrid_params=load_hybrid_params(model_name, LANG), bm25_params=load_bm25_params(LANG),
-        rerank_pool=load_rerank_pool(LANG),
-    )
+    engine = laws_engine(corpus, model_name)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     engine.reranker = CrossEncoderReranker(results["params"]["reranker"], device=device)
     passages = {}
@@ -410,6 +426,14 @@ def main() -> None:
         results.setdefault("answers_by_llm", {})[llm] = out
         RESULT.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
         return
+    if "--answers" in sys.argv and OTHER_RERANKER:
+        if not FROZEN or OTHER_GATE != OTHER_GATE:
+            raise SystemExit("--other-reranker: нужны --frozen и --gate")
+        results = json.loads(RESULT.read_text(encoding="utf-8"))
+        out = answers_stage(results, only=[CHOSEN])
+        results.setdefault("answers_other_reranker", {})[f"{OTHER_RERANKER} / порог {OTHER_GATE}"] = out
+        RESULT.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
+        return
     if "--answers" in sys.argv and "--no-gate" in sys.argv:
         # Выбранные настройки без порога уверенности поиска — отдельный ключ, прежние ответы и настройки не меняются
         results = json.loads(RESULT.read_text(encoding="utf-8"))
@@ -440,12 +464,7 @@ def main() -> None:
     corpus = build_chunk_corpus(load_laws(), {})
     by_id = {c["id"]: c for c in corpus}
     model_name = default_model(LANG)
-    engine = LegalSearchEngine(
-        docs=[c["text"] for c in corpus], doc_ids=[c["id"] for c in corpus],
-        embedder=EmbeddingModel(model_name=model_name, device="cpu"), cache_dir=CACHE_DIR,
-        cache_key=f"{model_cache_name(model_name)}_{LANG}_fixed_{CHUNK_SIZE}_{CHUNK_OVERLAP}_laws",
-        hybrid_params=load_hybrid_params(model_name, LANG), bm25_params=load_bm25_params(LANG),
-    )
+    engine = laws_engine(corpus, model_name)
     pool = load_rerank_pool(LANG)
     print(f"Вопросов: {len(answerable)} с ответом в корпусе, {len(outside)} вне корпуса | корпус {len(corpus)} чанков | "
           f"e5 {model_name} (CPU) | пул реранкера {pool}")

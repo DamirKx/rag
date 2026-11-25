@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from src.corpus import build_chunk_corpus, expand_hits, expand_span, index_text
+from src.corpus import build_chunk_corpus, expand_hits, expand_span, index_text, search_texts
 from src.generation import Passage
 
 
@@ -108,3 +108,9 @@ class TestIndexText:
 
     def test_chunk_without_metadata_unchanged(self):
         assert index_text({"text": "Текст преамбулы."}) == "Текст преамбулы."
+
+
+def test_search_texts_heading_switch():
+    corpus = [{"text": "путем перечисления", "law": "Трудовой кодекс РК", "article_title": "Статья 113. Сроки"}]
+    assert search_texts(corpus, heading=False) == ["путем перечисления"]
+    assert search_texts(corpus, heading=True) == ["Трудовой кодекс РК. Статья 113. Сроки\nпутем перечисления"]
