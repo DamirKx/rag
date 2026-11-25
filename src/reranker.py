@@ -10,6 +10,7 @@
 оценкой документа служит максимум по окнам (MaxP): иначе модель увидела бы только начало текста.
 """
 
+import math
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
 
@@ -32,6 +33,12 @@ def _cross_encoder_class():
 DEFAULT_RERANKER = "BAAI/bge-reranker-v2-m3"
 # Он же, дообученный в notebooks/finetune_reranker.ipynb (папка скачивается с Google Drive)
 FINETUNED_RERANKER = "models/reranker-bge-m3-adilet-{lang}"
+
+# Другие готовые реранкеры для сравнения (eval_laws_search.py --reranker). jina написан собственным кодом модели
+# на Hub (trust_remote_code); Qwen3-Reranker возвращает разность логитов «yes»/«no» — оценка переводится сигмоидой
+# в 0–1, как у bge (порядок кандидатов от этого не меняется)
+TRUST_REMOTE_CODE = ("jinaai/",)
+RAW_LOGITS = ("Qwen/Qwen3-Reranker",)
 
 
 def default_reranker(lang: str) -> str:
@@ -68,6 +75,8 @@ class CrossEncoderReranker:
                                    Примерно вдвое быстрее, на порядок кандидатов практически не влияет.
         """
         self.model_name = model_name
+        self.sigmoid = model_name.startswith(RAW_LOGITS)
+        extra = {"trust_remote_code": True} if model_name.startswith(TRUST_REMOTE_CODE) else {}
         self.batch_size = batch_size
         self.window_chars = window_chars
         self.window_overlap = window_overlap
@@ -81,11 +90,11 @@ class CrossEncoderReranker:
             # Веса читаются в полной точности на процессоре и переносятся на видеокарту уже в половинной.
             # Если перевести модель в fp16 прямо на видеокарте, освободившиеся 2,2 ГБ остаются раздробленными
             # и PyTorch держит ~1 ГБ видеопамяти впустую — её не хватает языковой модели в Ollama
-            self.model = _cross_encoder_class()(model_name, device="cpu", max_length=max_length)
+            self.model = _cross_encoder_class()(model_name, device="cpu", max_length=max_length, **extra)
             self.model.half()
             self.model.to(device)
         else:
-            self.model = _cross_encoder_class()(model_name, device=device, max_length=max_length)
+            self.model = _cross_encoder_class()(model_name, device=device, max_length=max_length, **extra)
 
     def score(self, query: str, documents: Sequence[str]) -> List[float]:
         """Возвращает оценки релевантности каждого документа запросу (чем выше, тем релевантнее)."""
@@ -102,6 +111,8 @@ class CrossEncoderReranker:
                 owner.append(doc_idx)
 
         window_scores = self.model.predict(pairs, batch_size=self.batch_size, show_progress_bar=False)
+        if self.sigmoid:
+            window_scores = [1.0 / (1.0 + math.exp(-float(s))) for s in window_scores]
         scores = [float("-inf")] * len(documents)
         for doc_idx, s in zip(owner, window_scores):
             scores[doc_idx] = max(scores[doc_idx], float(s))

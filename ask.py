@@ -136,13 +136,17 @@ class LegalSearchEngine:
         reranker: Optional[CrossEncoderReranker] = None,
         rerank_pool: int = 30,
         bm25_params: Optional[Dict[str, Any]] = None,
+        rerank_docs: Optional[List[str]] = None,
     ):
+        """rerank_docs — тексты для реранкера, если они отличаются от текстов индекса (корпус законов: индекс
+        с заголовком статьи, реранкер — текст чанка как есть, см. src/corpus.LAWS_INDEX_HEADING)."""
         self.embedder = embedder
         self.hybrid_params = hybrid_params or dict(DEFAULT_HYBRID_PARAMS)
         self.bm25_params = dict(bm25_params or {})
         self.reranker = reranker
         self.rerank_pool = rerank_pool
         self.docs_by_id = dict(zip(doc_ids, docs))
+        self.rerank_texts = dict(zip(doc_ids, rerank_docs)) if rerank_docs is not None else {}
         self._docs = docs
         self._doc_ids = doc_ids
 
@@ -223,7 +227,9 @@ class LegalSearchEngine:
     def rerank(self, query: str, candidates: List[Tuple[str, str, float]], top_k: int) -> List[Tuple[str, str, float]]:
         """Переранжирует готовый список троек (doc_id, текст, оценка) cross-encoder."""
         with span("reranker", as_type="retriever", input={"query": query, "candidates": len(candidates), "top_k": top_k}) as obs:
-            pairs = self.reranker.rerank(query, [(doc_id, text) for doc_id, text, _ in candidates], top_k=top_k)
+            pairs = self.reranker.rerank(
+                query, [(doc_id, self.rerank_texts.get(doc_id, text)) for doc_id, text, _ in candidates], top_k=top_k
+            )
             if obs.enabled:
                 # Место результата до переранжирования: насколько реранкер поднял нужный фрагмент
                 before = {doc_id: rank for rank, (doc_id, _, _) in enumerate(candidates, 1)}

@@ -70,6 +70,17 @@ class TestEngineRerank:
         assert results[0][2] == 2.0
         assert len(results) == 2
 
+    def test_rerank_docs_given_to_reranker_instead_of_index_text(self, fake_embedder, tmp_path, reranker):
+        """Индекс — с заголовком статьи, реранкер — текст чанка как есть; результат — текст индекса."""
+        engine = LegalSearchEngine(
+            docs=["Закон о гранте. Статья 5\nобразовательный грант", "порядок регистрации"], doc_ids=["c0", "c1"],
+            embedder=fake_embedder, cache_dir=str(tmp_path), cache_key="k", reranker=reranker, rerank_pool=2,
+            rerank_docs=["образовательный грант", "порядок регистрации"],
+        )
+        results = engine.search("закон о гранте", mode="hybrid", top_k=2, rerank=True)
+        assert {d for _, d in reranker.model.pairs} == {"образовательный грант", "порядок регистрации"}
+        assert results[0][0] == "c0" and results[0][1].startswith("Закон о гранте")
+
     def test_rerank_without_reranker_raises(self, engine):
         engine.reranker = None
         with pytest.raises(ValueError):

@@ -151,6 +151,34 @@ def expand_hits(hits: Sequence[Dict[str, Any]], window: int = EXPAND_WINDOW) -> 
     return expanded
 
 
+def index_text(chunk: Dict[str, Any]) -> str:
+    """Текст чанка для поиска с названием закона и заголовком статьи: «Трудовой кодекс РК. Статья 113. Порядок и сроки
+    выплаты заработной платы» + текст чанка.
+
+    Заголовок статьи есть только в первом чанке статьи (в корпусе законов — у 28% чанков), а тема лучше всего видна
+    именно по нему. Модель ответа получает чанк без этой строки (chunk["text"]).
+    """
+    text, title, law = chunk["text"], chunk.get("article_title", ""), chunk.get("law", "")
+    if title and text.startswith(title):
+        title = ""  # первый чанк статьи: заголовок уже в тексте
+    head = ". ".join(part for part in (law, title) if part)
+    return f"{head}\n{text}" if head else text
+
+
+# Кандидаты в корпусе законов ищутся (BM25 + e5) по тексту с заголовком статьи (index_text), а реранкер и модель
+# ответа получают текст чанка как есть. Заголовок и у реранкера снижал оценку правильной статьи (набор 100: уверенных
+# 25 → 20); только для поиска — на отладочных iq50 Hit@3 0,775 → 0,825, на прежних 59 без изменений, на наборе 100
+# Hit@1 0,438 → 0,475, Hit@3 0,700 → 0,738, уверенных столько же, вне корпуса 0 (eval_laws_search.py,
+# data/laws/search_variants.json, вариант «заголовок только для поиска»)
+LAWS_INDEX_HEADING = True
+LAWS_CACHE_SUFFIX = "_laws_heading" if LAWS_INDEX_HEADING else "_laws"
+
+
+def search_texts(corpus: Sequence[Dict[str, Any]], heading: bool) -> List[str]:
+    """Тексты чанков для индексов поиска и реранкера: с заголовком статьи (index_text) или как есть."""
+    return [index_text(c) if heading else c["text"] for c in corpus]
+
+
 def build_chunk_corpus(
     sub_df: pd.DataFrame,
     titles: Dict[str, str],

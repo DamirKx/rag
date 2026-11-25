@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from src.corpus import build_chunk_corpus, expand_hits, expand_span
+from src.corpus import build_chunk_corpus, expand_hits, expand_span, index_text, search_texts
 from src.generation import Passage
 
 
@@ -92,3 +92,25 @@ def test_corpus_chunks_know_their_position():
     for chunk in corpus:
         assert chunk["context"][chunk["start"]:chunk["end"]] == chunk["text"]
 
+
+
+class TestIndexText:
+    def test_heading_added_to_chunk_from_middle_of_article(self):
+        chunk = {"text": "путем перечисления на банковский счет работника", "law": "Трудовой кодекс РК",
+                 "article_title": "Статья 113. Порядок и сроки выплаты заработной платы"}
+        assert index_text(chunk) == ("Трудовой кодекс РК. Статья 113. Порядок и сроки выплаты заработной платы\n"
+                                     "путем перечисления на банковский счет работника")
+
+    def test_heading_not_repeated_in_first_chunk_of_article(self):
+        chunk = {"text": "Статья 113. Порядок и сроки выплаты заработной платы\n1. Заработная плата выплачивается",
+                 "law": "Трудовой кодекс РК", "article_title": "Статья 113. Порядок и сроки выплаты заработной платы"}
+        assert index_text(chunk) == "Трудовой кодекс РК\n" + chunk["text"]
+
+    def test_chunk_without_metadata_unchanged(self):
+        assert index_text({"text": "Текст преамбулы."}) == "Текст преамбулы."
+
+
+def test_search_texts_heading_switch():
+    corpus = [{"text": "путем перечисления", "law": "Трудовой кодекс РК", "article_title": "Статья 113. Сроки"}]
+    assert search_texts(corpus, heading=False) == ["путем перечисления"]
+    assert search_texts(corpus, heading=True) == ["Трудовой кодекс РК. Статья 113. Сроки\nпутем перечисления"]
