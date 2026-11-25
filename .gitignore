@@ -120,3 +120,7 @@ hf_cache/
 
 # Обучающие пары для дообучения реранкера в Colab (воспроизводятся prepare_reranker_colloquial.py)
 /data/laws/reranker_colloquial/colab/
+
+# Сборка курсовой (coursework/build_docx.py)
+coursework/**/kursovaya.docx
+coursework/**/kursovaya.pdf
