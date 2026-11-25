@@ -27,9 +27,16 @@ MRR@10. Правильный ответ — любая из статей gold в
     python eval_laws_colloquial.py --questions data/laws/colloquial_questions_100.json --result data/laws/colloquial_eval_100.json
     python eval_laws_colloquial.py --answers --short --frozen --questions ... --result ...
     python eval_laws_colloquial.py --answers --no-gate --frozen --questions ... --result ...
+
+Трассы в Langfuse (--langfuse, нужны ключи): выбранные настройки веб-демо, каждый вопрос — отдельная трасса с этапами
+поиска (вектор вопроса, FAISS, BM25, RRF, реранкер) и ответа; в метаданных — эталонные статьи и их чанки, чтобы по
+трассе видеть, на каком этапе теряется правильная статья. Файл результата только читается (нужны gates), не пишется:
+    python eval_laws_colloquial.py --answers --langfuse --frozen --questions data/laws/colloquial_questions_100.json --result data/laws/colloquial_eval_100.json
 """
 
 import gc
+from contextlib import nullcontext
+from datetime import datetime
 import json
 import re
 import sys
@@ -52,6 +59,7 @@ from src.generation import load_generation_params
 from src.laws import load_laws
 from src.query_expansion import expand_query
 from src.reranker import DEFAULT_RERANKER, CrossEncoderReranker, default_reranker
+import src.tracing as tracing
 
 def _arg(name: str, default: str) -> str:
     """Значение ключа командной строки «--name значение» или значение по умолчанию."""
@@ -78,6 +86,20 @@ DEPTH = 10  # сколько чанков выдачи учитывается в
 # Индекс законов (BM25 + e5) — по тексту с заголовком статьи, как в веб-демо (src/corpus.LAWS_INDEX_HEADING);
 # --no-heading — по тексту чанка как есть (так получены результаты до 24.11.2026)
 HEADING = LAWS_INDEX_HEADING and "--no-heading" not in sys.argv
+# --langfuse: каждый вопрос этапа --answers — трасса в Langfuse (без ключа оценка трасс не пишет, даже если ключи заданы)
+TRACE = "--langfuse" in sys.argv
+TRACE_SESSION = f"colloquial-eval {datetime.now():%Y-%m-%d %H:%M}"
+
+
+def question_trace(q: Dict[str, Any], label: str, gold: set, corpus: List[Dict[str, Any]]):
+    """Трасса одного вопроса (--langfuse) или пустой контекст; в метаданных — эталонные статьи и их чанки."""
+    if not TRACE:
+        return nullcontext(tracing.Observation())
+    gold_chunks = [c["id"] for c in corpus if any((c["law"], a) in gold for a in article_numbers(c))]
+    metadata = {"question_id": q["id"], "variant": label, "questions": str(QUESTIONS), "outside_corpus": not gold,
+                "gold": [f"{law}, ст. {article}" for law, article in sorted(gold)], "gold_chunks": gold_chunks}
+    return tracing.trace("colloquial-eval", input=q["question"], metadata=metadata, session_id=TRACE_SESSION,
+                         tags=["colloquial-eval", QUESTIONS.stem])
 
 
 def laws_engine(corpus: List[Dict[str, Any]], model_name: str) -> LegalSearchEngine:
@@ -287,18 +309,22 @@ def answers_stage(results: Dict[str, Any], llm: Optional[str] = None, only: Opti
         )
         records = []
         for q in data:
-            query = expand_query(q["question"]) if cfg["dictionary"] else q["question"]
-            hits = engine.search(query, mode="hybrid", top_k=cfg.get("top_k", 3), rerank=True)
-            passages = build_passages([{**by_id[doc_id], "score": score} for doc_id, _, score in hits])
-            if cfg.get("units"):
-                # Пункты из найденных статей целиком (в корпусе законов фрагмент чанка — статья)
-                passages = focus_passages(query, passages, answerer.quote_scorer, cfg["units"],
-                                          texts=[by_id[p.id]["context"] for p in passages])
-            answer = answerer.answer(query if cfg.get("terms_for_model") else q["question"], passages, search_query=query,
-                                     source_texts=[by_id[p.id]["context"] for p in passages])
             gold = {(g["law"], g["article"]) for g in q["gold"]}
-            cited = [passages[n - 1] for n in answer.cited if 1 <= n <= len(passages)] if answer.answered else []
-            from_gold = any((by_id[i]["law"], a) in gold for p in cited for i in p.ids for a in article_numbers(by_id[i]))
+            with question_trace(q, label, gold, corpus) as root:
+                query = expand_query(q["question"]) if cfg["dictionary"] else q["question"]
+                hits = engine.search(query, mode="hybrid", top_k=cfg.get("top_k", 3), rerank=True)
+                passages = build_passages([{**by_id[doc_id], "score": score} for doc_id, _, score in hits])
+                if cfg.get("units"):
+                    # Пункты из найденных статей целиком (в корпусе законов фрагмент чанка — статья)
+                    passages = focus_passages(query, passages, answerer.quote_scorer, cfg["units"],
+                                              texts=[by_id[p.id]["context"] for p in passages])
+                answer = answerer.answer(query if cfg.get("terms_for_model") else q["question"], passages, search_query=query,
+                                         source_texts=[by_id[p.id]["context"] for p in passages])
+                cited = [passages[n - 1] for n in answer.cited if 1 <= n <= len(passages)] if answer.answered else []
+                from_gold = any((by_id[i]["law"], a) in gold for p in cited for i in p.ids for a in article_numbers(by_id[i]))
+                root.update(output=answer.text, metadata={"status": answer.status, "search_query": query,
+                                                          "gold_in_context": gold_in(passages, gold, by_id),
+                                                          "from_gold": from_gold})
             # raw — ответ модели до проверки (в answer при отклонении стоит запасной текст), problems — почему отклонён
             records.append({"id": q["id"], "status": answer.status, "from_gold": from_gold, "has_gold": bool(gold),
                             "top_score": round(float(max(p.score for p in passages)), 4) if passages else None,
@@ -417,6 +443,17 @@ def main() -> None:
         out = answers_stage(results, only=only)
         results["answers_context"] = {**results.get("answers_context", {}), **out}
         RESULT.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
+        return
+    if "--answers" in sys.argv and TRACE:
+        # Трассы выбранных настроек в Langfuse; файл результата не меняется (из него берутся только gates)
+        if not FROZEN:
+            raise SystemExit("--langfuse: нужен --frozen (пороги веб-демо, а не подобранные на этих вопросах)")
+        client = tracing.get_langfuse()
+        if client is None:
+            raise SystemExit("--langfuse: задайте LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY и LANGFUSE_BASE_URL")
+        answers_stage(json.loads(RESULT.read_text(encoding="utf-8")), only=[CHOSEN])
+        client.flush()
+        print(f"\nТрассы отправлены в Langfuse: сессия «{TRACE_SESSION}», тег {QUESTIONS.stem}. Файл {RESULT} не изменён.")
         return
     if "--answers" in sys.argv and "--llm" in sys.argv:
         # Другая модель ответа — на выбранных настройках; настройки веб-демо (params) не меняются
